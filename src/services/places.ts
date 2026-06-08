@@ -27,11 +27,15 @@ export async function getPlaces(userId: string): Promise<Place[]> {
   try {
     const q = query(
       collection(db, COLLECTION), 
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', userId)
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Place));
+    const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Place));
+    return docs.sort((a, b) => {
+      const dateA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt || 0).getTime();
+      const dateB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
   } catch (err) {
     console.error('Error fetching places:', err);
     return [];
