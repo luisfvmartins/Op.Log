@@ -22,12 +22,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!auth) {
-      const savedMockUser = localStorage.getItem('mock_auth_user');
-      if (savedMockUser) {
-        try {
-          setUser(JSON.parse(savedMockUser));
-        } catch(e) {}
-      }
       setLoading(false);
       return;
     }
@@ -40,15 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     if (!auth) {
-      // Fallback to local simulation if Firebase is not configured
-      const mockUser = {
-        uid: 'local-user-123',
-        displayName: 'Visitante (Local)',
-        email: 'local@exemplo.com'
-      };
-      localStorage.setItem('mock_auth_user', JSON.stringify(mockUser));
-      setUser(mockUser as any);
-      return;
+      throw new Error('O Firebase não está configurado. Adicione as variáveis VITE_FIREBASE_* (ver .env.example) no painel do Vercel.');
     }
     const provider = new GoogleAuthProvider();
     try {
@@ -61,7 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     if (!auth) {
-      localStorage.removeItem('mock_auth_user');
       setUser(null);
       return;
     }
