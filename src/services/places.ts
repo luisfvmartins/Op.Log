@@ -94,17 +94,23 @@ export async function importData(places: Omit<Place, 'id' | 'userId' | 'createdA
     setLocalPlaces([...newPlaces, ...current]);
     return;
   }
-  const batch = writeBatch(db);
   
-  places.forEach(place => {
-    const docRef = doc(collection(db, COLLECTION));
-    batch.set(docRef, {
-      ...place,
-      userId,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+  // Firestore max batch size is 500. We use 450 to be safe.
+  const CHUNK_SIZE = 450;
+  for (let i = 0; i < places.length; i += CHUNK_SIZE) {
+    const chunk = places.slice(i, i + CHUNK_SIZE);
+    const batch = writeBatch(db);
+    
+    chunk.forEach(place => {
+      const docRef = doc(collection(db, COLLECTION));
+      batch.set(docRef, {
+        ...place,
+        userId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
     });
-  });
-  
-  await batch.commit();
+    
+    await batch.commit();
+  }
 }
