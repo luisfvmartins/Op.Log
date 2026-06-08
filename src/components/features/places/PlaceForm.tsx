@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Place } from '../../../services/places';
+import { capitalizeText } from '../../../lib/formatter';
 
 interface PlaceFormProps {
   initialData?: Place;
@@ -31,7 +32,15 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let formattedValue = value;
+    
+    if (name === 'linkGoogleMaps') {
+      formattedValue = value.toLowerCase();
+    } else {
+      formattedValue = capitalizeText(value);
+    }
+    
+    setFormData(prev => ({ ...prev, [name]: formattedValue }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

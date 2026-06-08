@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { GripVertical, Trash2, Send, Copy } from 'lucide-react';
 import { Place } from '../../../services/places';
-import { formatRouteMessage } from '../../../lib/formatter';
+import { formatRouteMessage, capitalizeText } from '../../../lib/formatter';
 import { createRoute } from '../../../services/routes';
 
 interface RouteBuilderProps {
@@ -48,6 +48,13 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
     saveRouteLog(message);
   };
 
+  const handleCarretaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCarreta(capitalizeText(e.target.value));
+  };
+
+  const handleObservacaoGeralChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setObservacaoGeral(capitalizeText(e.target.value));
+  };
   const saveRouteLog = async (message: string) => {
     try {
       setIsSaving(true);
@@ -78,7 +85,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
             required
             autoFocus
             value={carreta}
-            onChange={(e) => setCarreta(e.target.value)}
+            onChange={handleCarretaChange}
             className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono text-center"
             placeholder="Ex: ABC-1234"
           />
@@ -87,7 +94,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
           <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Observação Geral</label>
           <textarea
             value={observacaoGeral}
-            onChange={(e) => setObservacaoGeral(e.target.value)}
+            onChange={handleObservacaoGeralChange}
             rows={2}
             className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none min-h-[80px]"
             placeholder="Instruções adicionais para o motorista..."
