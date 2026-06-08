@@ -1,0 +1,6 @@
+{
+  "name": "Locais e Roteiros",
+  "description": "Módulo operacional para gestão de locais de entrega e criação de roteiros para motoristas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
