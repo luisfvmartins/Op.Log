@@ -86,7 +86,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
             autoFocus
             value={carreta}
             onChange={handleCarretaChange}
-            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono text-center"
+            className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono text-center transition-colors"
             placeholder="Ex: ABC-1234"
           />
         </div>
@@ -96,21 +96,21 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
             value={observacaoGeral}
             onChange={handleObservacaoGeralChange}
             rows={2}
-            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none min-h-[80px]"
+            className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none min-h-[80px] transition-colors"
             placeholder="Instruções adicionais para o motorista..."
           />
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-3 border-t border-white/10 pt-4">
+      <div className="flex items-center justify-between mb-3 border-t border-slate-200 dark:border-white/10 pt-4">
         <h3 className="block text-[10px] font-bold text-slate-500 uppercase">Sequência de Destinos ({places.length})</h3>
         <span className="text-[10px] text-slate-500 font-medium">Arraste para reordenar</span>
       </div>
 
       <div className="flex-1 overflow-y-auto -mx-2 px-2">
         {places.length === 0 ? (
-          <div className="border-2 border-dashed border-white/5 rounded-lg p-6 flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] text-slate-600 uppercase font-bold">Nenhum local selecionado</span>
+          <div className="border-2 border-dashed border-slate-200 dark:border-white/5 rounded-lg p-6 flex flex-col items-center justify-center text-center">
+            <span className="text-[10px] text-slate-400 dark:text-slate-600 uppercase font-bold">Nenhum local selecionado</span>
           </div>
         ) : (
           <DragDropContext onDragEnd={onDragEnd}>
@@ -123,20 +123,20 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          className={`flex items-start gap-3 bg-white/5 border rounded-lg pl-2 pr-3 py-3 relative group transition-colors ${
-                            snapshot.isDragging ? 'border-blue-500/50 shadow-2xl shadow-blue-500/10' : 'border-white/10'
+                          className={`flex items-start gap-3 bg-white dark:bg-white/5 border rounded-lg pl-2 pr-3 py-3 relative group transition-colors ${
+                            snapshot.isDragging ? 'border-blue-500/50 shadow-2xl shadow-blue-500/10' : 'border-slate-200 dark:border-white/10'
                           }`}
                         >
                           <div 
                             {...provided.dragHandleProps}
-                            className="mt-1 text-slate-500 hover:text-slate-300 transition-colors cursor-grab active:cursor-grabbing p-1"
+                            className="mt-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-grab active:cursor-grabbing p-1"
                           >
                             <GripVertical className="w-4 h-4" />
                           </div>
                           
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-medium text-white flex items-center gap-2">
-                              <span className="bg-slate-800 w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold shrink-0">
+                            <h4 className="text-xs font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                              <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold shrink-0">
                                 {index + 1}
                               </span>
                               <span className="truncate">{place.nomeFantasia}</span>
@@ -146,7 +146,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
 
                           <button
                             onClick={() => onRemoveFromSelection(place.id!)}
-                            className="text-slate-600 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-2"
+                            className="text-slate-400 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-2"
                             title="Remover do roteiro"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -163,7 +163,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
         )}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-6 bg-white/5 border-t border-white/10 flex gap-2 z-10 backdrop-blur-md">
+      <div className="absolute bottom-0 left-0 right-0 p-6 bg-slate-50/80 dark:bg-white/5 border-t border-slate-200 dark:border-white/10 flex gap-2 z-10 backdrop-blur-md">
         <button
           onClick={handleShare}
           disabled={!isFormValid || isSaving}

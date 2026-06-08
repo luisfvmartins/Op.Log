@@ -58,7 +58,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           name="nomeFantasia"
           value={formData.nomeFantasia}
           onChange={handleChange}
-          className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+          className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
           placeholder="Ex: CD Magalu"
         />
       </div>
@@ -69,7 +69,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           name="cidade"
           value={formData.cidade}
           onChange={handleChange}
-          className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+          className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
           placeholder="Ex: São Paulo, SP"
         />
       </div>
@@ -80,7 +80,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           name="nomeRazaoSocial"
           value={formData.nomeRazaoSocial}
           onChange={handleChange}
-          className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+          className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
           placeholder="Magazine Luiza S/A"
         />
       </div>
@@ -92,7 +92,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           name="linkGoogleMaps"
           value={formData.linkGoogleMaps}
           onChange={handleChange}
-          className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
+          className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
           placeholder="https://maps.app.goo.gl/..."
         />
       </div>
@@ -103,17 +103,17 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           value={formData.observacao}
           onChange={handleChange}
           rows={3}
-          className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none"
+          className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none"
           placeholder="Insumos, restrições, horários..."
         />
       </div>
 
-      <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
+      <div className="pt-4 flex justify-end gap-3 border-t border-slate-200 dark:border-white/10">
         <button
           type="button"
           onClick={onCancel}
           disabled={isLoading}
-          className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white bg-transparent hover:bg-white/5 rounded-lg transition-colors border border-transparent"
+          className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent"
         >
           Cancelar
         </button>

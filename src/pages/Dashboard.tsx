@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map } from 'lucide-react';
+import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon } from 'lucide-react';
 import { usePlaces } from '../hooks/usePlaces';
 import { useToast } from '../hooks/useToast';
 import { Place } from '../services/places';
@@ -11,7 +11,7 @@ import { Drawer } from '../components/ui/Drawer';
 import { ToastContainer } from '../components/ui/Toast';
 import { formatRouteMessage } from '../lib/formatter';
 
-export function Dashboard() {
+export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
   const { places, loading, add, update, remove } = usePlaces();
   const { toasts, addToast, removeToast } = useToast();
   
@@ -30,11 +30,17 @@ export function Dashboard() {
   // Derived state
   const filteredPlaces = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return places.filter(
-      p => p.nomeFantasia.toLowerCase().includes(q) || 
-           p.cidade.toLowerCase().includes(q) || 
-           p.nomeRazaoSocial.toLowerCase().includes(q)
-    );
+    if (!q) return places;
+    
+    return places.filter(place => {
+      return Object.entries(place).some(([key, value]) => {
+        if (key === 'linkGoogleMaps' || key === 'id' || key === 'createdAt' || key === 'updatedAt') return false;
+        if (typeof value === 'string') {
+          return value.toLowerCase().includes(q);
+        }
+        return false;
+      });
+    });
   }, [places, searchQuery]);
 
   const selectedPlaces = useMemo(() => {
@@ -100,17 +106,17 @@ export function Dashboard() {
   const clearSelection = () => setSelectedIds(new Set());
 
   return (
-    <div className="min-h-screen bg-[#09090B] text-slate-200 font-sans selection:bg-blue-500/30">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] text-slate-800 dark:text-slate-200 font-sans selection:bg-blue-500/30">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       {/* HEADER */}
-      <header className="sticky top-0 z-30 bg-[#09090B]/50 backdrop-blur-md border-b border-white/10 px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#09090B]/50 backdrop-blur-md border-b border-slate-200 dark:border-white/10 px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 flex items-center justify-center bg-blue-600 rounded text-white">
             <Map className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-white leading-tight">Locais e Roteiros</h1>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-white leading-tight">Locais e Roteiros</h1>
             <p className="text-xs text-slate-500 font-medium">{places.length} locais registrados</p>
           </div>
         </div>
@@ -123,26 +129,34 @@ export function Dashboard() {
               placeholder="Pesquisar por nome, cidade ou razão social..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+              className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all dark:placeholder:text-slate-500"
             />
           </div>
 
-          <div className="flex bg-white/5 border border-white/10 rounded-lg p-1 shrink-0">
+          <div className="flex bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1 shrink-0">
             <button
               onClick={() => setViewMode('cards')}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'cards' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'cards' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
               title="Visualização em Cards"
             >
               Cards
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
               title="Visualização em Lista"
             >
               Lista
             </button>
           </div>
+
+          <button
+            onClick={toggleTheme}
+            className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5"
+            title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
 
           <button
             onClick={() => {
@@ -185,9 +199,9 @@ export function Dashboard() {
             ))}
           </div>
         ) : (
-          <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-[#09090B]/50 border-b border-white/10 text-slate-400 font-medium">
+              <thead className="bg-slate-50 dark:bg-[#09090B]/50 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 font-medium">
                 <tr>
                   <th className="px-4 py-3 w-10"></th>
                   <th className="px-4 py-3">Nome Fantasia</th>
@@ -196,7 +210,7 @@ export function Dashboard() {
                   <th className="px-4 py-3 w-28 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                 {filteredPlaces.map(place => (
                   <PlaceRow
                     key={place.id}
@@ -291,14 +305,14 @@ export function Dashboard() {
 
 function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare }: any) {
   return (
-    <div className={`p-4 rounded-xl border flex flex-col gap-3 group transition-all duration-200 ${isSelected ? 'border-blue-500/50 bg-blue-500/5 shadow-[0_0_0_1px_rgba(59,130,246,0.3)]' : 'border-white/10 bg-white/5 hover:bg-white/[0.08]'}`}>
+    <div className={`p-4 rounded-xl border flex flex-col gap-3 group transition-all duration-200 ${isSelected ? 'border-blue-500/50 bg-blue-50/50 dark:bg-blue-500/5 shadow-[0_0_0_1px_rgba(59,130,246,0.3)]' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/[0.08] shadow-sm'}`}>
       
       {/* Checkbox */}
       <div 
         className="absolute top-3 right-3 z-10 cursor-pointer" 
         onClick={(e) => { e.stopPropagation(); onSelect(); }}
       >
-        <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600' : 'bg-black/40 border border-white/20 group-hover:border-white/40'}`}>
+        <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600' : 'bg-white dark:bg-black/40 border border-slate-300 dark:border-white/20 group-hover:border-slate-400 dark:group-hover:border-white/40'}`}>
           {isSelected && (
             <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
           )}
@@ -307,34 +321,34 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
 
       <div className="flex-1 flex flex-col cursor-pointer" onClick={onSelect}>
         <div>
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter truncate block pr-6">{place.nomeRazaoSocial}</span>
-          <h3 className="text-white font-medium text-base truncate">{place.nomeFantasia}</h3>
-          <div className="flex items-center gap-1.5 text-slate-400 text-xs mt-0.5">
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter truncate block pr-6">{place.nomeRazaoSocial}</span>
+          <h3 className="text-slate-900 dark:text-white font-medium text-base truncate">{place.nomeFantasia}</h3>
+          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs mt-0.5">
             <span className="truncate">{place.cidade}</span>
           </div>
         </div>
         
         {place.observacao && (
-          <div className="py-2 px-3 mt-3 bg-black/20 rounded-lg border border-white/5">
+          <div className="py-2 px-3 mt-3 bg-slate-50 dark:bg-black/20 rounded-lg border border-slate-100 dark:border-white/5">
             <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Observação</p>
-            <p className="text-xs text-slate-300 line-clamp-2">{place.observacao}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">{place.observacao}</p>
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between mt-1 pt-1 border-t border-white/5">
-        <button onClick={onCopy} className="text-xs text-slate-400 flex items-center gap-1 group-hover:text-blue-400 transition-colors">
+      <div className="flex items-center justify-between mt-1 pt-1 border-t border-slate-100 dark:border-white/5">
+        <button onClick={onCopy} className="text-xs text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors flex items-center gap-1 group-hover:text-blue-500 dark:group-hover:text-blue-400">
           <Copy className="w-3 h-3" />
           Copiar Info
         </button>
         <div className="flex gap-2">
-          <button onClick={onShare} className="p-1.5 text-slate-400 hover:text-green-400 hover:bg-white/10 rounded transition-colors" title="WhatsApp">
+          <button onClick={onShare} className="p-1.5 text-slate-400 hover:text-green-500 dark:hover:text-green-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors" title="WhatsApp">
             <Share2 className="w-4 h-4" />
           </button>
-          <button onClick={onEdit} className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded transition-colors" title="Editar">
+          <button onClick={onEdit} className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors" title="Editar">
             <Edit2 className="w-4 h-4" />
           </button>
-          <button onClick={onDelete} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-white/10 rounded transition-colors" title="Excluir">
+          <button onClick={onDelete} className="p-1.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors" title="Excluir">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
@@ -345,38 +359,38 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
 
 function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare }: any) {
   return (
-    <tr className={`group transition-colors ${isSelected ? 'bg-blue-500/5' : 'hover:bg-white/5'}`}>
+    <tr className={`group transition-colors ${isSelected ? 'bg-blue-50 dark:bg-blue-500/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}>
       <td className="px-4 py-3">
         <div className="flex items-center cursor-pointer" onClick={onSelect}>
-          <div className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-white/20 bg-black/20'}`}>
+          <div className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-white/20 bg-white dark:bg-black/20'}`}>
             {isSelected && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-white"><polyline points="20 6 9 17 4 12"></polyline></svg>
             )}
           </div>
         </div>
       </td>
-      <td className="px-4 py-3 text-white font-medium">
+      <td className="px-4 py-3 text-slate-900 dark:text-white font-medium">
         <div className="flex items-center gap-2">
           {place.nomeFantasia}
           {place.observacao && (
-            <span className="w-2 h-2 rounded-full bg-slate-500" title={place.observacao} />
+            <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-500" title={place.observacao} />
           )}
         </div>
       </td>
-      <td className="px-4 py-3 text-slate-400">{place.cidade}</td>
-      <td className="px-4 py-3 text-slate-500 truncate max-w-[200px]">{place.nomeRazaoSocial}</td>
+      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{place.cidade}</td>
+      <td className="px-4 py-3 text-slate-400 dark:text-slate-500 truncate max-w-[200px]">{place.nomeRazaoSocial}</td>
       <td className="px-4 py-3 text-right">
-        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={onCopy} className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded" title="Copiar">
+        <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+          <button onClick={onCopy} className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded" title="Copiar">
             <Copy className="w-4 h-4" />
           </button>
-          <button onClick={onShare} className="p-1.5 text-slate-400 hover:text-green-400 hover:bg-white/10 rounded" title="WhatsApp">
+          <button onClick={onShare} className="p-1.5 text-slate-400 hover:text-green-500 dark:hover:text-green-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded" title="WhatsApp">
             <Share2 className="w-4 h-4" />
           </button>
-          <button onClick={onEdit} className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded" title="Editar">
+          <button onClick={onEdit} className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded" title="Editar">
             <Edit2 className="w-4 h-4" />
           </button>
-          <button onClick={onDelete} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-white/10 rounded" title="Excluir">
+          <button onClick={onDelete} className="p-1.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded" title="Excluir">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
