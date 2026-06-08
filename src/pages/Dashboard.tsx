@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon } from 'lucide-react';
+import { useState, useMemo, useRef } from 'react';
+import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload } from 'lucide-react';
 import { usePlaces } from '../hooks/usePlaces';
 import { useToast } from '../hooks/useToast';
 import { Place } from '../services/places';
@@ -10,10 +10,12 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Drawer } from '../components/ui/Drawer';
 import { ToastContainer } from '../components/ui/Toast';
 import { formatRouteMessage } from '../lib/formatter';
+import { useAuth } from '../contexts/AuthContext';
 
 export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
-  const { places, loading, add, update, remove } = usePlaces();
+  const { places, loading, add, update, remove, importData } = usePlaces();
   const { toasts, addToast, removeToast } = useToast();
+  const { user, logout } = useAuth();
   
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,6 +28,43 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   const [isRouteDrawerOpen, setIsRouteDrawerOpen] = useState(false);
   
   const [isBusy, setIsBusy] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ... (rest logic down before derived state)
+  const handleExport = () => {
+    const dataToExport = places.map(({ id, userId, createdAt, updatedAt, ...rest }) => rest);
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'locais_exportados.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    addToast('Dados exportados.', 'info');
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsBusy(true);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (Array.isArray(data)) {
+        await importData(data);
+        addToast(`${data.length} locais importados com sucesso.`, 'success');
+      } else {
+        throw new Error('Formato de arquivo inválido. Deve ser um array JSON de locais.');
+      }
+    } catch (err: any) {
+      addToast(err.message, 'error');
+    } finally {
+      setIsBusy(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   // Derived state
   const filteredPlaces = useMemo(() => {
@@ -121,8 +160,8 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
           </div>
         </div>
 
-        <div className="flex items-center gap-4 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-80 group">
+        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-80 group order-last flex-basis-full sm:order-none sm:flex-basis-auto">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
             <input
               type="text"
@@ -133,41 +172,74 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
             />
           </div>
 
-          <div className="flex bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1 shrink-0 mr-2">
+              <button
+                onClick={() => setViewMode('cards')}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'cards' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                title="Visualização em Cards"
+              >
+                Cards
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                title="Visualização em Lista"
+              >
+                Lista
+              </button>
+            </div>
+
             <button
-              onClick={() => setViewMode('cards')}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'cards' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-              title="Visualização em Cards"
+              onClick={handleExport}
+              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
+              title="Exportar dados"
             >
-              Cards
+              <Download className="w-4 h-4" />
             </button>
+            
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              accept=".json" 
+              onChange={handleImport} 
+            />
             <button
-              onClick={() => setViewMode('list')}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-              title="Visualização em Lista"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
+              title="Importar dados"
             >
-              Lista
+              <Upload className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
+              title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            
+            <button
+              onClick={logout}
+              className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-400/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
+              title="Sair"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => {
+                setEditingPlace(undefined);
+                setIsPlaceModalOpen(true);
+              }}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 ml-2"
+            >
+              <span className="hidden sm:inline">+ Novo Local</span>
+              <Plus className="w-4 h-4 sm:hidden" />
             </button>
           </div>
-
-          <button
-            onClick={toggleTheme}
-            className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5"
-            title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-
-          <button
-            onClick={() => {
-              setEditingPlace(undefined);
-              setIsPlaceModalOpen(true);
-            }}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shrink-0"
-          >
-            <span className="hidden sm:inline">+ Novo Local</span>
-            <Plus className="w-4 h-4 sm:hidden" />
-          </button>
         </div>
       </header>
 

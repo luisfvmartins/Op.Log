@@ -1,15 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Place, getPlaces, createPlace, updatePlace, deletePlace } from '../services/places';
+import { Place, getPlaces, createPlace, updatePlace, deletePlace, importData as importPlaces } from '../services/places';
+import { useAuth } from '../contexts/AuthContext';
 
 export function usePlaces() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const fetchPlaces = useCallback(async () => {
+    if (!user) {
+      setPlaces([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
-      const data = await getPlaces();
+      const data = await getPlaces(user.uid);
       setPlaces(data);
       setError(null);
     } catch (err: any) {
@@ -17,27 +24,36 @@ export function usePlaces() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchPlaces();
   }, [fetchPlaces]);
 
-  const add = async (place: Omit<Place, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newPlace = await createPlace(place);
+  const add = async (place: Omit<Place, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+    if (!user) throw new Error('Usuário não autenticado');
+    const newPlace = await createPlace(place, user.uid);
     setPlaces(prev => [newPlace, ...prev]);
     return newPlace;
   };
 
   const update = async (id: string, place: Partial<Place>) => {
+    if (!user) throw new Error('Usuário não autenticado');
     await updatePlace(id, place);
     setPlaces(prev => prev.map(p => p.id === id ? { ...p, ...place } : p));
   };
 
   const remove = async (id: string) => {
+    if (!user) throw new Error('Usuário não autenticado');
     await deletePlace(id);
     setPlaces(prev => prev.filter(p => p.id !== id));
   };
 
-  return { places, loading, error, add, update, remove, refetch: fetchPlaces };
+  const importData = async (data: any[]) => {
+    if (!user) throw new Error('Usuário não autenticado');
+    await importPlaces(data, user.uid);
+    await fetchPlaces();
+  };
+
+  return { places, loading, error, add, update, remove, importData, refetch: fetchPlaces };
 }

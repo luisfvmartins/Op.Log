@@ -4,6 +4,7 @@ import { GripVertical, Trash2, Send, Copy } from 'lucide-react';
 import { Place } from '../../../services/places';
 import { formatRouteMessage, capitalizeText } from '../../../lib/formatter';
 import { createRoute } from '../../../services/routes';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface RouteBuilderProps {
   selectedPlaces: Place[];
@@ -18,7 +19,8 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   const [carreta, setCarreta] = useState('');
   const [observacaoGeral, setObservacaoGeral] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-
+  const { user } = useAuth();
+  
   useEffect(() => {
     setPlaces(selectedPlaces);
   }, [selectedPlaces]);
@@ -56,6 +58,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
     setObservacaoGeral(capitalizeText(e.target.value));
   };
   const saveRouteLog = async (message: string) => {
+    if (!user) return;
     try {
       setIsSaving(true);
       await createRoute({
@@ -63,7 +66,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
         observacaoGeral,
         destinos: places,
         mensagemGerada: message
-      });
+      }, user.uid);
       onClearSelection();
       onClose();
     } catch (err) {
