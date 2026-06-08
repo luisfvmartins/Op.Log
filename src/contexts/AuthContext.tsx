@@ -51,7 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error('Error during Google sign in:', error);
+      throw error;
+    }
   };
 
   const logout = async () => {
