@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info } from 'lucide-react';
+import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin } from 'lucide-react';
 import { usePlaces } from '../hooks/usePlaces';
 import { useToast } from '../hooks/useToast';
 import { Place } from '../services/places';
@@ -191,14 +191,6 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
               </button>
             </div>
 
-            <button
-              onClick={handleExport}
-              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
-              title="Exportar dados"
-            >
-              <Download className="w-4 h-4" />
-            </button>
-            
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -215,12 +207,14 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
             </button>
 
             <button
-              onClick={() => setIsAboutModalOpen(true)}
+              onClick={handleExport}
               className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
-              title="Sobre o aplicativo"
+              title="Exportar dados"
             >
-              <Info className="w-4 h-4" />
+              <Download className="w-4 h-4" />
             </button>
+
+            <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block"></div>
 
             <button
               onClick={toggleTheme}
@@ -228,6 +222,14 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
               title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
+            <button
+              onClick={() => setIsAboutModalOpen(true)}
+              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
+              title="Sobre o aplicativo"
+            >
+              <Info className="w-4 h-4" />
             </button>
             
             <button
@@ -243,7 +245,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
                 setEditingPlace(undefined);
                 setIsPlaceModalOpen(true);
               }}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 ml-2"
+              className="flex items-center gap-2 bg-blue-600 xl:bg-slate-900 hover:bg-blue-500 xl:hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 ml-2"
             >
               <span className="hidden sm:inline">+ Novo Local</span>
               <Plus className="w-4 h-4 sm:hidden" />
@@ -384,33 +386,39 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         onClose={() => setIsAboutModalOpen(false)}
         title="Sobre"
       >
-        <div className="p-6">
-          <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">
-            O <strong>Locais e Roteiros</strong> é um aplicativo desenhado para gerenciar de forma simples e eficiente seus locais de parada e organizar seus roterios de viagens.
+        <div className="p-2 sm:p-4 text-slate-600 dark:text-slate-300">
+          <p className="text-sm sm:text-base leading-relaxed mb-6">
+            O <strong>Locais e Roteiros</strong> é um aplicativo desenhado para gerenciar de forma simples e eficiente seus locais de parada e organizar seus roteiros de viagens.
           </p>
           
-          <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-xl border border-slate-100 dark:border-white/5">
-            <h4 className="text-sm font-semibold text-slate-800 dark:text-white mb-2">Criador</h4>
-            <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">
-              Desenvolvido por <strong>Luis Martins</strong>.
+          <div className="bg-slate-100 dark:bg-black/40 p-5 rounded-xl border border-slate-200 dark:border-white/10">
+            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Criador</h4>
+            <p className="text-base text-slate-900 dark:text-white font-medium mb-4">
+              Desenvolvido por Luis Martins
             </p>
             
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <a 
                 href="https://instagram.com/luisfvmartins" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+                className="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
               >
-                Instagram: @luisfvmartins
+                <div className="p-2 bg-white dark:bg-white/5 shadow-sm rounded-md border border-slate-200 dark:border-white/10 group-hover:border-blue-200 dark:group-hover:border-blue-500/30">
+                  <Instagram className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-medium">@luisfvmartins</span>
               </a>
               <a 
                 href="https://linkedin.com/in/luisfvmartins" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+                className="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
               >
-                LinkedIn: @luisfvmartins
+                <div className="p-2 bg-white dark:bg-white/5 shadow-sm rounded-md border border-slate-200 dark:border-white/10 group-hover:border-blue-200 dark:group-hover:border-blue-500/30">
+                  <Linkedin className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-medium">/in/luisfvmartins</span>
               </a>
             </div>
           </div>
@@ -418,7 +426,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
           <div className="mt-8 flex justify-end">
             <button
               onClick={() => setIsAboutModalOpen(false)}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors"
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white rounded-lg text-sm font-medium transition-colors"
             >
               Fechar
             </button>
