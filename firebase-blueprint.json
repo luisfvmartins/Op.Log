@@ -1,0 +1,45 @@
+{
+  "entities": {
+    "Place": {
+      "title": "Place",
+      "description": "A place or destination",
+      "type": "object",
+      "properties": {
+        "nomeFantasia": { "type": "string" },
+        "cidade": { "type": "string" },
+        "nomeRazaoSocial": { "type": "string" },
+        "linkGoogleMaps": { "type": "string" },
+        "observacao": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["nomeFantasia", "cidade", "nomeRazaoSocial", "linkGoogleMaps", "userId"]
+    },
+    "Route": {
+      "title": "Route",
+      "description": "A customized route with places",
+      "type": "object",
+      "properties": {
+        "carreta": { "type": "string" },
+        "observacaoGeral": { "type": "string" },
+        "destinos": { "type": "array" },
+        "mensagemGerada": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["carreta", "mensagemGerada", "userId"]
+    }
+  },
+  "firestore": {
+    "pontos_de_parada/{placeId}": {
+      "schema": "#/entities/Place",
+      "description": "Stores user defined places"
+    },
+    "roteiros/{routeId}": {
+      "schema": "#/entities/Route",
+      "description": "Stores generated routes"
+    }
+  }
+}

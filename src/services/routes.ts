@@ -15,8 +15,22 @@ export interface RouteData {
 
 const COLLECTION = 'roteiros';
 
+const getLocalRoutes = (): RouteData[] => JSON.parse(localStorage.getItem(COLLECTION) || '[]');
+const setLocalRoutes = (routes: RouteData[]) => localStorage.setItem(COLLECTION, JSON.stringify(routes));
+
 export async function createRoute(route: Omit<RouteData, 'id' | 'createdAt' | 'updatedAt'>, userId: string): Promise<string> {
-  if (!db) throw new Error('Credenciais do Firebase não configuradas. Adicione as variáveis de ambiente baseadas no .env.example.');
+  if (!db) {
+    const id = crypto.randomUUID();
+    const newRoute: RouteData = {
+      ...route,
+      id,
+      userId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    setLocalRoutes([newRoute, ...getLocalRoutes()]);
+    return id;
+  }
   
   const docRef = await addDoc(collection(db, COLLECTION), {
     ...route,

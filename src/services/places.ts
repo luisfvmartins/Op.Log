@@ -15,12 +15,15 @@ export interface Place {
 
 const COLLECTION = 'pontos_de_parada';
 
+const getLocalPlaces = (): Place[] => JSON.parse(localStorage.getItem(COLLECTION) || '[]');
+const setLocalPlaces = (places: Place[]) => localStorage.setItem(COLLECTION, JSON.stringify(places));
+
 export async function getPlaces(userId: string): Promise<Place[]> {
-  if (!db) {
-    console.warn('Firebase is not configured. Falling back to empty lists.');
-    return [];
-  }
   if (!userId) return [];
+  if (!db) {
+    console.warn('Firebase is not configured. Falling back to local storage.');
+    return getLocalPlaces().filter(p => p.userId === userId);
+  }
   try {
     const q = query(
       collection(db, COLLECTION), 
@@ -36,7 +39,17 @@ export async function getPlaces(userId: string): Promise<Place[]> {
 }
 
 export async function createPlace(place: Omit<Place, 'id' | 'createdAt' | 'updatedAt'>, userId: string): Promise<Place> {
-  if (!db) throw new Error('O Firebase não foi configurado. Preencha as credenciais no painel lateral de Secrets (Settings).');
+  if (!db) {
+    const newPlace: Place = { 
+      ...place, 
+      id: crypto.randomUUID(), 
+      userId, 
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    setLocalPlaces([newPlace, ...getLocalPlaces()]);
+    return newPlace;
+  }
   
   const docRef = await addDoc(collection(db, COLLECTION), {
     ...place,
@@ -49,19 +62,38 @@ export async function createPlace(place: Omit<Place, 'id' | 'createdAt' | 'updat
 }
 
 export async function updatePlace(id: string, place: Partial<Place>): Promise<void> {
-  if (!db) throw new Error('O Firebase não foi configurado. Preencha as credenciais no painel lateral de Secrets.');
+  if (!db) {
+    const places = getLocalPlaces();
+    const updated = places.map(p => p.id === id ? { ...p, ...place, updatedAt: new Date().toISOString() } : p);
+    setLocalPlaces(updated);
+    return;
+  }
   const docRef = doc(db, COLLECTION, id);
   await updateDoc(docRef, { ...place, updatedAt: serverTimestamp() });
 }
 
 export async function deletePlace(id: string): Promise<void> {
-  if (!db) throw new Error('O Firebase não foi configurado. Preencha as credenciais no painel lateral.');
+  if (!db) {
+    setLocalPlaces(getLocalPlaces().filter(p => p.id !== id));
+    return;
+  }
   const docRef = doc(db, COLLECTION, id);
   await deleteDoc(docRef);
 }
 
 export async function importData(places: Omit<Place, 'id' | 'userId' | 'createdAt' | 'updatedAt'>[], userId: string): Promise<void> {
-  if (!db) throw new Error('O Firebase não foi configurado.');
+  if (!db) {
+    const current = getLocalPlaces();
+    const newPlaces = places.map(p => ({
+      ...p,
+      id: crypto.randomUUID(),
+      userId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }));
+    setLocalPlaces([...newPlaces, ...current]);
+    return;
+  }
   const batch = writeBatch(db);
   
   places.forEach(place => {
