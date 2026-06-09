@@ -109,6 +109,43 @@ export async function deletePlace(id: string): Promise<void> {
   await deleteDoc(docRef);
 }
 
+export async function deleteAllPlaces(userId?: string): Promise<void> {
+  if (!db) {
+    setLocalPlaces([]);
+    return;
+  }
+  
+  if (!userId) {
+    throw new Error('UserId required for deleting all places');
+  }
+
+  const q = query(
+    collection(db, COLLECTION),
+    where("userId", "==", userId)
+  );
+
+  const snapshot = await getDocs(q);
+  
+  if (snapshot.empty) {
+    return;
+  }
+
+  // Firestore max batch size is 500
+  const CHUNK_SIZE = 450;
+  const docs = snapshot.docs;
+  
+  for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
+    const chunk = docs.slice(i, i + CHUNK_SIZE);
+    const batch = writeBatch(db);
+    
+    chunk.forEach(d => {
+      batch.delete(d.ref);
+    });
+    
+    await batch.commit();
+  }
+}
+
 export async function importData(places: Omit<Place, 'id' | 'userId' | 'createdAt' | 'updatedAt'>[], userId: string): Promise<void> {
   if (!db) {
     const current = getLocalPlaces();

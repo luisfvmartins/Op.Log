@@ -33,7 +33,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
     return city;
   };
 
-  const { places, loading, add, update, remove, importData } = usePlaces();
+  const { places, loading, add, update, remove, removeAll, importData } = usePlaces();
   const { toasts, addToast, removeToast } = useToast();
   const { user, logout } = useAuth();
   
@@ -47,11 +47,31 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   const [isPlaceModalOpen, setIsPlaceModalOpen] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | undefined>();
   const [deletingPlaceId, setDeletingPlaceId] = useState<string | null>(null);
+  const [deleteAllConfirmStep, setDeleteAllConfirmStep] = useState(0);
   const [isRouteDrawerOpen, setIsRouteDrawerOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   
   const [isBusy, setIsBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleTitleDoubleClick = () => {
+    setDeleteAllConfirmStep(1);
+  };
+
+  const executeDeleteAll = async () => {
+    setIsBusy(true);
+    try {
+      if (removeAll) {
+        await removeAll();
+      }
+      addToast('Todos os locais foram apagados com sucesso.', 'success');
+    } catch {
+      addToast('Erro ao apagar todos os locais.', 'error');
+    } finally {
+      setIsBusy(false);
+      setDeleteAllConfirmStep(0);
+    }
+  };
 
   // ... (rest logic down before derived state)
   const handleExport = () => {
@@ -201,7 +221,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
           <div className="w-8 h-8 flex items-center justify-center bg-blue-600 rounded text-white">
             <Map className="w-5 h-5" />
           </div>
-          <div>
+          <div onDoubleClick={handleTitleDoubleClick} className="select-none">
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white leading-tight">Locais e Roteiros</h1>
             <p className="text-xs text-slate-500 font-medium">{places.length} locais registrados</p>
           </div>
@@ -396,6 +416,28 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
       )}
 
       {/* MODALS AND DRAWERS */}
+      <ConfirmDialog
+        isOpen={deleteAllConfirmStep === 1}
+        onClose={() => setDeleteAllConfirmStep(0)}
+        onConfirm={() => setDeleteAllConfirmStep(2)}
+        title="Deseja realmente apagar TODOS os locais?"
+        description="Esta ação removerá todos os locais do seu banco de dados. Isso afetará todos os registros permanentemente."
+        isDestructive
+        confirmText="Sim, apagar tudo"
+        cancelText="Cancelar"
+      />
+
+      <ConfirmDialog
+        isOpen={deleteAllConfirmStep === 2}
+        onClose={() => setDeleteAllConfirmStep(0)}
+        onConfirm={executeDeleteAll}
+        title="ÚLTIMA CHANCE: Tem certeza absoluta?"
+        description="Você está prestes a excluir todos os seus locais permanentemente. Não será possível recuperar esses dados."
+        isDestructive
+        confirmText="EXCLUIR PERMANENTEMENTE TUDO"
+        cancelText="Cancelar"
+      />
+
       <Modal
         isOpen={isPlaceModalOpen}
         onClose={() => setIsPlaceModalOpen(false)}
