@@ -54,19 +54,27 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   const [isBusy, setIsBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleTitleDoubleClick = () => {
-    setDeleteAllConfirmStep(1);
+  const handleSelectAllToggle = () => {
+    if (selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredPlaces.map(p => p.id!)));
+    }
   };
 
-  const executeDeleteAll = async () => {
+  const executeDeleteSelected = async () => {
     setIsBusy(true);
     try {
-      if (removeAll) {
+      if (selectedIds.size === places.length && removeAll) {
         await removeAll();
+      } else {
+        const promises = Array.from(selectedIds).map(id => remove(id));
+        await Promise.all(promises);
       }
-      addToast('Todos os locais foram apagados com sucesso.', 'success');
+      addToast(`${selectedIds.size} locais foram apagados com sucesso.`, 'success');
+      setSelectedIds(new Set());
     } catch {
-      addToast('Erro ao apagar todos os locais.', 'error');
+      addToast('Erro ao apagar locais.', 'error');
     } finally {
       setIsBusy(false);
       setDeleteAllConfirmStep(0);
@@ -221,7 +229,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
           <div className="w-8 h-8 flex items-center justify-center bg-blue-600 rounded text-white">
             <Map className="w-5 h-5" />
           </div>
-          <div onDoubleClick={handleTitleDoubleClick} className="select-none">
+          <div className="select-none">
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white leading-tight">Locais e Roteiros</h1>
             <p className="text-xs text-slate-500 font-medium">{places.length} locais registrados</p>
           </div>
@@ -241,6 +249,13 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1 shrink-0 mr-2">
+              <button
+                onClick={handleSelectAllToggle}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors border-r border-slate-200 dark:border-white/10 mr-1 ${selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                title="Selecionar Tudo"
+              >
+                Todos
+              </button>
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as 'alpha' | 'created' | 'updated')}
@@ -406,8 +421,15 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
               Criar Roteiro
             </button>
             <button
+              onClick={() => setDeleteAllConfirmStep(1)}
+              className="p-1.5 text-blue-200 hover:text-white hover:bg-white/10 rounded-lg transition-colors ml-2"
+              title="Excluir selecionados"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button
               onClick={clearSelection}
-              className="text-sm font-medium text-blue-200 hover:text-white transition-colors"
+              className="text-sm font-medium text-blue-200 hover:text-white transition-colors ml-2"
             >
               Limpar
             </button>
@@ -420,21 +442,21 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         isOpen={deleteAllConfirmStep === 1}
         onClose={() => setDeleteAllConfirmStep(0)}
         onConfirm={() => setDeleteAllConfirmStep(2)}
-        title="Deseja realmente apagar TODOS os locais?"
-        description="Esta ação removerá todos os locais do seu banco de dados. Isso afetará todos os registros permanentemente."
+        title={selectedIds.size === places.length ? "Deseja realmente apagar TODOS os locais?" : `Deseja apagar os ${selectedIds.size} locais selecionados?`}
+        description={selectedIds.size === places.length ? "Esta ação removerá todos os locais do seu banco de dados. Isso afetará todos os registros permanentemente." : "Os locais selecionados serão excluídos permanentemente."}
         isDestructive
-        confirmText="Sim, apagar tudo"
+        confirmText="Sim, continuar"
         cancelText="Cancelar"
       />
 
       <ConfirmDialog
         isOpen={deleteAllConfirmStep === 2}
         onClose={() => setDeleteAllConfirmStep(0)}
-        onConfirm={executeDeleteAll}
+        onConfirm={executeDeleteSelected}
         title="ÚLTIMA CHANCE: Tem certeza absoluta?"
-        description="Você está prestes a excluir todos os seus locais permanentemente. Não será possível recuperar esses dados."
+        description="Você está prestes a excluir estes locais permanentemente. Não será possível recuperar esses dados."
         isDestructive
-        confirmText="EXCLUIR PERMANENTEMENTE TUDO"
+        confirmText="EXCLUIR PERMANENTEMENTE"
         cancelText="Cancelar"
       />
 
