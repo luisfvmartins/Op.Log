@@ -79,12 +79,13 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     let submitData = { ...formData };
     
     if (cidadesReais.length > 0) {
-      const typed = formData.cidade.trim().toLowerCase();
-      let matchedCity = cidadesReais.find(c => c.toLowerCase() === typed);
+      const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const typed = normalize(formData.cidade.trim());
+      let matchedCity = cidadesReais.find(c => normalize(c) === typed);
       
       if (!matchedCity) {
         // Try matching without UF
-        const exactNameMatches = cidadesReais.filter(c => c.split(' - ')[0].toLowerCase() === typed);
+        const exactNameMatches = cidadesReais.filter(c => normalize(c.split(' - ')[0]) === typed);
         if (exactNameMatches.length === 1) {
           matchedCity = exactNameMatches[0];
         } else if (exactNameMatches.length > 1) {

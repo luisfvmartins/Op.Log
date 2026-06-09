@@ -22,6 +22,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!auth) {
+      // Mock local user explicitly to enable localStorage operations without throwing 'auth' errors
+      setUser({ uid: 'local-use-only', displayName: 'Usuário Local' } as User);
       setLoading(false);
       return;
     }

@@ -95,7 +95,8 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
     
     // Search
     if (searchQuery) {
-      const qTerms = searchQuery.toLowerCase().split(' ').filter(Boolean);
+      const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const qTerms = normalize(searchQuery).split(' ').filter(Boolean);
       result = result.filter(place => {
         const searchText = [
           place.nomeFantasia, 
@@ -104,7 +105,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
           place.nomeRazaoSocial, 
           place.observacao, 
           ...(Array.isArray(place.tags) ? place.tags : [])
-        ].join(' ').toLowerCase();
+        ].filter(Boolean).map(normalize).join(' ');
         
         return qTerms.every(term => searchText.includes(term));
       });
