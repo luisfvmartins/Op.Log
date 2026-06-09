@@ -109,6 +109,25 @@ export async function deletePlace(id: string): Promise<void> {
   await deleteDoc(docRef);
 }
 
+export async function deletePlaces(ids: string[]): Promise<void> {
+  if (!db) {
+    setLocalPlaces(getLocalPlaces().filter(p => !ids.includes(p.id!)));
+    return;
+  }
+  
+  const CHUNK_SIZE = 450;
+  for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+    const chunk = ids.slice(i, i + CHUNK_SIZE);
+    const batch = writeBatch(db);
+    
+    chunk.forEach(id => {
+      batch.delete(doc(db, COLLECTION, id));
+    });
+    
+    await batch.commit();
+  }
+}
+
 export async function deleteAllPlaces(userId?: string): Promise<void> {
   if (!db) {
     setLocalPlaces([]);

@@ -59,6 +59,13 @@ export function usePlaces() {
     setPlaces(prev => prev.filter(p => p.id !== id));
   };
 
+  const removeSelected = async (ids: string[]) => {
+    if (!user) throw new Error('Usuário não autenticado');
+    if (ids.length === 0) return;
+    await import('../services/places').then(m => m.deletePlaces(ids));
+    setPlaces(prev => prev.filter(p => !ids.includes(p.id!)));
+  };
+
   const removeAll = async () => {
     if (!user) throw new Error('Usuário não autenticado');
     await import('../services/places').then(m => m.deleteAllPlaces(user.uid));
@@ -71,5 +78,5 @@ export function usePlaces() {
     await fetchPlaces();
   };
 
-  return { places, loading, error, add, update, remove, removeAll, importData, refetch: fetchPlaces };
+  return { places, loading, error, add, update, remove, removeSelected, removeAll, importData, refetch: fetchPlaces };
 }

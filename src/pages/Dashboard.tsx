@@ -33,7 +33,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
     return city;
   };
 
-  const { places, loading, add, update, remove, removeAll, importData } = usePlaces();
+  const { places, loading, add, update, remove, removeSelected, removeAll, importData } = usePlaces();
   const { toasts, addToast, removeToast } = useToast();
   const { user, logout } = useAuth();
   
@@ -68,12 +68,12 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
       if (selectedIds.size === places.length && removeAll) {
         await removeAll();
       } else {
-        const promises = Array.from(selectedIds).map(id => remove(id));
-        await Promise.all(promises);
+        await removeSelected(Array.from(selectedIds));
       }
       addToast(`${selectedIds.size} locais foram apagados com sucesso.`, 'success');
       setSelectedIds(new Set());
-    } catch {
+    } catch (error) {
+      console.error(error);
       addToast('Erro ao apagar locais.', 'error');
     } finally {
       setIsBusy(false);
