@@ -18,7 +18,8 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     cidade: '',
     nomeRazaoSocial: '',
     linkGoogleMaps: '',
-    observacao: ''
+    observacao: '',
+    tags: ''
   });
 
   useEffect(() => {
@@ -32,7 +33,8 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
         cidade: initialData.cidade || '',
         nomeRazaoSocial: initialData.nomeRazaoSocial || '',
         linkGoogleMaps: initialData.linkGoogleMaps || '',
-        observacao: initialData.observacao || ''
+        observacao: initialData.observacao || '',
+        tags: initialData.tags?.join(', ') || ''
       });
     }
   }, [initialData]);
@@ -97,7 +99,17 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
       submitData.cidade = matchedCity;
     }
     
-    await onSubmit(submitData);
+    const finalTags = formData.tags
+      .split(',')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+      
+    const { tags, ...restData } = submitData;
+    
+    await onSubmit({
+      ...restData,
+      tags: finalTags
+    });
   };
 
   return (
@@ -169,6 +181,16 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
         />
       </div>
 
+      <div className="space-y-1">
+        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Tags (separadas por vírgula)</label>
+        <input
+          name="tags"
+          value={formData.tags}
+          onChange={handleChange}
+          className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
+          placeholder="Ex: Armazém, Fazenda"
+        />
+      </div>
       <div className="pt-4 flex justify-end gap-3 border-t border-slate-200 dark:border-white/10">
         <button
           type="button"

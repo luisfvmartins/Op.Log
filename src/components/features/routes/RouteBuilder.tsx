@@ -144,7 +144,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                               </span>
                               <span className="truncate">{place.nomeFantasia}</span>
                             </h4>
-                            <p className="text-[10px] text-slate-500 truncate mt-1 ml-8">{place.cidade}</p>
+                            <p className="text-[10px] text-slate-500 truncate mt-1 ml-8">{place.cidade?.replace(' - ', '-')}</p>
                           </div>
 
                           <button

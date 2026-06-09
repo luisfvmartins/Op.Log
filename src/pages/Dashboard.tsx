@@ -21,6 +21,8 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   
+  const [sortBy, setSortBy] = useState<'alpha' | 'created' | 'updated'>('created');
+  
   // Modals state
   const [isPlaceModalOpen, setIsPlaceModalOpen] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | undefined>();
@@ -69,19 +71,40 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
   // Derived state
   const filteredPlaces = useMemo(() => {
-    const q = searchQuery.toLowerCase();
-    if (!q) return places;
+    let result = places;
     
-    return places.filter(place => {
-      return Object.entries(place).some(([key, value]) => {
-        if (key === 'linkGoogleMaps' || key === 'id' || key === 'createdAt' || key === 'updatedAt') return false;
-        if (typeof value === 'string') {
-          return value.toLowerCase().includes(q);
-        }
-        return false;
+    // Search
+    if (searchQuery) {
+      const qTerms = searchQuery.toLowerCase().split(' ').filter(Boolean);
+      result = result.filter(place => {
+        const searchText = [
+          place.nomeFantasia, 
+          place.cidade, 
+          place.nomeRazaoSocial, 
+          place.observacao, 
+          ...(place.tags || [])
+        ].join(' ').toLowerCase();
+        
+        return qTerms.every(term => searchText.includes(term));
       });
+    }
+
+    // Sort
+    return result.sort((a, b) => {
+      if (sortBy === 'alpha') {
+        return a.nomeFantasia.localeCompare(b.nomeFantasia);
+      } else if (sortBy === 'updated') {
+        const dateA = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : new Date(a.updatedAt || 0).getTime();
+        const dateB = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : new Date(b.updatedAt || 0).getTime();
+        return dateB - dateA; // newest first
+      } else {
+        // created (default)
+        const dateA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt || 0).getTime();
+        const dateB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt || 0).getTime();
+        return dateB - dateA;
+      }
     });
-  }, [places, searchQuery]);
+  }, [places, searchQuery, sortBy]);
 
   const selectedPlaces = useMemo(() => {
     return Array.from(selectedIds).map(id => places.find(p => p.id === id)!).filter(Boolean);
@@ -175,6 +198,15 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1 shrink-0 mr-2">
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as 'alpha' | 'created' | 'updated')}
+                className="bg-transparent text-xs font-medium text-slate-500 dark:text-slate-400 focus:outline-none dark:bg-[#09090B] px-2 py-1 mr-2 border-r border-slate-200 dark:border-white/10"
+              >
+                <option value="created">Mais Recentes</option>
+                <option value="updated">Editados</option>
+                <option value="alpha">A-Z</option>
+              </select>
               <button
                 onClick={() => setViewMode('cards')}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'cards' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
@@ -460,14 +492,22 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter truncate block pr-6">{place.nomeRazaoSocial}</span>
           <h3 className="text-slate-900 dark:text-white font-medium text-base truncate">{place.nomeFantasia}</h3>
           <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs mt-0.5">
-            <span className="truncate">{place.cidade}</span>
+            <span className="truncate">{place.cidade?.replace(' - ', '-')}</span>
           </div>
         </div>
+
+        {place.tags && place.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {place.tags.map((tag: string) => (
+               <span key={tag} className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-medium rounded-md border border-slate-200 dark:border-white/10">{tag}</span>
+            ))}
+          </div>
+        )}
         
         {place.observacao && (
-          <div className="py-2 px-3 mt-3 bg-slate-50 dark:bg-black/20 rounded-lg border border-slate-100 dark:border-white/5">
-            <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Observação</p>
-            <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">{place.observacao}</p>
+          <div className="py-2 px-3 mt-3 bg-amber-50 dark:bg-amber-500/10 rounded-lg border border-amber-200 dark:border-amber-500/20">
+            <p className="text-[10px] text-amber-700 dark:text-amber-500 uppercase font-bold mb-1">Observação</p>
+            <p className="text-xs text-amber-900 dark:text-amber-200 line-clamp-2">{place.observacao}</p>
           </div>
         )}
       </div>
@@ -505,15 +545,24 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
           </div>
         </div>
       </td>
-      <td className="px-4 py-3 text-slate-900 dark:text-white font-medium">
-        <div className="flex items-center gap-2">
-          {place.nomeFantasia}
+      <td className="px-4 py-3">
+        <div className="flex flex-col py-1">
+          <span className="text-slate-900 dark:text-white font-medium">{place.nomeFantasia}</span>
           {place.observacao && (
-            <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-500" title={place.observacao} />
+            <div className="text-[10px] mt-0.5 text-amber-700 dark:text-amber-400 font-medium truncate max-w-[250px]" title={place.observacao}>
+              <span className="font-bold mr-1">Obs:</span>{place.observacao}
+            </div>
+          )}
+          {place.tags && place.tags.length > 0 && (
+            <div className="flex gap-1 mt-1.5 flex-wrap">
+              {place.tags.map((tag: string) => (
+                <span key={tag} className="px-1.5 py-0.5 bg-slate-100 dark:bg-[#09090B] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 text-[9px] font-medium rounded-md truncate max-w-[80px]">{tag}</span>
+              ))}
+            </div>
           )}
         </div>
       </td>
-      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{place.cidade}</td>
+      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{place.cidade?.replace(' - ', '-')}</td>
       <td className="px-4 py-3 text-slate-400 dark:text-slate-500 truncate max-w-[200px]">{place.nomeRazaoSocial}</td>
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
