@@ -161,6 +161,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                               <span className="truncate">{place.nomeFantasia}</span>
                             </h4>
                             <p className="text-[10px] text-slate-500 truncate mt-1 ml-8">{renderCity(place.cidade)}</p>
+                            {place.endereco && <p className="text-[10px] text-slate-400 dark:text-slate-600 truncate mt-0.5 ml-8">{place.endereco}</p>}
                           </div>
 
                           <button

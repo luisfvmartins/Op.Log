@@ -8,6 +8,7 @@ export interface Place {
   nomeRazaoSocial: string;
   linkGoogleMaps: string;
   observacao?: string;
+  endereco?: string;
   tags?: string[];
   userId?: string;
   createdAt?: any;

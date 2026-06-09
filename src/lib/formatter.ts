@@ -18,7 +18,12 @@ export function formatRouteMessage(places: Place[], carreta: string, observacaoG
 
   places.forEach((place, index) => {
     message += `*${index + 1}ª Parada:* ${place.nomeFantasia}\n`;
-    message += `*Endereço:* ${place.linkGoogleMaps}\n`;
+    if (place.endereco) {
+      message += `*Endereço:* ${place.endereco}\n`;
+      message += `*Maps:* ${place.linkGoogleMaps}\n`;
+    } else {
+      message += `*Endereço:* ${place.linkGoogleMaps}\n`;
+    }
     if (place.observacao) {
       message += `*Observação:* ${place.observacao}\n`;
     }

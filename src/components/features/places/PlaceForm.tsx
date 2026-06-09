@@ -16,6 +16,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
   const [formData, setFormData] = useState({
     nomeFantasia: '',
     cidade: '',
+    endereco: '',
     nomeRazaoSocial: '',
     linkGoogleMaps: '',
     observacao: '',
@@ -31,6 +32,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
       setFormData({
         nomeFantasia: initialData.nomeFantasia || '',
         cidade: initialData.cidade || '',
+        endereco: initialData.endereco || '',
         nomeRazaoSocial: initialData.nomeRazaoSocial || '',
         linkGoogleMaps: initialData.linkGoogleMaps || '',
         observacao: initialData.observacao || '',
@@ -143,6 +145,17 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           {cidadesReais.map(c => <option key={c} value={c} />)}
         </datalist>
         {cidadeError && <p className="text-xs text-red-500 font-medium mt-1">{cidadeError}</p>}
+      </div>
+      <div className="space-y-1">
+        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Endereço (Rua, Bairro, etc.)</label>
+        <input
+          name="endereco"
+          value={formData.endereco}
+          onChange={handleChange}
+          onPaste={handlePaste}
+          className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+          placeholder="Ex: Av. Paulista, 1000 - Bela Vista"
+        />
       </div>
       <div className="space-y-1">
         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Razão Social / Nome completo *</label>

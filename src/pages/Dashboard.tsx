@@ -32,6 +32,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
     }
     return city;
   };
+
   const { places, loading, add, update, remove, importData } = usePlaces();
   const { toasts, addToast, removeToast } = useToast();
   const { user, logout } = useAuth();
@@ -99,9 +100,10 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         const searchText = [
           place.nomeFantasia, 
           place.cidade, 
+          place.endereco,
           place.nomeRazaoSocial, 
           place.observacao, 
-          ...(place.tags || [])
+          ...(Array.isArray(place.tags) ? place.tags : [])
         ].join(' ').toLowerCase();
         
         return qTerms.every(term => searchText.includes(term));
@@ -329,6 +331,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
                 onDelete={() => setDeletingPlaceId(place.id!)}
                 onCopy={() => handleCopySingle(place)}
                 onShare={() => handleShareSingle(place)}
+                renderCity={renderCity}
               />
             ))}
           </div>
@@ -355,6 +358,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
                     onDelete={() => setDeletingPlaceId(place.id!)}
                     onCopy={() => handleCopySingle(place)}
                     onShare={() => handleShareSingle(place)}
+                    renderCity={renderCity}
                   />
                 ))}
               </tbody>
@@ -490,7 +494,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
 // ---------------- Helper Components ----------------
 
-function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare }: any) {
+function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity }: any) {
   return (
     <div className={`p-4 rounded-xl border flex flex-col gap-3 group transition-all duration-200 ${isSelected ? 'border-blue-500/50 bg-blue-50/50 dark:bg-blue-500/5 shadow-[0_0_0_1px_rgba(59,130,246,0.3)]' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/[0.08] shadow-sm'}`}>
       
@@ -510,12 +514,19 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
         <div>
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter truncate block pr-6">{place.nomeRazaoSocial}</span>
           <h3 className="text-slate-900 dark:text-white font-medium text-base truncate">{place.nomeFantasia}</h3>
-          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs mt-0.5">
-            <span className="truncate">{renderCity(place.cidade)}</span>
+          
+          <div className="flex flex-col gap-0.5 mt-1.5">
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs font-medium">
+              <MapPin className="w-3 h-3 text-slate-400" />
+              <span className="truncate">{renderCity(place.cidade)}</span>
+            </div>
+            {place.endereco && (
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate pl-4.5 ml-[18px]">{place.endereco}</p>
+            )}
           </div>
         </div>
 
-        {place.tags && place.tags.length > 0 && (
+        {Array.isArray(place.tags) && place.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {place.tags.map((tag: string) => (
                <span key={tag} className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-medium rounded-md border border-slate-200 dark:border-white/10">{tag}</span>
@@ -552,7 +563,7 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
   );
 }
 
-function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare }: any) {
+function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity }: any) {
   return (
     <tr className={`group transition-colors ${isSelected ? 'bg-blue-50 dark:bg-blue-500/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}>
       <td className="px-4 py-3">
@@ -572,7 +583,7 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
               <span className="font-bold mr-1">Obs:</span>{place.observacao}
             </div>
           )}
-          {place.tags && place.tags.length > 0 && (
+          {Array.isArray(place.tags) && place.tags.length > 0 && (
             <div className="flex gap-1 mt-1.5 flex-wrap">
               {place.tags.map((tag: string) => (
                 <span key={tag} className="px-1.5 py-0.5 bg-slate-100 dark:bg-[#09090B] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 text-[9px] font-medium rounded-md truncate max-w-[80px]">{tag}</span>
@@ -581,7 +592,12 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
           )}
         </div>
       </td>
-      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{renderCity(place.cidade)}</td>
+      <td className="px-4 py-3">
+        <div className="flex flex-col">
+          <span className="text-slate-500 dark:text-slate-400 font-medium">{renderCity(place.cidade)}</span>
+          {place.endereco && <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate max-w-[200px] mt-0.5">{place.endereco}</span>}
+        </div>
+      </td>
       <td className="px-4 py-3 text-slate-400 dark:text-slate-500 truncate max-w-[200px]">{place.nomeRazaoSocial}</td>
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
