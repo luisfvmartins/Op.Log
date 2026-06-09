@@ -41,6 +41,10 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     const { name, value } = e.target;
     let formattedValue = value;
     
+    // Check if the change came from a paste action
+    const nativeEvent = e.nativeEvent as InputEvent;
+    const isPaste = nativeEvent.inputType && nativeEvent.inputType.includes('Paste');
+    
     if (name === 'linkGoogleMaps') {
       formattedValue = value.toLowerCase();
     } else if (name === 'cidade') {
@@ -48,7 +52,11 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
       formattedValue = value;
       setCidadeError('');
     } else {
-      formattedValue = capitalizeText(value);
+      if (isPaste) {
+        formattedValue = capitalizeText(value);
+      } else {
+        formattedValue = value;
+      }
     }
     
     setFormData(prev => ({ ...prev, [name]: formattedValue }));
