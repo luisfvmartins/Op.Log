@@ -458,6 +458,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         isDestructive
         confirmText="EXCLUIR PERMANENTEMENTE"
         cancelText="Cancelar"
+        requireInputConfirm={selectedIds.size === places.length ? "EXCLUIR TUDO" : "EXCLUIR"}
       />
 
       <Modal
