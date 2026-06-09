@@ -41,34 +41,63 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     const { name, value } = e.target;
     let formattedValue = value;
     
-    // Check if the change came from a paste action
-    const nativeEvent = e.nativeEvent as InputEvent;
-    const isPaste = nativeEvent.inputType && nativeEvent.inputType.includes('Paste');
-    
     if (name === 'linkGoogleMaps') {
       formattedValue = value.toLowerCase();
     } else if (name === 'cidade') {
-      // Don't auto-capitalize when fetching from list, allow matching exactly
       formattedValue = value;
       setCidadeError('');
-    } else {
-      if (isPaste) {
-        formattedValue = capitalizeText(value);
-      } else {
-        formattedValue = value;
-      }
     }
     
     setFormData(prev => ({ ...prev, [name]: formattedValue }));
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const name = e.currentTarget.name;
+    if (name !== 'linkGoogleMaps' && name !== 'cidade') {
+      e.preventDefault();
+      const pastedText = e.clipboardData.getData('text');
+      const formattedText = capitalizeText(pastedText);
+      
+      const target = e.currentTarget;
+      const start = target.selectionStart || 0;
+      const end = target.selectionEnd || 0;
+      const currentValue = target.value;
+      
+      const newValue = currentValue.substring(0, start) + formattedText + currentValue.substring(end);
+      
+      setFormData(prev => ({ ...prev, [name]: newValue }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (cidadesReais.length > 0 && !cidadesReais.includes(formData.cidade)) {
-      setCidadeError('Por favor, selecione uma cidade válida da lista (Cidade - UF).');
-      return;
+    
+    let submitData = { ...formData };
+    
+    if (cidadesReais.length > 0) {
+      const typed = formData.cidade.trim().toLowerCase();
+      let matchedCity = cidadesReais.find(c => c.toLowerCase() === typed);
+      
+      if (!matchedCity) {
+        // Try matching without UF
+        const exactNameMatches = cidadesReais.filter(c => c.split(' - ')[0].toLowerCase() === typed);
+        if (exactNameMatches.length === 1) {
+          matchedCity = exactNameMatches[0];
+        } else if (exactNameMatches.length > 1) {
+          setCidadeError('Há mais de uma cidade com este nome. Por favor, selecione (Cidade - UF) na lista.');
+          return;
+        }
+      }
+
+      if (!matchedCity) {
+        setCidadeError('Por favor, selecione uma cidade válida da lista (Cidade - UF).');
+        return;
+      }
+      
+      submitData.cidade = matchedCity;
     }
-    await onSubmit(formData);
+    
+    await onSubmit(submitData);
   };
 
   return (
@@ -81,6 +110,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           name="nomeFantasia"
           value={formData.nomeFantasia}
           onChange={handleChange}
+          onPaste={handlePaste}
           className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
           placeholder="Ex: CD Magalu"
         />
@@ -109,6 +139,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           name="nomeRazaoSocial"
           value={formData.nomeRazaoSocial}
           onChange={handleChange}
+          onPaste={handlePaste}
           className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
           placeholder="Magazine Luiza S/A"
         />
@@ -131,6 +162,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           name="observacao"
           value={formData.observacao}
           onChange={handleChange}
+          onPaste={handlePaste}
           rows={3}
           className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none"
           placeholder="Insumos, restrições, horários..."
