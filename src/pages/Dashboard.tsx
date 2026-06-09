@@ -559,6 +559,15 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   );
 }
 
+const ensureAbsoluteUrl = (url?: string): string => {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+};
+
 // ---------------- Helper Components ----------------
 
 function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity }: any) {
@@ -583,7 +592,7 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
           <div className="flex items-center gap-2">
             <h3 className="text-slate-900 dark:text-white font-medium text-base truncate">{place.nomeFantasia}</h3>
             {place.linkGoogleMaps && (
-              <a href={place.linkGoogleMaps} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="Abrir no Mapa" onClick={e => e.stopPropagation()}>
+              <a href={ensureAbsoluteUrl(place.linkGoogleMaps)} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="Abrir no Mapa" onClick={e => e.stopPropagation()}>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             )}
@@ -665,7 +674,7 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
           <div className="flex items-center gap-2">
             <span className="text-slate-900 dark:text-white font-medium">{place.nomeFantasia}</span>
             {place.linkGoogleMaps && (
-              <a href={place.linkGoogleMaps} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="Abrir no Mapa" onClick={e => e.stopPropagation()}>
+              <a href={ensureAbsoluteUrl(place.linkGoogleMaps)} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="Abrir no Mapa" onClick={e => e.stopPropagation()}>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             )}
