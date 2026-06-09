@@ -247,8 +247,8 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:flex bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1 shrink-0 mr-2">
+          <div className="flex items-center gap-2 max-w-full">
+            <div className="flex overflow-x-auto sm:overflow-visible bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1 shrink-0 mr-2 max-w-full">
               <button
                 onClick={handleSelectAllToggle}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-colors border-r border-slate-200 dark:border-white/10 mr-1 ${selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}

@@ -67,7 +67,6 @@ export function ConfirmDialog({
           onClick={() => {
             if (isValid) {
               onConfirm();
-              onClose();
             }
           }}
           disabled={!isValid}
