@@ -583,11 +583,6 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter truncate block pr-6">{place.nomeRazaoSocial}</span>
           <div className="flex items-center gap-2">
             <h3 className="text-slate-900 dark:text-white font-medium text-base truncate">{place.nomeFantasia}</h3>
-            {place.linkGoogleMaps && (
-              <a href={ensureAbsoluteUrl(place.linkGoogleMaps)} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="Abrir no Mapa" onClick={e => e.stopPropagation()}>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            )}
           </div>
           
           <div className="flex flex-col gap-0.5 mt-1.5">
@@ -634,6 +629,18 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
           Copiar Info
         </button>
         <div className="flex gap-2">
+          {place.linkGoogleMaps && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(ensureAbsoluteUrl(place.linkGoogleMaps), '_blank', 'noopener,noreferrer');
+              }}
+              className="p-1.5 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors" 
+              title="Abrir no Mapa"
+            >
+              <MapPin className="w-4 h-4" />
+            </button>
+          )}
           <button onClick={onShare} className="p-1.5 text-slate-400 hover:text-green-500 dark:hover:text-green-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors" title="WhatsApp">
             <Share2 className="w-4 h-4" />
           </button>
@@ -665,11 +672,6 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
         <div className="flex flex-col py-1">
           <div className="flex items-center gap-2">
             <span className="text-slate-900 dark:text-white font-medium">{place.nomeFantasia}</span>
-            {place.linkGoogleMaps && (
-              <a href={ensureAbsoluteUrl(place.linkGoogleMaps)} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="Abrir no Mapa" onClick={e => e.stopPropagation()}>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            )}
           </div>
           
           {place.observacoes && place.observacoes.length > 0 && (
@@ -708,6 +710,18 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
       <td className="px-4 py-3 text-slate-400 dark:text-slate-500 truncate max-w-[200px]">{place.nomeRazaoSocial}</td>
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+          {place.linkGoogleMaps && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(ensureAbsoluteUrl(place.linkGoogleMaps), '_blank', 'noopener,noreferrer');
+              }}
+              className="p-1.5 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors" 
+              title="Abrir no Mapa"
+            >
+              <MapPin className="w-4 h-4" />
+            </button>
+          )}
           <button onClick={onCopy} className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded" title="Copiar">
             <Copy className="w-4 h-4" />
           </button>
