@@ -104,6 +104,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
           place.endereco,
           place.nomeRazaoSocial, 
           place.observacao, 
+          ...(place.observacoes?.map(o => `${o.categoria} ${o.texto}`) || []),
           ...(Array.isArray(place.tags) ? place.tags : [])
         ].filter(Boolean).map(normalize).join(' ');
         
@@ -178,13 +179,13 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   };
 
   const handleCopySingle = async (place: Place) => {
-    const msg = formatRouteMessage([place], '[INFORMAR CARRETA]');
+    const msg = formatRouteMessage([place], '[INFORMAR PLACA]');
     await navigator.clipboard.writeText(msg);
     addToast('Programação copiada com sucesso.', 'success');
   };
 
   const handleShareSingle = async (place: Place) => {
-    const msg = formatRouteMessage([place], '[INFORMAR CARRETA]');
+    const msg = formatRouteMessage([place], '[INFORMAR PLACA]');
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -535,7 +536,18 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
           </div>
         )}
         
-        {place.observacao && (
+        {place.observacoes && place.observacoes.length > 0 && (
+          <div className="flex flex-col gap-1.5 mt-3">
+            {place.observacoes.map((obs, i) => (
+              <div key={i} className="py-1.5 px-3 bg-amber-50 dark:bg-amber-500/10 rounded-lg border border-amber-200 dark:border-amber-500/20">
+                <span className="text-[10px] text-amber-700 dark:text-amber-500 font-bold mr-1">{obs.categoria}:</span>
+                <span className="text-[11px] text-amber-900 dark:text-amber-200 line-clamp-2 inline block sm:inline">{obs.texto}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {place.observacao && (!place.observacoes || place.observacoes.length === 0) && (
           <div className="py-2 px-3 mt-3 bg-amber-50 dark:bg-amber-500/10 rounded-lg border border-amber-200 dark:border-amber-500/20">
             <p className="text-[10px] text-amber-700 dark:text-amber-500 uppercase font-bold mb-1">Observação</p>
             <p className="text-xs text-amber-900 dark:text-amber-200 line-clamp-2">{place.observacao}</p>
@@ -579,7 +591,21 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
       <td className="px-4 py-3">
         <div className="flex flex-col py-1">
           <span className="text-slate-900 dark:text-white font-medium">{place.nomeFantasia}</span>
-          {place.observacao && (
+          
+          {place.observacoes && place.observacoes.length > 0 && (
+            <div className="flex flex-col gap-0.5 mt-1">
+              {place.observacoes.slice(0, 2).map((obs, i) => (
+                <div key={i} className="text-[10px] text-amber-700 dark:text-amber-400 font-medium truncate max-w-[250px]" title={`${obs.categoria}: ${obs.texto}`}>
+                  <span className="font-bold mr-1">{obs.categoria}:</span>{obs.texto}
+                </div>
+              ))}
+              {place.observacoes.length > 2 && (
+                <span className="text-[9px] text-amber-600/70 dark:text-amber-500/70 italic">+{place.observacoes.length - 2} obs...</span>
+              )}
+            </div>
+          )}
+
+          {place.observacao && (!place.observacoes || place.observacoes.length === 0) && (
             <div className="text-[10px] mt-0.5 text-amber-700 dark:text-amber-400 font-medium truncate max-w-[250px]" title={place.observacao}>
               <span className="font-bold mr-1">Obs:</span>{place.observacao}
             </div>

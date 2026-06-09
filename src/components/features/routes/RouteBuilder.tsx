@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { GripVertical, Trash2, Send, Copy } from 'lucide-react';
+import { GripVertical, Trash2, Send, Copy, Clock, Truck } from 'lucide-react';
 import { Place } from '../../../services/places';
+import { RouteStop } from '../../../services/routes';
 import { formatRouteMessage, capitalizeText } from '../../../lib/formatter';
 import { createRoute } from '../../../services/routes';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -17,8 +18,10 @@ interface RouteBuilderProps {
 
 export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelection, onRemoveFromSelection }: RouteBuilderProps) {
   const [cidadesReais, setCidadesReais] = useState<string[]>([]);
-  const [places, setPlaces] = useState<Place[]>([]);
-  const [carreta, setCarreta] = useState('');
+  const [places, setPlaces] = useState<RouteStop[]>([]);
+  const [placa, setPlaca] = useState('');
+  const [operacaoGeral, setOperacaoGeral] = useState('');
+  const [agendamentoGeral, setAgendamentoGeral] = useState('');
   const [observacaoGeral, setObservacaoGeral] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
@@ -38,7 +41,13 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   };
   
   useEffect(() => {
-    setPlaces(selectedPlaces);
+    // preserve existing stop details if the selection didn't remove them
+    const newPlaces = selectedPlaces.map(p => {
+      const existing = places.find(ep => ep.id === p.id);
+      if (existing) return existing;
+      return { ...p, operacao: '', agendamento: '' } as RouteStop;
+    });
+    setPlaces(newPlaces);
   }, [selectedPlaces]);
 
   const onDragEnd = (result: DropResult) => {
@@ -52,34 +61,47 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   };
 
   const handleCopy = async () => {
-    const message = formatRouteMessage(places, carreta, observacaoGeral);
+    const message = formatRouteMessage(places, placa, observacaoGeral, operacaoGeral, agendamentoGeral);
     await navigator.clipboard.writeText(message);
     onSuccess('Programação copiada com sucesso.');
     saveRouteLog(message);
   };
 
   const handleShare = async () => {
-    const message = formatRouteMessage(places, carreta, observacaoGeral);
+    const message = formatRouteMessage(places, placa, observacaoGeral, operacaoGeral, agendamentoGeral);
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
     onSuccess('Redirecionado para o WhatsApp.');
     saveRouteLog(message);
   };
 
-  const handleCarretaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCarreta(e.target.value.toUpperCase());
+  const handlePlacaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let formatted = e.target.value.toUpperCase();
+    if (formatted.length === 8 && formatted[3] !== '-' && !formatted.includes('-')) {
+        // Just format string roughly
+        formatted = formatted.substring(0, 3) + '-' + formatted.substring(3);
+    }
+    setPlaca(formatted);
   };
 
   const handleObservacaoGeralChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setObservacaoGeral(capitalizeText(e.target.value));
   };
+  
+  const handleStopChange = (id: string, field: keyof RouteStop, value: string) => {
+    setPlaces(places.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
   const saveRouteLog = async (message: string) => {
     if (!user) return;
     try {
       setIsSaving(true);
       await createRoute({
-        carreta,
+        placa,
+        carreta: placa, // BC
         observacaoGeral,
+        operacaoGeral,
+        agendamentoGeral,
         destinos: places,
         mensagemGerada: message
       }, user.uid);
@@ -93,22 +115,51 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
     }
   };
 
-  const isFormValid = carreta.trim().length > 0 && places.length > 0;
+  const isFormValid = placa.trim().length > 0 && places.length > 0;
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-col gap-4 mb-6">
         <div className="space-y-1">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Carreta *</label>
+          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Placa do Veículo *</label>
           <input
             required
             autoFocus
-            value={carreta}
-            onChange={handleCarretaChange}
-            className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono text-center transition-colors"
+            value={placa}
+            onChange={handlePlacaChange}
+            className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono transition-colors"
             placeholder="Ex: ABC-1234"
           />
         </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Operação Geral</label>
+            <select
+              value={operacaoGeral}
+              onChange={(e) => setOperacaoGeral(e.target.value)}
+              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-2 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
+            >
+              <option value="">Selecione...</option>
+              <option value="Entrega">Entrega</option>
+              <option value="Coleta">Coleta</option>
+              <option value="Transferência">Transferência</option>
+              <option value="Devolução">Devolução</option>
+              <option value="Manutenção">Manutenção</option>
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Agendamento Geral</label>
+            <input
+              type="text"
+              value={agendamentoGeral}
+              onChange={(e) => setAgendamentoGeral(e.target.value)}
+              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
+              placeholder="Ex: 14:00"
+            />
+          </div>
+        </div>
+
         <div className="space-y-1">
           <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Observação Geral</label>
           <textarea
@@ -162,6 +213,28 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                             </h4>
                             <p className="text-[10px] text-slate-500 truncate mt-1 ml-8">{renderCity(place.cidade)}</p>
                             {place.endereco && <p className="text-[10px] text-slate-400 dark:text-slate-600 truncate mt-0.5 ml-8">{place.endereco}</p>}
+                            
+                            <div className="flex gap-2 ml-8 mt-2">
+                              <select
+                                value={place.operacao || ''}
+                                onChange={(e) => handleStopChange(place.id!, 'operacao', e.target.value)}
+                                className="w-full text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded px-1 py-1 text-slate-700 dark:text-slate-300"
+                              >
+                                <option value="">Sem op. específica</option>
+                                <option value="Entrega">Entrega</option>
+                                <option value="Coleta">Coleta</option>
+                                <option value="Transferência">Transferência</option>
+                                <option value="Devolução">Devolução</option>
+                                <option value="Manutenção">Manutenção</option>
+                              </select>
+                              <input
+                                type="text"
+                                value={place.agendamento || ''}
+                                onChange={(e) => handleStopChange(place.id!, 'agendamento', e.target.value)}
+                                placeholder="Horário..."
+                                className="w-[80px] shrink-0 text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded px-2 py-1 text-slate-700 dark:text-slate-300 placeholder:text-slate-400"
+                              />
+                            </div>
                           </div>
 
                           <button

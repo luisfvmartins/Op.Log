@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Place } from '../../../services/places';
+import { Place, Observacao } from '../../../services/places';
 import { capitalizeText } from '../../../lib/formatter';
 import { getCidadesBrasileiras } from '../../../services/ibge';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface PlaceFormProps {
   initialData?: Place;
@@ -19,9 +20,8 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     endereco: '',
     nomeRazaoSocial: '',
     linkGoogleMaps: '',
-    observacao: '',
-    tags: ''
   });
+  const [observacoes, setObservacoes] = useState<Observacao[]>([]);
 
   useEffect(() => {
     getCidadesBrasileiras().then(setCidadesReais);
@@ -35,9 +35,20 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
         endereco: initialData.endereco || '',
         nomeRazaoSocial: initialData.nomeRazaoSocial || '',
         linkGoogleMaps: initialData.linkGoogleMaps || '',
-        observacao: initialData.observacao || '',
-        tags: initialData.tags?.join(', ') || ''
       });
+      if (initialData.observacoes && initialData.observacoes.length > 0) {
+        setObservacoes(initialData.observacoes);
+      } else {
+        // Migration from old observacao/tags
+        const oldObs: Observacao[] = [];
+        if (initialData.observacao) {
+          oldObs.push({ categoria: 'Geral', texto: initialData.observacao });
+        }
+        if (initialData.tags && Array.isArray(initialData.tags)) {
+          oldObs.push({ categoria: 'Tags', texto: initialData.tags.join(', ') });
+        }
+        setObservacoes(oldObs);
+      }
     }
   }, [initialData]);
 
@@ -73,6 +84,22 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     }
   };
 
+  const handleObsChange = (index: number, field: keyof Observacao, value: string) => {
+    const newObs = [...observacoes];
+    newObs[index][field] = value;
+    setObservacoes(newObs);
+  };
+
+  const addObservacao = () => {
+    setObservacoes([...observacoes, { categoria: '', texto: '' }]);
+  };
+
+  const removeObservacao = (index: number) => {
+    const newObs = [...observacoes];
+    newObs.splice(index, 1);
+    setObservacoes(newObs);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -102,16 +129,12 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
       submitData.cidade = matchedCity;
     }
     
-    const finalTags = formData.tags
-      .split(',')
-      .map(t => t.trim())
-      .filter(t => t.length > 0);
-      
-    const { tags, ...restData } = submitData;
+    // Filter empty observations
+    const cleanObs = observacoes.filter(o => o.categoria.trim() || o.texto.trim());
     
     await onSubmit({
-      ...restData,
-      tags: finalTags
+      ...submitData,
+      observacoes: cleanObs
     });
   };
 
@@ -182,29 +205,55 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           placeholder="https://maps.app.goo.gl/..."
         />
       </div>
-      <div className="space-y-1">
-        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Observação</label>
-        <textarea
-          name="observacao"
-          value={formData.observacao}
-          onChange={handleChange}
-          onPaste={handlePaste}
-          rows={3}
-          className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none"
-          placeholder="Insumos, restrições, horários..."
-        />
+
+      <div className="space-y-2 pt-2">
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-[10px] font-bold text-slate-500 uppercase">Observações Classificadas</label>
+          <button
+            type="button"
+            onClick={addObservacao}
+            className="flex items-center gap-1 text-[10px] font-medium text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-500/10 px-2 py-1 rounded"
+          >
+            <Plus className="w-3 h-3" />
+            Adicionar Obs.
+          </button>
+        </div>
+        
+        {observacoes.length === 0 && (
+          <div className="text-xs text-slate-400 dark:text-slate-500 italic p-3 border border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-center">
+            Nenhuma observação cadastrada (opcional)
+          </div>
+        )}
+
+        {observacoes.map((obs, index) => (
+          <div key={index} className="flex gap-2 items-start border border-slate-100 dark:border-white/5 p-2 rounded-lg bg-slate-50 dark:bg-white/5">
+            <div className="flex-1 space-y-2">
+              <input
+                value={obs.categoria}
+                onChange={(e) => handleObsChange(index, 'categoria', e.target.value)}
+                className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded px-2 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400"
+                placeholder="Categoria (ex: Insumos, EPI, Bairro)"
+              />
+              <textarea
+                value={obs.texto}
+                onChange={(e) => handleObsChange(index, 'texto', e.target.value)}
+                rows={1}
+                className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded px-2 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 resize-none h-auto min-h-[36px]"
+                placeholder="Descrição (ex: Requer 2 catracas)"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => removeObservacao(index)}
+              className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded mt-0.5"
+              title="Remover"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ))}
       </div>
 
-      <div className="space-y-1">
-        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Tags (separadas por vírgula)</label>
-        <input
-          name="tags"
-          value={formData.tags}
-          onChange={handleChange}
-          className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
-          placeholder="Ex: Armazém, Fazenda"
-        />
-      </div>
       <div className="pt-4 flex justify-end gap-3 border-t border-slate-200 dark:border-white/10">
         <button
           type="button"

@@ -2,11 +2,19 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Place } from './places';
 
+export interface RouteStop extends Place {
+  operacao?: string;
+  agendamento?: string;
+}
+
 export interface RouteData {
   id?: string;
-  carreta: string;
+  carreta?: string; // backwards compatibility
+  placa?: string;
+  operacaoGeral?: string;
+  agendamentoGeral?: string;
   observacaoGeral?: string;
-  destinos: Place[];
+  destinos: RouteStop[] | Place[];
   mensagemGerada: string;
   userId?: string;
   createdAt?: any;
@@ -14,6 +22,7 @@ export interface RouteData {
 }
 
 const COLLECTION = 'roteiros';
+
 
 const getLocalRoutes = (): RouteData[] => JSON.parse(localStorage.getItem(COLLECTION) || '[]');
 const setLocalRoutes = (routes: RouteData[]) => localStorage.setItem(COLLECTION, JSON.stringify(routes));

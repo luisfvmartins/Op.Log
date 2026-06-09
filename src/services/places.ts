@@ -1,19 +1,26 @@
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy, where, writeBatch } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
+export interface Observacao {
+  categoria: string;
+  texto: string;
+}
+
 export interface Place {
   id?: string;
   nomeFantasia: string;
   cidade: string;
   nomeRazaoSocial: string;
   linkGoogleMaps: string;
-  observacao?: string;
+  observacao?: string; // legacy or general observation
+  observacoes?: Observacao[];
   endereco?: string;
-  tags?: string[];
+  tags?: string[] | any; // legacy tags
   userId?: string;
   createdAt?: any;
   updatedAt?: any;
 }
+
 
 const COLLECTION = 'pontos_de_parada';
 

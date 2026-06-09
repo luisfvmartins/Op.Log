@@ -1,4 +1,5 @@
 import { Place } from '../services/places';
+import { RouteStop } from '../services/routes';
 
 export function capitalizeText(text: string): string {
   if (!text) return text;
@@ -9,8 +10,22 @@ export function capitalizeText(text: string): string {
     .join(' ');
 }
 
-export function formatRouteMessage(places: Place[], carreta: string, observacaoGeral?: string) {
-  let message = `*Segue programação:*\n\n*Carreta:* ${carreta}\n\n`;
+export function formatRouteMessage(
+  places: RouteStop[], 
+  placa: string, 
+  observacaoGeral?: string,
+  operacaoGeral?: string,
+  agendamentoGeral?: string
+) {
+  let message = `*Segue programação:*\n\n*Placa/Carreta:* ${placa}\n`;
+  if (operacaoGeral) {
+    message += `*Operação:* ${operacaoGeral}\n`;
+  }
+  if (agendamentoGeral) {
+    message += `*Agendamento:* ${agendamentoGeral}\n`;
+  }
+  
+  message += `\n`;
 
   if (observacaoGeral) {
     message += `*Observação Geral:* ${observacaoGeral}\n\n`;
@@ -18,13 +33,26 @@ export function formatRouteMessage(places: Place[], carreta: string, observacaoG
 
   places.forEach((place, index) => {
     message += `*${index + 1}ª Parada:* ${place.nomeFantasia}\n`;
+    
+    if (place.operacao) {
+      message += `*Operação:* ${place.operacao}\n`;
+    }
+    if (place.agendamento) {
+      message += `*Agendamento:* ${place.agendamento}\n`;
+    }
+    
     if (place.endereco) {
       message += `*Endereço:* ${place.endereco}\n`;
       message += `*Maps:* ${place.linkGoogleMaps}\n`;
     } else {
       message += `*Endereço:* ${place.linkGoogleMaps}\n`;
     }
-    if (place.observacao) {
+    
+    if (place.observacoes && place.observacoes.length > 0) {
+      place.observacoes.forEach(obs => {
+        message += `*${obs.categoria}:* ${obs.texto}\n`;
+      });
+    } else if (place.observacao) {
       message += `*Observação:* ${place.observacao}\n`;
     }
     
@@ -39,3 +67,4 @@ export function formatRouteMessage(places: Place[], carreta: string, observacaoG
 
   return message;
 }
+
