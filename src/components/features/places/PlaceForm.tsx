@@ -37,7 +37,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
         linkGoogleMaps: initialData.linkGoogleMaps || '',
       });
       if (initialData.observacoes && initialData.observacoes.length > 0) {
-        setObservacoes(initialData.observacoes);
+        setObservacoes(JSON.parse(JSON.stringify(initialData.observacoes)));
       } else {
         // Migration from old observacao/tags
         const oldObs: Observacao[] = [];
@@ -56,9 +56,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     const { name, value } = e.target;
     let formattedValue = value;
     
-    if (name === 'linkGoogleMaps') {
-      formattedValue = value.toLowerCase();
-    } else if (name === 'cidade') {
+    if (name === 'cidade') {
       formattedValue = value;
       setCidadeError('');
     }
