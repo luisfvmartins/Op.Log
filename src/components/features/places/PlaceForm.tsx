@@ -273,7 +273,8 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          className={`flex gap-2 items-start border p-2 rounded-lg ${snapshot.isDragging ? 'bg-white dark:bg-slate-800 border-blue-500 shadow-md' : 'border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5'}`}
+                          style={provided.draggableProps.style}
+                          className={`flex gap-2 items-start border p-2 rounded-lg transition-colors duration-200 ${snapshot.isDragging ? 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 shadow-xl opacity-90 z-50' : 'border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5'}`}
                         >
                           <div 
                             {...provided.dragHandleProps} 
