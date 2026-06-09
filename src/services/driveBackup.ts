@@ -6,34 +6,45 @@ export async function createDriveBackup(data: any, accessToken: string): Promise
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   const searchData = await searchRes.json();
-  const fileId = searchData.files && searchData.files.length > 0 ? searchData.files[0].id : null;
+  let fileId = searchData.files && searchData.files.length > 0 ? searchData.files[0].id : null;
 
-  const fileMetadata = {
-    name: BACKUP_FILE_NAME,
-    mimeType: 'application/json',
-  };
+  if (!fileId) {
+    // Create the file first to get the ID
+    const createRes = await fetch(`https://www.googleapis.com/drive/v3/files`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: BACKUP_FILE_NAME,
+        mimeType: 'application/json',
+      }),
+    });
+    if (!createRes.ok) {
+      const errorText = await createRes.text();
+      console.error('Drive API Create Error:', errorText);
+      throw new Error('Falha ao criar arquivo de backup no Google Drive: ' + errorText);
+    }
+    const createData = await createRes.json();
+    fileId = createData.id;
+  }
 
+  // Now upload the media
   const fileContent = JSON.stringify(data, null, 2);
-  const blob = new Blob([fileContent], { type: 'application/json' });
-
-  const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify(fileMetadata)], { type: 'application/json' }));
-  form.append('file', blob);
-
-  const url = fileId 
-    ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`
-    : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
-  
-  const method = fileId ? 'PATCH' : 'POST';
-
-  const res = await fetch(url, {
-    method,
-    headers: { Authorization: `Bearer ${accessToken}` },
-    body: form,
+  const uploadRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: fileContent,
   });
 
-  if (!res.ok) {
-    throw new Error('Falha ao exportar backup para o Google Drive.');
+  if (!uploadRes.ok) {
+    const errorText = await uploadRes.text();
+    console.error('Drive API Upload Error:', errorText);
+    throw new Error('Falha ao exportar backup para o Google Drive: ' + errorText);
   }
 }
 
