@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin } from 'lucide-react';
 import { usePlaces } from '../hooks/usePlaces';
 import { useToast } from '../hooks/useToast';
@@ -11,8 +11,27 @@ import { Drawer } from '../components/ui/Drawer';
 import { ToastContainer } from '../components/ui/Toast';
 import { formatRouteMessage } from '../lib/formatter';
 import { useAuth } from '../contexts/AuthContext';
+import { getCidadesBrasileiras } from '../services/ibge';
 
 export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
+  const [cidadesReais, setCidadesReais] = useState<string[]>([]);
+  
+  useEffect(() => {
+    getCidadesBrasileiras().then(setCidadesReais);
+  }, []);
+
+  const renderCity = (city?: string) => {
+    if (!city) return '';
+    if (city.includes('-')) return city.replace(' - ', '-');
+    
+    if (cidadesReais.length > 0) {
+      const matches = cidadesReais.filter(c => c.split(' - ')[0].toLowerCase() === city.toLowerCase());
+      if (matches.length === 1) {
+        return matches[0].replace(' - ', '-');
+      }
+    }
+    return city;
+  };
   const { places, loading, add, update, remove, importData } = usePlaces();
   const { toasts, addToast, removeToast } = useToast();
   const { user, logout } = useAuth();
@@ -492,7 +511,7 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter truncate block pr-6">{place.nomeRazaoSocial}</span>
           <h3 className="text-slate-900 dark:text-white font-medium text-base truncate">{place.nomeFantasia}</h3>
           <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs mt-0.5">
-            <span className="truncate">{place.cidade?.replace(' - ', '-')}</span>
+            <span className="truncate">{renderCity(place.cidade)}</span>
           </div>
         </div>
 
@@ -562,7 +581,7 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
           )}
         </div>
       </td>
-      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{place.cidade?.replace(' - ', '-')}</td>
+      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{renderCity(place.cidade)}</td>
       <td className="px-4 py-3 text-slate-400 dark:text-slate-500 truncate max-w-[200px]">{place.nomeRazaoSocial}</td>
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">

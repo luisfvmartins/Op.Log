@@ -5,6 +5,7 @@ import { Place } from '../../../services/places';
 import { formatRouteMessage, capitalizeText } from '../../../lib/formatter';
 import { createRoute } from '../../../services/routes';
 import { useAuth } from '../../../contexts/AuthContext';
+import { getCidadesBrasileiras } from '../../../services/ibge';
 
 interface RouteBuilderProps {
   selectedPlaces: Place[];
@@ -15,11 +16,26 @@ interface RouteBuilderProps {
 }
 
 export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelection, onRemoveFromSelection }: RouteBuilderProps) {
+  const [cidadesReais, setCidadesReais] = useState<string[]>([]);
   const [places, setPlaces] = useState<Place[]>([]);
   const [carreta, setCarreta] = useState('');
   const [observacaoGeral, setObservacaoGeral] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
+  
+  useEffect(() => {
+    getCidadesBrasileiras().then(setCidadesReais);
+  }, []);
+
+  const renderCity = (city?: string) => {
+    if (!city) return '';
+    if (city.includes('-')) return city.replace(' - ', '-');
+    if (cidadesReais.length > 0) {
+      const matches = cidadesReais.filter(c => c.split(' - ')[0].toLowerCase() === city.toLowerCase());
+      if (matches.length === 1) return matches[0].replace(' - ', '-');
+    }
+    return city;
+  };
   
   useEffect(() => {
     setPlaces(selectedPlaces);
@@ -144,7 +160,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                               </span>
                               <span className="truncate">{place.nomeFantasia}</span>
                             </h4>
-                            <p className="text-[10px] text-slate-500 truncate mt-1 ml-8">{place.cidade?.replace(' - ', '-')}</p>
+                            <p className="text-[10px] text-slate-500 truncate mt-1 ml-8">{renderCity(place.cidade)}</p>
                           </div>
 
                           <button
