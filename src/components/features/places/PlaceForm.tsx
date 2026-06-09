@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Place } from '../../../services/places';
 import { capitalizeText } from '../../../lib/formatter';
+import { getCidadesBrasileiras } from '../../../services/ibge';
 
 interface PlaceFormProps {
   initialData?: Place;
@@ -10,6 +11,8 @@ interface PlaceFormProps {
 }
 
 export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceFormProps) {
+  const [cidadesReais, setCidadesReais] = useState<string[]>([]);
+  const [cidadeError, setCidadeError] = useState('');
   const [formData, setFormData] = useState({
     nomeFantasia: '',
     cidade: '',
@@ -17,6 +20,10 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     linkGoogleMaps: '',
     observacao: ''
   });
+
+  useEffect(() => {
+    getCidadesBrasileiras().then(setCidadesReais);
+  }, []);
 
   useEffect(() => {
     if (initialData) {
@@ -36,6 +43,10 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     
     if (name === 'linkGoogleMaps') {
       formattedValue = value.toLowerCase();
+    } else if (name === 'cidade') {
+      // Don't auto-capitalize when fetching from list, allow matching exactly
+      formattedValue = value;
+      setCidadeError('');
     } else {
       formattedValue = capitalizeText(value);
     }
@@ -45,6 +56,10 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (cidadesReais.length > 0 && !cidadesReais.includes(formData.cidade)) {
+      setCidadeError('Por favor, selecione uma cidade válida da lista (Cidade - UF).');
+      return;
+    }
     await onSubmit(formData);
   };
 
@@ -67,11 +82,17 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
         <input
           required
           name="cidade"
+          list="brazil-cities"
           value={formData.cidade}
           onChange={handleChange}
-          className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-          placeholder="Ex: São Paulo, SP"
+          className={`w-full bg-white dark:bg-black/40 border ${cidadeError ? 'border-red-500' : 'border-slate-300 dark:border-white/10'} rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all`}
+          placeholder="Ex: São Paulo - SP"
+          autoComplete="off"
         />
+        <datalist id="brazil-cities">
+          {cidadesReais.map(c => <option key={c} value={c} />)}
+        </datalist>
+        {cidadeError && <p className="text-xs text-red-500 font-medium mt-1">{cidadeError}</p>}
       </div>
       <div className="space-y-1">
         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Razão Social / Nome completo *</label>

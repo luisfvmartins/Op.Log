@@ -51,7 +51,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   };
 
   const handleCarretaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCarreta(capitalizeText(e.target.value));
+    setCarreta(e.target.value.toUpperCase());
   };
 
   const handleObservacaoGeralChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
