@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { Place, Observacao } from '../../../services/places';
 import { capitalizeText } from '../../../lib/formatter';
 import { getCidadesBrasileiras } from '../../../services/ibge';
-import { Plus, Trash2, Settings, X } from 'lucide-react';
+import { Plus, Trash2, Settings, X, GripVertical } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getCategories, saveCategories, Category } from '../../../services/categories';
 import { AutocompleteInput } from '../../ui/AutocompleteInput';
 import { Modal } from '../../ui/Modal';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface PlaceFormProps {
   initialData?: Place;
@@ -29,7 +30,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     nomeRazaoSocial: '',
     linkGoogleMaps: '',
   });
-  const [observacoes, setObservacoes] = useState<Observacao[]>([]);
+  const [observacoes, setObservacoes] = useState<(Observacao & { clientId: string })[]>([]);
 
   useEffect(() => {
     getCidadesBrasileiras().then(setCidadesReais);
@@ -51,14 +52,14 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
         linkGoogleMaps: initialData.linkGoogleMaps || '',
       });
       if (initialData.observacoes && initialData.observacoes.length > 0) {
-        setObservacoes(JSON.parse(JSON.stringify(initialData.observacoes)));
+        setObservacoes(initialData.observacoes.map(o => ({ ...o, clientId: crypto.randomUUID() })));
       } else {
-        const oldObs: Observacao[] = [];
+        const oldObs: (Observacao & { clientId: string })[] = [];
         if (initialData.observacao) {
-          oldObs.push({ categoria: 'Geral', texto: initialData.observacao });
+          oldObs.push({ categoria: 'Geral', texto: initialData.observacao, clientId: crypto.randomUUID() });
         }
         if (initialData.tags && Array.isArray(initialData.tags)) {
-          oldObs.push({ categoria: 'Tags', texto: initialData.tags.join(', ') });
+          oldObs.push({ categoria: 'Tags', texto: initialData.tags.join(', '), clientId: crypto.randomUUID() });
         }
         setObservacoes(oldObs);
       }
@@ -102,13 +103,21 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
   };
 
   const addObservacao = () => {
-    setObservacoes([...observacoes, { categoria: '', texto: '' }]);
+    setObservacoes([...observacoes, { categoria: '', texto: '', clientId: crypto.randomUUID() }]);
   };
 
   const removeObservacao = (index: number) => {
     const newObs = [...observacoes];
     newObs.splice(index, 1);
     setObservacoes(newObs);
+  };
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const items = Array.from(observacoes);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    setObservacoes(items);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -139,8 +148,10 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
       submitData.cidade = matchedCity;
     }
     
-    // Filter empty observations
-    const cleanObs = observacoes.filter(o => o.categoria.trim() || o.texto.trim());
+    // Filter empty observations and remove clientId
+    const cleanObs = observacoes
+      .filter(o => o.categoria.trim() || o.texto.trim())
+      .map(({ clientId, ...rest }) => rest);
     
     await onSubmit({
       ...submitData,
@@ -252,35 +263,59 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
             </div>
           )}
 
-          {observacoes.map((obs, index) => (
-            <div key={index} className="flex gap-2 items-start border border-slate-100 dark:border-white/5 p-2 rounded-lg bg-slate-50 dark:bg-white/5">
-              <div className="flex-1 space-y-2">
-                <AutocompleteInput
-                  value={obs.categoria}
-                  options={categories.map(c => c.name)}
-                  onChange={(val) => handleObsChange(index, 'categoria', val)}
-                  placeholder="Categoria (ex: Insumos, EPI, Bairro)"
-                  className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded px-2 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
-                
-                <textarea
-                  value={obs.texto}
-                  onChange={(e) => handleObsChange(index, 'texto', e.target.value)}
-                  rows={1}
-                  className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded px-2 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 resize-none h-auto min-h-[36px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  placeholder="Descrição (ex: Requer 2 catracas)"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => removeObservacao(index)}
-                className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded mt-0.5"
-                title="Remover"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="observacoes-list">
+              {(provided) => (
+                <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+                  {observacoes.map((obs, index) => (
+                    <Draggable key={obs.clientId} draggableId={obs.clientId} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className={`flex gap-2 items-start border p-2 rounded-lg ${snapshot.isDragging ? 'bg-white dark:bg-slate-800 border-blue-500 shadow-md' : 'border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5'}`}
+                        >
+                          <div 
+                            {...provided.dragHandleProps} 
+                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 mt-2 cursor-grab active:cursor-grabbing"
+                            title="Arrastar para reordenar"
+                          >
+                            <GripVertical className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <AutocompleteInput
+                              value={obs.categoria}
+                              options={categories.map(c => c.name)}
+                              onChange={(val) => handleObsChange(index, 'categoria', val)}
+                              placeholder="Categoria (ex: Insumos, EPI, Bairro)"
+                              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded px-2 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            />
+                            
+                            <textarea
+                              value={obs.texto}
+                              onChange={(e) => handleObsChange(index, 'texto', e.target.value)}
+                              rows={1}
+                              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded px-2 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 resize-none h-auto min-h-[36px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                              placeholder="Descrição (ex: Requer 2 catracas)"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeObservacao(index)}
+                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded mt-0.5"
+                            title="Remover"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         </div>
 
         <div className="pt-4 flex justify-end gap-3 border-t border-slate-200 dark:border-white/10">
