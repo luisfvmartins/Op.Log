@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin } from 'lucide-react';
+import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin, ExternalLink } from 'lucide-react';
 import { usePlaces } from '../hooks/usePlaces';
 import { useToast } from '../hooks/useToast';
 import { Place } from '../services/places';
@@ -515,7 +515,14 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
       <div className="flex-1 flex flex-col cursor-pointer" onClick={onSelect}>
         <div>
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter truncate block pr-6">{place.nomeRazaoSocial}</span>
-          <h3 className="text-slate-900 dark:text-white font-medium text-base truncate">{place.nomeFantasia}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-slate-900 dark:text-white font-medium text-base truncate">{place.nomeFantasia}</h3>
+            {place.linkGoogleMaps && (
+              <a href={place.linkGoogleMaps} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="Abrir no Mapa" onClick={e => e.stopPropagation()}>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
           
           <div className="flex flex-col gap-0.5 mt-1.5">
             <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs font-medium">
@@ -590,7 +597,14 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
       </td>
       <td className="px-4 py-3">
         <div className="flex flex-col py-1">
-          <span className="text-slate-900 dark:text-white font-medium">{place.nomeFantasia}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-slate-900 dark:text-white font-medium">{place.nomeFantasia}</span>
+            {place.linkGoogleMaps && (
+              <a href={place.linkGoogleMaps} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="Abrir no Mapa" onClick={e => e.stopPropagation()}>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
           
           {place.observacoes && place.observacoes.length > 0 && (
             <div className="flex flex-col gap-0.5 mt-1">

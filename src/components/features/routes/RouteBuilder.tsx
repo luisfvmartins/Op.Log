@@ -134,7 +134,20 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
         
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Operação Geral</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase">Operação Geral</label>
+              <button
+                type="button"
+                onClick={() => {
+                  if (operacaoGeral) {
+                    setPlaces(places.map(p => ({ ...p, operacao: operacaoGeral })));
+                  }
+                }}
+                className="text-[9px] font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 rounded transition-colors"
+              >
+                Aplicar a todas
+              </button>
+            </div>
             <select
               value={operacaoGeral}
               onChange={(e) => setOperacaoGeral(e.target.value)}
@@ -149,13 +162,25 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
             </select>
           </div>
           <div className="space-y-1">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Agendamento Geral</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase">Agendamento Geral</label>
+              <button
+                type="button"
+                onClick={() => {
+                  if (agendamentoGeral) {
+                    setPlaces(places.map(p => ({ ...p, agendamento: agendamentoGeral })));
+                  }
+                }}
+                className="text-[9px] font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 rounded transition-colors"
+              >
+                Aplicar a todas
+              </button>
+            </div>
             <input
-              type="text"
+              type="datetime-local"
               value={agendamentoGeral}
               onChange={(e) => setAgendamentoGeral(e.target.value)}
-              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
-              placeholder="Ex: 14:00"
+              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-2 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-colors dark:[color-scheme:dark]"
             />
           </div>
         </div>
@@ -228,11 +253,10 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                                 <option value="Manutenção">Manutenção</option>
                               </select>
                               <input
-                                type="text"
+                                type="datetime-local"
                                 value={place.agendamento || ''}
                                 onChange={(e) => handleStopChange(place.id!, 'agendamento', e.target.value)}
-                                placeholder="Horário..."
-                                className="w-[80px] shrink-0 text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded px-2 py-1 text-slate-700 dark:text-slate-300 placeholder:text-slate-400"
+                                className="w-full sm:w-[140px] shrink-0 text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded px-2 py-1 text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:[color-scheme:dark]"
                               />
                             </div>
                           </div>

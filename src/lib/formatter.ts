@@ -10,6 +10,17 @@ export function capitalizeText(text: string): string {
     .join(' ');
 }
 
+export function formatDateToBR(dateString: string): string {
+  if (!dateString) return dateString;
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(d);
+  } catch(e) {
+    return dateString;
+  }
+}
+
 export function formatRouteMessage(
   places: RouteStop[], 
   placa: string, 
@@ -22,7 +33,7 @@ export function formatRouteMessage(
     message += `*Operação:* ${operacaoGeral}\n`;
   }
   if (agendamentoGeral) {
-    message += `*Agendamento:* ${agendamentoGeral}\n`;
+    message += `*Agendamento:* ${formatDateToBR(agendamentoGeral)}\n`;
   }
   
   message += `\n`;
@@ -38,7 +49,7 @@ export function formatRouteMessage(
       message += `*Operação:* ${place.operacao}\n`;
     }
     if (place.agendamento) {
-      message += `*Agendamento:* ${place.agendamento}\n`;
+      message += `*Agendamento:* ${formatDateToBR(place.agendamento)}\n`;
     }
     
     if (place.endereco) {
