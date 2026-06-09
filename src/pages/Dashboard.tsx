@@ -9,7 +9,7 @@ import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Drawer } from '../components/ui/Drawer';
 import { ToastContainer } from '../components/ui/Toast';
-import { formatRouteMessage } from '../lib/formatter';
+import { formatRouteMessage, ensureAbsoluteUrl } from '../lib/formatter';
 import { useAuth } from '../contexts/AuthContext';
 import { getCidadesBrasileiras } from '../services/ibge';
 
@@ -559,14 +559,6 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   );
 }
 
-const ensureAbsoluteUrl = (url?: string): string => {
-  if (!url) return '';
-  const trimmed = url.trim();
-  if (/^https?:\/\//i.test(trimmed)) {
-    return trimmed;
-  }
-  return `https://${trimmed}`;
-};
 
 // ---------------- Helper Components ----------------
 

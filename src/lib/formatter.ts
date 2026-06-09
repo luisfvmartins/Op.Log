@@ -21,6 +21,15 @@ export function formatDateToBR(dateString: string): string {
   }
 }
 
+export function ensureAbsoluteUrl(url?: string): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+}
+
 export function formatRouteMessage(
   places: RouteStop[], 
   placa: string, 
@@ -54,9 +63,9 @@ export function formatRouteMessage(
     
     if (place.endereco) {
       message += `*Endereço:* ${place.endereco}\n`;
-      message += `*Maps:* ${place.linkGoogleMaps}\n`;
-    } else {
-      message += `*Endereço:* ${place.linkGoogleMaps}\n`;
+    }
+    if (place.linkGoogleMaps) {
+      message += `*Maps:* ${ensureAbsoluteUrl(place.linkGoogleMaps)}\n`;
     }
     
     if (place.observacoes && place.observacoes.length > 0) {
