@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin, ExternalLink, CloudUpload, CloudDownload } from 'lucide-react';
+import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin, ExternalLink } from 'lucide-react';
 import { usePlaces } from '../hooks/usePlaces';
 import { useToast } from '../hooks/useToast';
 import { Place } from '../services/places';
@@ -12,7 +12,6 @@ import { ToastContainer } from '../components/ui/Toast';
 import { formatRouteMessage, ensureAbsoluteUrl } from '../lib/formatter';
 import { useAuth } from '../contexts/AuthContext';
 import { getCidadesBrasileiras } from '../services/ibge';
-import { createDriveBackup, restoreDriveBackup } from '../services/driveBackup';
 
 export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
   const [cidadesReais, setCidadesReais] = useState<string[]>([]);
@@ -36,7 +35,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
   const { places, loading, add, update, remove, removeSelected, removeAll, importData } = usePlaces();
   const { toasts, addToast, removeToast } = useToast();
-  const { user, logout, accessToken, signInWithGoogle } = useAuth();
+  const { user, logout } = useAuth();
   
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,79 +50,9 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   const [deleteAllConfirmStep, setDeleteAllConfirmStep] = useState(0);
   const [isRouteDrawerOpen, setIsRouteDrawerOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
-  const [isRestoreDriveConfirmOpen, setIsRestoreDriveConfirmOpen] = useState(false);
   
   const [isBusy, setIsBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const getDriveToken = async () => {
-    if (!accessToken) {
-      addToast('Autenticando no Google Drive...', 'info');
-      await signInWithGoogle();
-      // O token será detectado após o sign-in (requer nova renderização para atualizar AuthContext, mas na prática podemos só depender do estado já logado ou fazer a ação novamente)
-      // Como o signInWithGoogle atualiza o estado mas não a variável local na hora, para evitar race condition, o Google Drive pode precisar de outro clique se não estiver auto...
-      return null;
-    }
-    return accessToken;
-  };
-
-  const handleBackupToDrive = async () => {
-    let token = accessToken;
-    if (!token) {
-      try {
-        await signInWithGoogle();
-        addToast('Autenticado com sucesso. Clique em Backup novamente para confirmar.', 'info');
-      } catch (err) {
-        addToast('Erro ao autenticar.', 'error');
-      }
-      return;
-    }
-    setIsBusy(true);
-    addToast('Salvando backup no Google Drive...', 'info');
-    try {
-      const dataToExport = places.map(({ id, userId, createdAt, updatedAt, ...rest }) => rest);
-      await createDriveBackup(dataToExport, token);
-      addToast('Backup concluído com sucesso.', 'success');
-    } catch (err: any) {
-      addToast(err.message, 'error');
-    } finally {
-      setIsBusy(false);
-    }
-  };
-
-  const executeRestoreFromDrive = async () => {
-    let token = accessToken;
-    if (!token) return;
-    setIsBusy(true);
-    setIsRestoreDriveConfirmOpen(false);
-    addToast('Restaurando do Google Drive...', 'info');
-    try {
-      const data = await restoreDriveBackup(token);
-      if (Array.isArray(data)) {
-        await importData(data);
-        addToast(`${data.length} locais restaurados com sucesso.`, 'success');
-      } else {
-        throw new Error('Formato de backup inválido.');
-      }
-    } catch (err: any) {
-      addToast(err.message, 'error');
-    } finally {
-      setIsBusy(false);
-    }
-  };
-
-  const handleRestoreFromDriveRequest = async () => {
-    if (!accessToken) {
-      try {
-        await signInWithGoogle();
-        addToast('Autenticado com sucesso. Clique em Restaurar novamente.', 'info');
-      } catch (err) {
-        addToast('Erro ao autenticar.', 'error');
-      }
-      return;
-    }
-    setIsRestoreDriveConfirmOpen(true);
-  };
 
   const handleSelectAllToggle = () => {
     if (selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0) {
@@ -378,24 +307,6 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
             <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block"></div>
 
             <button
-              onClick={handleBackupToDrive}
-              className="p-2 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
-              title="Backup para Google Drive"
-            >
-              <CloudUpload className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={handleRestoreFromDriveRequest}
-              className="p-2 text-slate-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
-              title="Restaurar backup do Google Drive"
-            >
-              <CloudDownload className="w-4 h-4" />
-            </button>
-
-            <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block"></div>
-
-            <button
               onClick={toggleTheme}
               className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
               title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
@@ -548,17 +459,6 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         confirmText="EXCLUIR PERMANENTEMENTE"
         cancelText="Cancelar"
         requireInputConfirm={selectedIds.size === places.length ? "EXCLUIR TUDO" : "EXCLUIR"}
-      />
-
-      <ConfirmDialog
-        isOpen={isRestoreDriveConfirmOpen}
-        onClose={() => setIsRestoreDriveConfirmOpen(false)}
-        onConfirm={executeRestoreFromDrive}
-        title="Restaurar backup do Google Drive?"
-        description="Esta ação pode adicionar locais duplicados ou sobrescrever seus dados atuais, dependendo de como os IDs são tratados, continuando a partir do seu último backup na nuvem."
-        isDestructive={false}
-        confirmText="Sim, Restaurar"
-        cancelText="Cancelar"
       />
 
       <Modal

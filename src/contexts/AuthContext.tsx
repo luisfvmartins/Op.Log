@@ -5,7 +5,6 @@ import { auth } from '../lib/firebase';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  accessToken: string | null;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -13,21 +12,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  accessToken: null,
   signInWithGoogle: async () => {},
   logout: async () => {},
 });
 
-let cachedAccessToken: string | null = null;
-
-export const getAccessToken = async (): Promise<string | null> => {
-  return cachedAccessToken;
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (!auth) {
@@ -37,10 +28,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        cachedAccessToken = null;
-        setAccessToken(null);
-      }
       setUser(currentUser);
       setLoading(false);
     });
@@ -52,14 +39,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error('O Firebase não está configurado. Adicione as variáveis VITE_FIREBASE_* (ver .env.example) no painel do Vercel.');
     }
     const provider = new GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/drive.file');
     try {
-      const result = await signInWithPopup(auth, provider);
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      if (credential?.accessToken) {
-        cachedAccessToken = credential.accessToken;
-        setAccessToken(credential.accessToken);
-      }
+      await signInWithPopup(auth, provider);
     } catch (error) {
       console.error('Error during Google sign in:', error);
       throw error;
@@ -72,12 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     await signOut(auth);
-    cachedAccessToken = null;
-    setAccessToken(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, accessToken, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
