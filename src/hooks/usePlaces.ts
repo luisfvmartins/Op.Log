@@ -40,7 +40,17 @@ export function usePlaces() {
   const update = async (id: string, place: Partial<Place>) => {
     if (!user) throw new Error('Usuário não autenticado');
     await updatePlace(id, place);
-    setPlaces(prev => prev.map(p => p.id === id ? { ...p, ...place } : p));
+    setPlaces(prev => prev.map(p => {
+      if (p.id === id) {
+        const updatedPlace = { ...p, ...place };
+        if (place.observacoes !== undefined) {
+          delete updatedPlace.observacao;
+          delete updatedPlace.tags;
+        }
+        return updatedPlace;
+      }
+      return p;
+    }));
   };
 
   const remove = async (id: string) => {

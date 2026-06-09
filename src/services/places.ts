@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy, where, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy, where, writeBatch, deleteField } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 export interface Observacao {
@@ -77,12 +77,27 @@ export async function createPlace(place: Omit<Place, 'id' | 'createdAt' | 'updat
 export async function updatePlace(id: string, place: Partial<Place>): Promise<void> {
   if (!db) {
     const places = getLocalPlaces();
-    const updated = places.map(p => p.id === id ? { ...p, ...place, updatedAt: new Date().toISOString() } : p);
+    const updated = places.map(p => {
+      if (p.id === id) {
+        const newP = { ...p, ...place, updatedAt: new Date().toISOString() };
+        if (place.observacoes !== undefined) {
+          delete newP.observacao;
+          delete newP.tags;
+        }
+        return newP;
+      }
+      return p;
+    });
     setLocalPlaces(updated);
     return;
   }
   const docRef = doc(db, COLLECTION, id);
-  await updateDoc(docRef, { ...place, updatedAt: serverTimestamp() });
+  const updateData: any = { ...place, updatedAt: serverTimestamp() };
+  if (place.observacoes !== undefined) {
+    updateData.observacao = deleteField();
+    updateData.tags = deleteField();
+  }
+  await updateDoc(docRef, updateData);
 }
 
 export async function deletePlace(id: string): Promise<void> {
