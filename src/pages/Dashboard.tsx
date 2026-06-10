@@ -222,34 +222,19 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       {/* HEADER */}
-      <header className="sticky top-0 z-30 bg-white/90 dark:bg-[#09090B]/90 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4 transition-colors">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 flex items-center justify-center bg-blue-600 rounded-lg text-white shadow-sm shadow-blue-600/20">
-              <Map className="w-5 h-5" />
-            </div>
-            <div className="select-none">
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">Locais e Roteiros</h1>
-              <p className="text-xs text-slate-500 font-medium">{places.length} {places.length === 1 ? 'local registrado' : 'locais registrados'}</p>
-            </div>
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#09090B]/50 backdrop-blur-md border-b border-slate-200 dark:border-white/10 px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 flex items-center justify-center bg-blue-600 rounded text-white">
+            <Map className="w-5 h-5" />
           </div>
-          
-          <div className="flex xl:hidden gap-2">
-             <button
-                onClick={() => {
-                  setEditingPlace(undefined);
-                  setIsPlaceModalOpen(true);
-                }}
-                className="flex items-center justify-center w-10 h-10 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-900 rounded-lg transition-colors"
-                title="Novo Local"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
+          <div className="select-none">
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-white leading-tight">Locais e Roteiros</h1>
+            <p className="text-xs text-slate-500 font-medium">{places.length} locais registrados</p>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4">
-          <div className="relative w-full sm:w-80 group">
+        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-80 group order-last flex-basis-full sm:order-none sm:flex-basis-auto">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
             <input
               type="text"
@@ -348,10 +333,10 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
                 setEditingPlace(undefined);
                 setIsPlaceModalOpen(true);
               }}
-              className="hidden xl:flex items-center gap-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all shadow-sm"
+              className="flex items-center gap-2 bg-blue-600 xl:bg-slate-900 hover:bg-blue-500 xl:hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 ml-2"
             >
-              <Plus className="w-4 h-4" />
-              <span>Novo Local</span>
+              <span className="hidden sm:inline">+ Novo Local</span>
+              <Plus className="w-4 h-4 sm:hidden" />
             </button>
           </div>
         </div>
@@ -375,7 +360,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
                 setEditingPlace(undefined);
                 setIsPlaceModalOpen(true);
               }}
-              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 xl:bg-slate-900 xl:hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
               <Plus className="w-4 h-4" />
               Novo Local
