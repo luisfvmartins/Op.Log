@@ -119,20 +119,20 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="space-y-1">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Placa do Veículo *</label>
+      <div className="flex flex-col gap-4 mb-6 relative">
+        <div className="space-y-1 bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10">
+          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Placa do Veículo *</label>
           <input
             required
             autoFocus
             value={placa}
             onChange={handlePlacaChange}
-            className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono transition-colors"
+            className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-4 py-2.5 text-base text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono tracking-widest transition-colors shadow-sm"
             placeholder="Ex: ABC-1234"
           />
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Operação Geral</label>
@@ -218,32 +218,34 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          className={`flex items-start gap-3 bg-white dark:bg-white/5 border rounded-lg pl-2 pr-3 py-3 relative group transition-colors ${
-                            snapshot.isDragging ? 'border-blue-500/50 shadow-2xl shadow-blue-500/10' : 'border-slate-200 dark:border-white/10'
+                          className={`flex items-start gap-3 bg-white dark:bg-white/5 border rounded-xl pl-2 pr-3 py-3 relative group transition-all ${
+                            snapshot.isDragging ? 'border-blue-500 shadow-[0_8px_30px_rgb(0,0,0,0.12)] -rotate-1 z-10 scale-102' : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
                           }`}
                         >
                           <div 
                             {...provided.dragHandleProps}
-                            className="mt-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-grab active:cursor-grabbing p-1"
+                            className="mt-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-grab active:cursor-grabbing p-1.5"
                           >
-                            <GripVertical className="w-4 h-4" />
+                            <GripVertical className="w-5 h-5" />
                           </div>
                           
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-medium text-slate-900 dark:text-white flex items-center gap-2">
-                              <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold shrink-0">
+                          <div className="flex-1 min-w-0 pr-6">
+                            <h4 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                              <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 min-w-[24px] h-6 px-1 flex items-center justify-center rounded text-xs font-bold shrink-0">
                                 {index + 1}
                               </span>
                               <span className="truncate">{place.nomeFantasia}</span>
                             </h4>
-                            <p className="text-[10px] text-slate-500 truncate mt-1 ml-8">{renderCity(place.cidade)}</p>
-                            {place.endereco && <p className="text-[10px] text-slate-400 dark:text-slate-600 truncate mt-0.5 ml-8">{place.endereco}</p>}
+                            <div className="ml-[34px] space-y-0.5">
+                              <p className="text-xs text-slate-500 truncate flex items-center gap-1 font-medium"><MapPin className="w-3 h-3 text-slate-400 shrink-0"/> {renderCity(place.cidade)}</p>
+                              {place.endereco && <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate pl-4">{place.endereco}</p>}
+                            </div>
                             
-                            <div className="flex gap-2 ml-8 mt-2">
+                            <div className="flex flex-col sm:flex-row gap-2 ml-[34px] mt-3">
                               <select
                                 value={place.operacao || ''}
                                 onChange={(e) => handleStopChange(place.id!, 'operacao', e.target.value)}
-                                className="w-full text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded px-1 py-1 text-slate-700 dark:text-slate-300"
+                                className="w-full sm:w-1/2 text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-md px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition-colors"
                               >
                                 <option value="">Sem op. específica</option>
                                 <option value="Entrega">Entrega</option>
@@ -256,17 +258,17 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                                 type="datetime-local"
                                 value={place.agendamento || ''}
                                 onChange={(e) => handleStopChange(place.id!, 'agendamento', e.target.value)}
-                                className="w-full sm:w-[140px] shrink-0 text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded px-2 py-1 text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:[color-scheme:dark]"
+                                className="w-full sm:w-1/2 shrink-0 text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-md px-2 py-1.5 text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:[color-scheme:dark] focus:outline-none focus:border-blue-500 transition-colors"
                               />
                             </div>
                           </div>
 
                           <button
                             onClick={() => onRemoveFromSelection(place.id!)}
-                            className="text-slate-400 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-2"
+                            className="text-slate-400 bg-white dark:bg-black/40 border border-slate-100 dark:border-white/5 shadow-sm rounded-md dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-500/30 p-1.5 opacity-0 group-hover:opacity-100 transition-all absolute right-3 top-3 shrink-0"
                             title="Remover do roteiro"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       )}
