@@ -9,7 +9,7 @@ import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Drawer } from '../components/ui/Drawer';
 import { ToastContainer } from '../components/ui/Toast';
-import { formatRouteMessage, ensureAbsoluteUrl } from '../lib/formatter';
+import { formatRouteMessage, formatPlaceInfoText, ensureAbsoluteUrl } from '../lib/formatter';
 import { useAuth } from '../contexts/AuthContext';
 import { getCidadesBrasileiras } from '../services/ibge';
 
@@ -48,7 +48,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   const [editingPlace, setEditingPlace] = useState<Place | undefined>();
   const [deletingPlaceId, setDeletingPlaceId] = useState<string | null>(null);
   const [deleteAllConfirmStep, setDeleteAllConfirmStep] = useState(0);
-  const [isRouteDrawerOpen, setIsRouteDrawerOpen] = useState(false);
+  const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   
   const [isBusy, setIsBusy] = useState(false);
@@ -129,7 +129,6 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         const searchText = [
           place.nomeFantasia, 
           place.cidade, 
-          place.endereco,
           place.nomeRazaoSocial, 
           place.observacao, 
           ...(place.observacoes?.map(o => `${o.categoria} ${o.texto}`) || []),
@@ -207,13 +206,13 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   };
 
   const handleCopySingle = async (place: Place) => {
-    const msg = formatRouteMessage([place], '[INFORMAR PLACA]');
+    const msg = formatPlaceInfoText(place);
     await navigator.clipboard.writeText(msg);
-    addToast('Programação copiada com sucesso.', 'success');
+    addToast('Informações do local copiadas com sucesso.', 'success');
   };
 
   const handleShareSingle = async (place: Place) => {
-    const msg = formatRouteMessage([place], '[INFORMAR PLACA]');
+    const msg = formatPlaceInfoText(place);
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -442,7 +441,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
           </div>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setIsRouteDrawerOpen(true)}
+              onClick={() => setIsRouteModalOpen(true)}
               className="text-sm font-bold text-white flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
               Criar Roteiro
@@ -511,24 +510,24 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         confirmText="Excluir Permanentemente"
       />
 
-      <Drawer
-        isOpen={isRouteDrawerOpen}
-        onClose={() => setIsRouteDrawerOpen(false)}
+      <Modal
+        isOpen={isRouteModalOpen}
+        onClose={() => setIsRouteModalOpen(false)}
         title="Montar Roteiro"
       >
         <RouteBuilder
           selectedPlaces={selectedPlaces}
-          onClose={() => setIsRouteDrawerOpen(false)}
+          onClose={() => setIsRouteModalOpen(false)}
           onSuccess={(msg) => addToast(msg, 'success')}
           onClearSelection={clearSelection}
           onRemoveFromSelection={(id) => {
             const next = new Set(selectedIds);
             next.delete(id);
             setSelectedIds(next);
-            if (next.size === 0) setIsRouteDrawerOpen(false);
+            if (next.size === 0) setIsRouteModalOpen(false);
           }}
         />
-      </Drawer>
+      </Modal>
 
       <Modal
         isOpen={isAboutModalOpen}
@@ -625,24 +624,7 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
               <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <span className="truncate">{renderCity(place.cidade)}</span>
             </div>
-            {place.endereco && (
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate pl-5">{place.endereco}</p>
-            )}
           </div>
-        </div>
-
-        {/* Map Preview */}
-        <div className="w-full h-24 mt-3 rounded-lg overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 relative shrink-0">
-          <div className="absolute inset-0 bg-transparent z-10" /> {/* Captures clicks to prevent iframe interaction */}
-          <iframe 
-            width="100%" 
-            height="100%" 
-            frameBorder="0" 
-            style={{ border: 0 }}
-            src={`https://maps.google.com/maps?q=${encodeURIComponent(place.endereco ? `${place.endereco}, ${renderCity(place.cidade)}` : `${place.nomeFantasia}, ${renderCity(place.cidade)}`)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
-            className="w-full h-full object-cover"
-            title="Map Preview"
-          />
         </div>
 
         {Array.isArray(place.tags) && place.tags.length > 0 && (
@@ -764,7 +746,6 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
       <td className="px-4 py-3">
         <div className="flex flex-col">
           <span className="text-slate-500 dark:text-slate-400 font-medium">{renderCity(place.cidade)}</span>
-          {place.endereco && <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate max-w-[200px] mt-0.5">{place.endereco}</span>}
         </div>
       </td>
       <td className="px-4 py-3 text-slate-400 dark:text-slate-500 truncate max-w-[200px]">{place.nomeRazaoSocial}</td>

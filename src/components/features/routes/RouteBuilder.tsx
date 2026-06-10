@@ -118,7 +118,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   const isFormValid = placa.trim().length > 0 && places.length > 0;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col max-h-[75vh]">
       <div className="flex flex-col gap-4 mb-6 relative">
         <div className="space-y-1 bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10">
           <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Placa do Veículo *</label>
@@ -211,7 +211,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="route-places">
               {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2 pb-20">
+                <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2 flex-1 pb-4">
                   {places.map((place, index) => (
                     <Draggable key={place.id} draggableId={place.id!} index={index}>
                       {(provided, snapshot) => (
@@ -238,7 +238,6 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                             </h4>
                             <div className="ml-[34px] space-y-0.5">
                               <p className="text-xs text-slate-500 truncate flex items-center gap-1 font-medium"><MapPin className="w-3 h-3 text-slate-400 shrink-0"/> {renderCity(place.cidade)}</p>
-                              {place.endereco && <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate pl-4">{place.endereco}</p>}
                             </div>
                             
                             <div className="flex flex-col sm:flex-row gap-2 ml-[34px] mt-3">
@@ -282,7 +281,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
         )}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-6 bg-slate-50/80 dark:bg-white/5 border-t border-slate-200 dark:border-white/10 flex gap-2 z-10 backdrop-blur-md">
+      <div className="flex gap-3 mt-6 pt-4 border-t border-slate-200 dark:border-white/10">
         <button
           onClick={handleShare}
           disabled={!isFormValid || isSaving}
@@ -294,7 +293,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
         <button
           onClick={handleCopy}
           disabled={!isFormValid || isSaving}
-          className="flex-1 flex items-center justify-center gap-2 bg-slate-800 text-white py-3 rounded-xl text-xs font-bold hover:bg-slate-700 transition-colors disabled:opacity-50"
+          className="flex-1 flex items-center justify-center gap-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 py-3 rounded-xl text-xs font-bold hover:bg-slate-700 dark:hover:bg-slate-200 transition-colors disabled:opacity-50"
         >
           <Copy className="w-4 h-4" />
           Copiar

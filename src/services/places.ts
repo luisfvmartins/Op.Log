@@ -14,7 +14,6 @@ export interface Place {
   linkGoogleMaps: string;
   observacao?: string; // legacy or general observation
   observacoes?: Observacao[];
-  endereco?: string;
   tags?: string[] | any; // legacy tags
   userId?: string;
   createdAt?: any;

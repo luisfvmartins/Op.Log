@@ -30,6 +30,23 @@ export function ensureAbsoluteUrl(url?: string): string {
   return `https://${trimmed}`;
 }
 
+export function formatPlaceInfoText(place: Place): string {
+  let text = `*${place.nomeFantasia}*\n`;
+  if (place.nomeRazaoSocial) text += `*Razão Social:* ${place.nomeRazaoSocial}\n`;
+  if (place.cidade) text += `*Cidade:* ${place.cidade}\n`;
+  if (place.linkGoogleMaps) text += `*Maps:* ${ensureAbsoluteUrl(place.linkGoogleMaps)}\n`;
+  
+  if (place.observacoes && place.observacoes.length > 0) {
+    place.observacoes.forEach(obs => {
+      text += `*${obs.categoria}:* ${obs.texto}\n`;
+    });
+  } else if (place.observacao) {
+    text += `*Observação:* ${place.observacao}\n`;
+  }
+  
+  return text.trim();
+}
+
 export function formatRouteMessage(
   places: RouteStop[], 
   placa: string, 
@@ -61,9 +78,6 @@ export function formatRouteMessage(
       message += `*Agendamento:* ${formatDateToBR(place.agendamento)}\n`;
     }
     
-    if (place.endereco) {
-      message += `*Endereço:* ${place.endereco}\n`;
-    }
     if (place.linkGoogleMaps) {
       message += `*Maps:* ${ensureAbsoluteUrl(place.linkGoogleMaps)}\n`;
     }
