@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { GripVertical, Trash2, Send, Copy, Clock, Truck } from 'lucide-react';
+import { Reorder, useDragControls } from 'motion/react';
+import { GripVertical, Trash2, Send, Copy, Clock, Truck, MapPin } from 'lucide-react';
 import { Place } from '../../../services/places';
 import { RouteStop } from '../../../services/routes';
 import { formatRouteMessage, capitalizeText } from '../../../lib/formatter';
@@ -14,6 +14,96 @@ interface RouteBuilderProps {
   onSuccess: (message: string) => void;
   onClearSelection: () => void;
   onRemoveFromSelection: (id: string) => void;
+}
+
+function DraggableRouteStop({
+  place,
+  index,
+  renderCity,
+  onStopChange,
+  onRemove,
+}: {
+  place: RouteStop;
+  index: number;
+  renderCity: (city?: string) => string;
+  onStopChange: (id: string, field: keyof RouteStop, value: string) => void;
+  onRemove: (id: string) => void;
+}) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={place}
+      id={place.id!}
+      dragListener={false}
+      dragControls={controls}
+      className="flex flex-col sm:flex-row items-start gap-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 rounded-xl pl-2 pr-3 py-3 relative group transition-all"
+    >
+      <div 
+        onPointerDown={(e) => {
+          e.preventDefault();
+          controls.start(e);
+        }}
+        style={{ touchAction: 'none' }}
+        className="mt-1 hidden sm:flex text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-grab active:cursor-grabbing p-1.5"
+      >
+        <GripVertical className="w-5 h-5" />
+      </div>
+      
+      {/* Mobile handle */}
+      <div 
+        onPointerDown={(e) => {
+          e.preventDefault();
+          controls.start(e);
+        }}
+        style={{ touchAction: 'none' }}
+        className="flex sm:hidden items-center justify-center w-full mb-2 pb-2 border-b border-slate-100 dark:border-white/5 text-slate-400 cursor-grab active:cursor-grabbing"
+      >
+         <GripVertical className="w-5 h-5 rotate-90" />
+      </div>
+      
+      <div className="flex-1 min-w-0 pr-6 w-full">
+        <h4 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+          <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 min-w-[24px] h-6 px-1 flex items-center justify-center rounded text-xs font-bold shrink-0">
+            {index + 1}
+          </span>
+          <span className="truncate">{place.nomeFantasia}</span>
+        </h4>
+        <div className="ml-0 sm:ml-[10px] space-y-0.5">
+          <p className="text-xs text-slate-500 truncate flex items-center gap-1 font-medium"><MapPin className="w-3 h-3 text-slate-400 shrink-0"/> {renderCity(place.cidade)}</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-2 ml-0 sm:ml-[10px] mt-3" onPointerDown={(e) => e.stopPropagation()}>
+          <select
+            value={place.operacao || ''}
+            onChange={(e) => onStopChange(place.id!, 'operacao', e.target.value)}
+            className="w-full sm:w-1/2 text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-md px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition-colors"
+          >
+            <option value="">Sem op. específica</option>
+            <option value="Entrega">Entrega</option>
+            <option value="Coleta">Coleta</option>
+            <option value="Transferência">Transferência</option>
+            <option value="Devolução">Devolução</option>
+            <option value="Manutenção">Manutenção</option>
+          </select>
+          <input
+            type="datetime-local"
+            value={place.agendamento || ''}
+            onChange={(e) => onStopChange(place.id!, 'agendamento', e.target.value)}
+            className="w-full sm:w-1/2 shrink-0 text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-md px-2 py-1.5 text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:[color-scheme:dark] focus:outline-none focus:border-blue-500 transition-colors"
+          />
+        </div>
+      </div>
+
+      <button
+        onClick={() => onRemove(place.id!)}
+        className="text-slate-400 bg-white dark:bg-black/40 border border-slate-100 dark:border-white/5 shadow-sm rounded-md dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-500/30 p-2 sm:p-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all absolute right-2 top-2 sm:right-3 sm:top-3 shrink-0"
+        title="Remover do roteiro"
+      >
+        <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+      </button>
+    </Reorder.Item>
+  );
 }
 
 export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelection, onRemoveFromSelection }: RouteBuilderProps) {
@@ -49,16 +139,6 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
     });
     setPlaces(newPlaces);
   }, [selectedPlaces]);
-
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-    
-    const items = Array.from(places);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    
-    setPlaces(items);
-  };
 
   const handleCopy = async () => {
     const message = formatRouteMessage(places, placa, observacaoGeral, operacaoGeral, agendamentoGeral);
@@ -208,76 +288,18 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
             <span className="text-[10px] text-slate-400 dark:text-slate-600 uppercase font-bold">Nenhum local selecionado</span>
           </div>
         ) : (
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="route-places">
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2 flex-1 pb-4">
-                  {places.map((place, index) => (
-                    <Draggable key={place.id} draggableId={place.id!} index={index}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          className={`flex items-start gap-3 bg-white dark:bg-white/5 border rounded-xl pl-2 pr-3 py-3 relative group transition-all ${
-                            snapshot.isDragging ? 'border-blue-500 shadow-[0_8px_30px_rgb(0,0,0,0.12)] -rotate-1 z-10 scale-102' : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                          }`}
-                        >
-                          <div 
-                            {...provided.dragHandleProps}
-                            className="mt-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-grab active:cursor-grabbing p-1.5"
-                          >
-                            <GripVertical className="w-5 h-5" />
-                          </div>
-                          
-                          <div className="flex-1 min-w-0 pr-6">
-                            <h4 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
-                              <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 min-w-[24px] h-6 px-1 flex items-center justify-center rounded text-xs font-bold shrink-0">
-                                {index + 1}
-                              </span>
-                              <span className="truncate">{place.nomeFantasia}</span>
-                            </h4>
-                            <div className="ml-[34px] space-y-0.5">
-                              <p className="text-xs text-slate-500 truncate flex items-center gap-1 font-medium"><MapPin className="w-3 h-3 text-slate-400 shrink-0"/> {renderCity(place.cidade)}</p>
-                            </div>
-                            
-                            <div className="flex flex-col sm:flex-row gap-2 ml-[34px] mt-3">
-                              <select
-                                value={place.operacao || ''}
-                                onChange={(e) => handleStopChange(place.id!, 'operacao', e.target.value)}
-                                className="w-full sm:w-1/2 text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-md px-2 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition-colors"
-                              >
-                                <option value="">Sem op. específica</option>
-                                <option value="Entrega">Entrega</option>
-                                <option value="Coleta">Coleta</option>
-                                <option value="Transferência">Transferência</option>
-                                <option value="Devolução">Devolução</option>
-                                <option value="Manutenção">Manutenção</option>
-                              </select>
-                              <input
-                                type="datetime-local"
-                                value={place.agendamento || ''}
-                                onChange={(e) => handleStopChange(place.id!, 'agendamento', e.target.value)}
-                                className="w-full sm:w-1/2 shrink-0 text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-md px-2 py-1.5 text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:[color-scheme:dark] focus:outline-none focus:border-blue-500 transition-colors"
-                              />
-                            </div>
-                          </div>
-
-                          <button
-                            onClick={() => onRemoveFromSelection(place.id!)}
-                            className="text-slate-400 bg-white dark:bg-black/40 border border-slate-100 dark:border-white/5 shadow-sm rounded-md dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-500/30 p-1.5 opacity-0 group-hover:opacity-100 transition-all absolute right-3 top-3 shrink-0"
-                            title="Remover do roteiro"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+          <Reorder.Group axis="y" values={places} onReorder={setPlaces} className="space-y-2 flex-1 pb-4">
+            {places.map((place, index) => (
+              <DraggableRouteStop
+                key={place.id}
+                place={place}
+                index={index}
+                renderCity={renderCity}
+                onStopChange={handleStopChange}
+                onRemove={onRemoveFromSelection}
+              />
+            ))}
+          </Reorder.Group>
         )}
       </div>
 
