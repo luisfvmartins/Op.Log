@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { LogIn, AlertCircle } from 'lucide-react';
+import { LogIn, AlertCircle, Info, Sun, Moon, Instagram, Linkedin } from 'lucide-react';
+import { Modal } from '../components/ui/Modal';
 
-export function Login() {
+export function Login({ theme, toggleTheme }: { theme?: 'light' | 'dark', toggleTheme?: () => void }) {
   const { signInWithGoogle } = useAuth();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
   const handleLogin = async () => {
     try {
@@ -25,7 +27,26 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] text-slate-800 dark:text-slate-200 flex items-center justify-center p-4 selection:bg-blue-500/30">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] text-slate-800 dark:text-slate-200 flex items-center justify-center p-4 selection:bg-blue-500/30 relative">
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <button
+          onClick={() => setIsAboutModalOpen(true)}
+          className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors"
+          title="Sobre"
+        >
+          <Info className="w-5 h-5" />
+        </button>
+        {toggleTheme && theme && (
+          <button
+            onClick={toggleTheme}
+            className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors"
+            title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+        )}
+      </div>
+
       <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl w-full max-w-sm p-8 flex flex-col items-center">
         <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white mb-6 shadow-lg shadow-blue-500/20">
           <LogIn className="w-6 h-6" />
@@ -72,6 +93,59 @@ export function Login() {
           {isLoading ? 'Entrando...' : 'Entrar com Google'}
         </button>
       </div>
+
+      <Modal
+        isOpen={isAboutModalOpen}
+        onClose={() => setIsAboutModalOpen(false)}
+        title="Sobre"
+      >
+        <div className="p-2 sm:p-4 text-slate-600 dark:text-slate-300">
+          <p className="text-sm sm:text-base leading-relaxed mb-6">
+            O <strong>Locais e Roteiros</strong> é um aplicativo desenhado para gerenciar de forma simples e eficiente seus locais de parada e organizar seus roteiros de viagens.
+          </p>
+          
+          <div className="bg-slate-100 dark:bg-black/40 p-5 rounded-xl border border-slate-200 dark:border-white/10">
+            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Criador</h4>
+            <p className="text-base text-slate-900 dark:text-white font-medium mb-4">
+              Desenvolvido por Luis Martins
+            </p>
+            
+            <div className="flex flex-col gap-3">
+              <a 
+                href="https://instagram.com/luisfvmartins" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
+              >
+                <div className="p-2 bg-white dark:bg-white/5 shadow-sm rounded-md border border-slate-200 dark:border-white/10 group-hover:border-blue-200 dark:group-hover:border-blue-500/30">
+                  <Instagram className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-medium">@luisfvmartins</span>
+              </a>
+              <a 
+                href="https://linkedin.com/in/luisfvmartins" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
+              >
+                <div className="p-2 bg-white dark:bg-white/5 shadow-sm rounded-md border border-slate-200 dark:border-white/10 group-hover:border-blue-200 dark:group-hover:border-blue-500/30">
+                  <Linkedin className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-medium">/in/luisfvmartins</span>
+              </a>
+            </div>
+          </div>
+          
+          <div className="mt-8 flex justify-end">
+            <button
+              onClick={() => setIsAboutModalOpen(false)}
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -7,7 +7,6 @@ import { PlaceForm } from '../components/features/places/PlaceForm';
 import { RouteBuilder } from '../components/features/routes/RouteBuilder';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-import { Drawer } from '../components/ui/Drawer';
 import { ToastContainer } from '../components/ui/Toast';
 import { formatRouteMessage, formatPlaceInfoText, ensureAbsoluteUrl } from '../lib/formatter';
 import { useAuth } from '../contexts/AuthContext';

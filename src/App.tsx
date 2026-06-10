@@ -35,7 +35,7 @@ function MainApp() {
   }
 
   if (!user) {
-    return <Login />;
+    return <Login theme={theme} toggleTheme={toggleTheme} />;
   }
 
   return <Dashboard theme={theme} toggleTheme={toggleTheme} />;
