@@ -574,7 +574,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
 function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity }: any) {
   return (
-    <div className={`relative p-5 rounded-2xl border flex flex-col gap-3 group transition-all duration-300 cursor-pointer ${isSelected ? 'border-blue-500/70 bg-blue-50/50 dark:bg-blue-500/10 shadow-[0_0_0_1px_rgba(59,130,246,0.4)]' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-md'}`} onClick={onSelect}>
+    <div className={`relative p-5 rounded-2xl border flex flex-col gap-3 h-[300px] group transition-all duration-300 cursor-pointer ${isSelected ? 'border-blue-500/70 bg-blue-50/50 dark:bg-blue-500/10 shadow-[0_0_0_1px_rgba(59,130,246,0.4)]' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-md'}`} onClick={onSelect}>
       
       {/* Checkbox */}
       <div className="absolute top-4 right-4 z-10 transition-transform group-hover:scale-105">
@@ -585,8 +585,8 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col border-b border-transparent">
-        <div className="pr-8">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="pr-8 shrink-0">
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate block mb-1">{place.nomeRazaoSocial}</span>
           <div className="flex items-center gap-2">
             <h3 className="text-slate-900 dark:text-white font-semibold text-lg tracking-tight truncate">{place.nomeFantasia}</h3>
@@ -596,7 +596,7 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
                   e.stopPropagation();
                   window.open(ensureAbsoluteUrl(place.linkGoogleMaps), '_blank', 'noopener,noreferrer');
                 }}
-                className="text-slate-300 hover:text-blue-500 transition-colors" title="Abrir no Mapa"
+                className="text-slate-300 hover:text-blue-500 transition-colors shrink-0" title="Abrir no Mapa"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
@@ -611,34 +611,41 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
           </div>
         </div>
 
-        {Array.isArray(place.tags) && place.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {place.tags.map((tag: string) => (
-               <span key={tag} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 text-[10px] font-medium rounded-md border border-slate-200/50 dark:border-white/5 shadow-sm">{tag}</span>
-            ))}
-          </div>
-        )}
-        
-        {place.observacoes && place.observacoes.length > 0 && (
-          <div className="flex flex-col gap-1.5 mt-4">
-            {place.observacoes.map((obs: any, i: number) => (
-              <div key={i} className="py-2 px-3 bg-amber-50/80 dark:bg-amber-500/10 rounded-lg border border-amber-200/60 dark:border-amber-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] dark:shadow-none">
-                <span className="text-[10px] text-amber-700/90 dark:text-amber-500 uppercase tracking-wide font-bold mr-1.5 block mb-0.5">{obs.categoria}</span>
-                <span className="text-[11px] text-amber-900/90 dark:text-amber-200 line-clamp-2 leading-snug inline block sm:inline">{obs.texto}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="flex-1 overflow-y-auto pr-1 -mr-1 space-y-3 mt-2 pb-2 
+          [&::-webkit-scrollbar]:w-1 
+          [&::-webkit-scrollbar-track]:bg-transparent 
+          [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 
+          [&::-webkit-scrollbar-thumb]:rounded-full"
+        >
+          {Array.isArray(place.tags) && place.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {place.tags.map((tag: string) => (
+                 <span key={tag} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 text-[10px] font-medium rounded-md border border-slate-200/50 dark:border-white/5 shadow-sm">{tag}</span>
+              ))}
+            </div>
+          )}
+          
+          {place.observacoes && place.observacoes.length > 0 && (
+            <div className="flex flex-col gap-1.5 mt-2">
+              {place.observacoes.map((obs: any, i: number) => (
+                <div key={i} className="py-2 px-3 bg-amber-50/80 dark:bg-amber-500/10 rounded-lg border border-amber-200/60 dark:border-amber-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] dark:shadow-none shrink-0">
+                  <span className="text-[10px] text-amber-700/90 dark:text-amber-500 uppercase tracking-wide font-bold mr-1.5 block mb-0.5">{obs.categoria}</span>
+                  <span className="text-[11px] text-amber-900/90 dark:text-amber-200 leading-snug inline-block">{obs.texto}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
-        {place.observacao && (!place.observacoes || place.observacoes.length === 0) && (
-          <div className="py-2 px-3 mt-4 bg-amber-50/80 dark:bg-amber-500/10 rounded-lg border border-amber-200/60 dark:border-amber-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] dark:shadow-none">
-            <span className="text-[10px] text-amber-700/90 dark:text-amber-500 uppercase tracking-wide font-bold mr-1.5 block mb-0.5">Observação</span>
-            <span className="text-[11px] text-amber-900/90 dark:text-amber-200 line-clamp-2 leading-snug">{place.observacao}</span>
-          </div>
-        )}
+          {place.observacao && (!place.observacoes || place.observacoes.length === 0) && (
+            <div className="py-2 px-3 mt-2 bg-amber-50/80 dark:bg-amber-500/10 rounded-lg border border-amber-200/60 dark:border-amber-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] dark:shadow-none shrink-0">
+              <span className="text-[10px] text-amber-700/90 dark:text-amber-500 uppercase tracking-wide font-bold mr-1.5 block mb-0.5">Observação</span>
+              <span className="text-[11px] text-amber-900/90 dark:text-amber-200 leading-snug">{place.observacao}</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100 dark:border-white/5" onClick={e => e.stopPropagation()}>
+      <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100 dark:border-white/5 shrink-0" onClick={e => e.stopPropagation()}>
         <button onClick={onCopy} className="text-xs font-medium text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5 group-hover:text-blue-500 dark:group-hover:text-blue-400 bg-slate-50 dark:bg-white/5 py-1.5 px-2.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-500/10">
           <Copy className="w-3.5 h-3.5" />
           Copiar Info
