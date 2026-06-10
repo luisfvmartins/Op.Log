@@ -631,6 +631,20 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
           </div>
         </div>
 
+        {/* Map Preview */}
+        <div className="w-full h-24 mt-3 rounded-lg overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 relative shrink-0">
+          <div className="absolute inset-0 bg-transparent z-10" /> {/* Captures clicks to prevent iframe interaction */}
+          <iframe 
+            width="100%" 
+            height="100%" 
+            frameBorder="0" 
+            style={{ border: 0 }}
+            src={`https://maps.google.com/maps?q=${encodeURIComponent(place.endereco ? `${place.endereco}, ${renderCity(place.cidade)}` : `${place.nomeFantasia}, ${renderCity(place.cidade)}`)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+            className="w-full h-full object-cover"
+            title="Map Preview"
+          />
+        </div>
+
         {Array.isArray(place.tags) && place.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">
             {place.tags.map((tag: string) => (
