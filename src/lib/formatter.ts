@@ -49,53 +49,42 @@ export function formatPlaceInfoText(place: Place): string {
 
 export function formatRouteMessage(
   places: RouteStop[], 
-  placa: string, 
+  placa: string,
+  placa2?: string,
   observacaoGeral?: string,
   operacaoGeral?: string,
   agendamentoGeral?: string
 ) {
-  let message = `*Segue programação:*\n\n*Placa/Carreta:* ${placa}\n`;
+  let message = `*Resumo da Operação*\n\n`;
   if (operacaoGeral) {
-    message += `*Operação:* ${operacaoGeral}\n`;
-  }
-  if (agendamentoGeral) {
-    message += `*Agendamento:* ${formatDateToBR(agendamentoGeral)}\n`;
+    message += `*Tipo de Operação:* ${operacaoGeral}\n\n`;
   }
   
-  message += `\n`;
-
-  if (observacaoGeral) {
-    message += `*Observação Geral:* ${observacaoGeral}\n\n`;
-  }
-
+  message += `*Locais:*\n`;
   places.forEach((place, index) => {
-    message += `*${index + 1}ª Parada:* ${place.nomeFantasia}\n`;
+    message += `${index + 1}. ${place.nomeFantasia}`;
     
-    if (place.operacao) {
-      message += `*Operação:* ${place.operacao}\n`;
+    // Use either the place-specific agendamento or the global one if there's only 1 place
+    const agendamento = places.length === 1 && agendamentoGeral ? agendamentoGeral : place.agendamento;
+    if (agendamento) {
+      message += ` - ${formatDateToBR(agendamento)}`;
     }
-    if (place.agendamento) {
-      message += `*Agendamento:* ${formatDateToBR(place.agendamento)}\n`;
-    }
-    
+    message += `\n`;
+
     if (place.linkGoogleMaps) {
-      message += `*Maps:* ${ensureAbsoluteUrl(place.linkGoogleMaps)}\n`;
-    }
-    
-    if (place.observacoes && place.observacoes.length > 0) {
-      place.observacoes.forEach(obs => {
-        message += `*${obs.categoria}:* ${obs.texto}\n`;
-      });
-    } else if (place.observacao) {
-      message += `*Observação:* ${place.observacao}\n`;
-    }
-    
-    if (index < places.length - 1) {
-      message += `--------------------\n\n`;
-    } else {
-      message += `--------------------\n`;
+      message += `   Maps: ${ensureAbsoluteUrl(place.linkGoogleMaps)}\n`;
     }
   });
+
+  message += `\n*Implementos:*\n`;
+  message += `Carreta 1: ${placa}\n`;
+  if (placa2) {
+    message += `Carreta 2: ${placa2}\n`;
+  }
+
+  if (observacaoGeral) {
+    message += `\n*Observações:*\n${observacaoGeral}\n`;
+  }
 
   message += `\n*Importante:* Após o engate, conferir documentação, condições do veículo e horário de atendimento de cada destino antes de seguir viagem. _Boa viagem e dirija com segurança._`;
 

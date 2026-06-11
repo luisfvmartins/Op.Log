@@ -11,6 +11,7 @@ export interface RouteData {
   id?: string;
   carreta?: string; // backwards compatibility
   placa?: string;
+  placa2?: string;
   operacaoGeral?: string;
   agendamentoGeral?: string;
   observacaoGeral?: string;
