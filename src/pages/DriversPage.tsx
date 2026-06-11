@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Users, Plus, Search, MapPin, Map, Calendar, Edit2, Trash2 } from 'lucide-react';
+import { Users, Plus, Search, MapPin, Map, Calendar, Edit2, Trash2, Upload, Download } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getDrivers, createDriver, updateDriver, deleteDriver, Driver } from '../services/drivers';
+import { getVehicles, createVehicle } from '../services/vehicles';
 import { Modal } from '../components/ui/Modal';
 import { ToastContainer } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
@@ -130,6 +131,76 @@ export function DriversPage() {
     return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
   };
 
+  const handleExport = () => {
+    const data = { motoristas: drivers };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `motoristas-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const content = event.target?.result as string;
+        const json = JSON.parse(content);
+        let importedM = 0;
+        let importedV = 0;
+        
+        setIsBusy(true);
+
+        const listM = json.motoristas || (Array.isArray(json) ? json : []);
+        for (const item of listM) {
+          if (item.nome && !drivers.find(d => d.nome === item.nome)) {
+            await createDriver({
+              userId: user.uid,
+              nome: item.nome,
+              tipo: item.tipo || 'Regional',
+              inicioJornada: item.inicio || item.inicioJornada || '08:00',
+              fimJornada: item.fim || item.fimJornada || '18:00',
+              status: item.status || 'Disponível'
+            });
+            importedM++;
+          }
+        }
+
+        if (json.veiculos && Array.isArray(json.veiculos)) {
+          const existingV = await getVehicles(user.uid);
+          for (const item of json.veiculos) {
+            if (item.placa && !existingV.find(v => v.placa === item.placa)) {
+              await createVehicle({
+                userId: user.uid,
+                placa: item.placa,
+                tipo: item.tipo || 'Trucado',
+                status: item.status || 'Disponível'
+              });
+              importedV++;
+            }
+          }
+        }
+
+        if (importedM > 0 || importedV > 0) {
+          addToast(`Importado: ${importedM} motoristas, ${importedV} veículos`, 'success');
+          loadDrivers();
+        } else {
+          addToast('Nenhum registro novo encontrado', 'info');
+        }
+      } catch (err) {
+        addToast('Erro ao importar arquivo', 'error');
+      } finally {
+        setIsBusy(false);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] pb-24">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
@@ -140,13 +211,30 @@ export function DriversPage() {
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Motoristas</h1>
             <p className="text-slate-500 text-sm">Gerencie a equipe de motoristas da operação.</p>
           </div>
-          <button
-            onClick={() => handleOpenModal()}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="font-medium text-sm">Novo Motorista</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => document.getElementById('import-file-drivers')?.click()}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 transition"
+              title="Importar de JSON"
+            >
+              <Upload className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleExport}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 transition"
+              title="Exportar para JSON"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleOpenModal()}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="font-medium text-sm">Novo Motorista</span>
+            </button>
+          </div>
+          <input type="file" id="import-file-drivers" accept=".json" onChange={handleImport} className="hidden" />
         </div>
 
         {/* Dashboard Indicators */}
