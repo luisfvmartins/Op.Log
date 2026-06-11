@@ -1,0 +1,45 @@
+import { db } from '../lib/firebase';
+import { collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
+
+export interface Vehicle {
+  id?: string;
+  userId: string;
+  placa: string;
+  tipo: string; // "Simples", "Trucado", "Traçado"
+  status: string; // "Disponível", "Programado", "Manutenção", "Inativo"
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+}
+
+export const getVehicles = async (userId: string): Promise<Vehicle[]> => {
+  if (!userId) return [];
+  const q = query(
+    collection(db, 'vehicles'),
+    where('userId', '==', userId),
+    orderBy('createdAt', 'desc')
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vehicle));
+};
+
+export const createVehicle = async (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
+  const newRef = doc(collection(db, 'vehicles'));
+  await setDoc(newRef, {
+    ...vehicle,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+  return newRef.id;
+};
+
+export const updateVehicle = async (id: string, updates: Partial<Vehicle>): Promise<void> => {
+  const ref = doc(db, 'vehicles', id);
+  await updateDoc(ref, {
+    ...updates,
+    updatedAt: serverTimestamp()
+  });
+};
+
+export const deleteVehicle = async (id: string): Promise<void> => {
+  await deleteDoc(doc(db, 'vehicles', id));
+};
