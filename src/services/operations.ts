@@ -26,11 +26,15 @@ export const getOperations = async (userId: string): Promise<OperationLog[]> => 
   if (!userId) return [];
   const q = query(
     collection(db, 'operations'),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    where('userId', '==', userId)
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OperationLog));
+  const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OperationLog));
+  return data.sort((a, b) => {
+    const aTime = a.createdAt?.toMillis() || 0;
+    const bTime = b.createdAt?.toMillis() || 0;
+    return bTime - aTime;
+  });
 };
 
 export const createOperation = async (operation: Omit<OperationLog, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {

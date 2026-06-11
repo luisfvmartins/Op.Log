@@ -17,11 +17,15 @@ export const getDrivers = async (userId: string): Promise<Driver[]> => {
   if (!userId) return [];
   const q = query(
     collection(db, 'drivers'),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    where('userId', '==', userId)
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Driver));
+  const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Driver));
+  return data.sort((a, b) => {
+    const aTime = a.createdAt?.toMillis() || 0;
+    const bTime = b.createdAt?.toMillis() || 0;
+    return bTime - aTime;
+  });
 };
 
 export const createDriver = async (driver: Omit<Driver, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {

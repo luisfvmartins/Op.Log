@@ -191,8 +191,9 @@ export function DriversPage() {
         } else {
           addToast('Nenhum registro novo encontrado', 'info');
         }
-      } catch (err) {
-        addToast('Erro ao importar arquivo', 'error');
+      } catch (err: any) {
+        addToast('Erro ao importar arquivo: ' + err.message, 'error');
+        console.error("Import error:", err);
       } finally {
         setIsBusy(false);
       }

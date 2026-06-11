@@ -19,11 +19,15 @@ export const getSchedules = async (userId: string): Promise<Schedule[]> => {
   if (!userId) return [];
   const q = query(
     collection(db, 'schedules'),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    where('userId', '==', userId)
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Schedule));
+  const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Schedule));
+  return data.sort((a, b) => {
+    const aTime = a.createdAt?.toMillis() || 0;
+    const bTime = b.createdAt?.toMillis() || 0;
+    return bTime - aTime;
+  });
 };
 
 export const createSchedule = async (schedule: Omit<Schedule, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
