@@ -75,7 +75,8 @@ export function formatRouteMessage(
 
   places.forEach((place, index) => {
     const icon = index < 10 ? numberIcons[index] : `${index + 1}️⃣`;
-    const opType = (place.operacao || operacaoGeral || 'OPERAÇÃO').toUpperCase();
+    const rawOp = place.operacao || operacaoGeral || 'Operação';
+    const opType = rawOp.charAt(0).toUpperCase() + rawOp.slice(1).toLowerCase();
     
     message += `${icon} ${opType}: ${place.nomeFantasia}\n`;
     
@@ -96,7 +97,7 @@ export function formatRouteMessage(
       place.observacoes.forEach(o => obsList.push(`${o.categoria}: ${o.texto}`));
     }
     if (obsList.length > 0) {
-      message += `📝 Observação: ${obsList.join(' | ')}\n`;
+      message += `📝 ${obsList.join(' | ')}\n`;
     }
     
     message += `\n`;

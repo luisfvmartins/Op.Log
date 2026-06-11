@@ -3,7 +3,7 @@ import { Reorder, useDragControls } from 'motion/react';
 import { GripVertical, Trash2, Copy, MapPin, Truck, Box, ArrowRightLeft, CornerUpLeft, Wrench, PackageSearch, ArrowLeft, ArrowRight, Send } from 'lucide-react';
 import { Place } from '../../../services/places';
 import { RouteStop, RouteData } from '../../../services/routes';
-import { formatRouteMessage, capitalizeText, formatDateToBR } from '../../../lib/formatter';
+import { formatRouteMessage, formatDateToBR } from '../../../lib/formatter';
 import { createRoute } from '../../../services/routes';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getCidadesBrasileiras } from '../../../services/ibge';
@@ -309,7 +309,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Observações da Operação (Opcional)</label>
                  <textarea
                     value={observacaoGeral}
-                    onChange={e => setObservacaoGeral(capitalizeText(e.target.value))}
+                    onChange={e => setObservacaoGeral(e.target.value)}
                     rows={3}
                     className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-all"
                     placeholder="Conferir documentação, prioridade de descarga..."
