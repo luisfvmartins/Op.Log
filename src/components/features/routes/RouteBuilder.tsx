@@ -146,11 +146,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   };
 
   const formatPlate = (val: string) => {
-    let formatted = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (formatted.length > 3 && !formatted.includes('-')) {
-        formatted = formatted.substring(0, 3) + '-' + formatted.substring(3, 7);
-    }
-    return formatted;
+    return val.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 7);
   }
 
   const handlePlacaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,7 +192,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   };
 
   const canGoToStep2 = operacaoGeral !== '';
-  const isPlateValid = (p: string) => /^[A-Z]{3}-[0-9][A-Z0-9][0-9]{2}$/.test(p);
+  const isPlateValid = (p: string) => /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(p);
   const canGoToStep4 = isPlateValid(placa) && (!placa2 || isPlateValid(placa2));
   const canFinish = operacaoGeral !== '' && places.length > 0 && isPlateValid(placa) && (!placa2 || isPlateValid(placa2)) && (placa !== placa2);
 
@@ -289,8 +285,8 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                     value={placa}
                     onChange={handlePlacaChange}
                     className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono tracking-widest transition-all uppercase"
-                    placeholder="ABC-1B34"
-                    maxLength={8}
+                    placeholder="ABC1B34"
+                    maxLength={7}
                   />
                   {placa.length > 0 && !isPlateValid(placa) && <span className="text-xs text-red-500 mt-1 block">Placa inválida</span>}
                 </div>
@@ -301,8 +297,8 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                     value={placa2}
                     onChange={handlePlaca2Change}
                     className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono tracking-widest transition-all uppercase"
-                    placeholder="XYZ-9W87"
-                    maxLength={8}
+                    placeholder="XYZ9W87"
+                    maxLength={7}
                   />
                    {placa2.length > 0 && !isPlateValid(placa2) && <span className="text-xs text-red-500 mt-1 block">Placa inválida</span>}
                    {placa2.length > 0 && placa2 === placa && <span className="text-xs text-red-500 mt-1 block">As placas devem ser diferentes</span>}
