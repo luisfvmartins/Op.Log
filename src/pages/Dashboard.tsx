@@ -212,7 +212,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
   const handleShareSingle = async (place: Place) => {
     const msg = formatPlaceInfoText(place);
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const clearSelection = () => setSelectedIds(new Set());

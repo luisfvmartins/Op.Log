@@ -140,7 +140,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   const handleShare = async () => {
     const message = formatRouteMessage(places, placa, placa2, observacaoGeral, operacaoGeral, agendamentoGeral);
     const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+    window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
     onSuccess('Redirecionado para o WhatsApp.');
     saveRouteLog(message);
   };
