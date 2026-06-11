@@ -55,38 +55,58 @@ export function formatRouteMessage(
   operacaoGeral?: string,
   agendamentoGeral?: string
 ) {
-  let message = `*Resumo da Operação*\n\n`;
-  if (operacaoGeral) {
-    message += `*Tipo de Operação:* ${operacaoGeral}\n\n`;
+  const hour = new Date().getHours();
+  let greeting = 'Boa noite';
+  if (hour >= 5 && hour < 12) {
+    greeting = 'Bom dia';
+  } else if (hour >= 12 && hour < 18) {
+    greeting = 'Boa tarde';
   }
-  
-  message += `*Locais:*\n`;
+
+  const formatPlateForMessage = (p: string) => p.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+  let plateString = formatPlateForMessage(placa);
+  if (placa2) {
+    plateString += ` / ${formatPlateForMessage(placa2)}`;
+  }
+
+  let message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 Carreta: ${plateString}\n\n`;
+
+  const numberIcons = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+
   places.forEach((place, index) => {
-    message += `${index + 1}. ${place.nomeFantasia}`;
+    const icon = index < 10 ? numberIcons[index] : `${index + 1}️⃣`;
+    const opType = (place.operacao || operacaoGeral || 'OPERAÇÃO').toUpperCase();
     
-    // Use either the place-specific agendamento or the global one if there's only 1 place
+    message += `${icon} ${opType}: ${place.nomeFantasia}\n`;
+    
     const agendamento = places.length === 1 && agendamentoGeral ? agendamentoGeral : place.agendamento;
     if (agendamento) {
-      message += ` - ${formatDateToBR(agendamento)}`;
+      message += `🕒 Agenda: ${formatDateToBR(agendamento)}\n`;
     }
-    message += `\n`;
 
     if (place.linkGoogleMaps) {
-      message += `   Maps: ${ensureAbsoluteUrl(place.linkGoogleMaps)}\n`;
+      message += `📍 Maps: ${ensureAbsoluteUrl(place.linkGoogleMaps)}\n`;
     }
+    
+    let obsList: string[] = [];
+    if (place.observacao) {
+      obsList.push(place.observacao);
+    }
+    if (place.observacoes && place.observacoes.length > 0) {
+      place.observacoes.forEach(o => obsList.push(`${o.categoria}: ${o.texto}`));
+    }
+    if (obsList.length > 0) {
+      message += `📝 Observação: ${obsList.join(' | ')}\n`;
+    }
+    
+    message += `\n`;
   });
 
-  message += `\n*Implementos:*\n`;
-  message += `Carreta 1: ${placa}\n`;
-  if (placa2) {
-    message += `Carreta 2: ${placa2}\n`;
-  }
-
   if (observacaoGeral) {
-    message += `\n*Observações:*\n${observacaoGeral}\n`;
+    message += `📝 Observações gerais:\n${observacaoGeral}\n\n`;
   }
 
-  message += `\n*Importante:* Após o engate, conferir documentação, condições do veículo e horário de atendimento de cada destino antes de seguir viagem. _Boa viagem e dirija com segurança._`;
+  message += `⚠️ Após o engate, conferir documentação, condições do veículo e horário de atendimento de cada destino antes de seguir viagem.`;
 
   return message;
 }
