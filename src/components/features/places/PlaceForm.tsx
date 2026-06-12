@@ -169,7 +169,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Nome Fantasia *</label>
+          <label className="block text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-1.5">Nome Fantasia *</label>
           <input
             autoFocus
             required
@@ -177,12 +177,12 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
             value={formData.nomeFantasia}
             onChange={handleChange}
             onPaste={handlePaste}
-            className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all z-0"
+            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-all z-0"
             placeholder="Ex: CD Magalu"
           />
         </div>
         <div className="space-y-1">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Cidade *</label>
+          <label className="block text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-1.5">Cidade *</label>
           <AutocompleteInput
             required
             value={formData.cidade}
@@ -192,43 +192,43 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
               setCidadeError('');
             }}
             placeholder="Ex: São Paulo - SP"
-            className={`w-full bg-white dark:bg-black/40 border ${cidadeError ? 'border-red-500' : 'border-slate-300 dark:border-white/10'} rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all`}
+            className={`w-full bg-[var(--bg-base)] border ${cidadeError ? 'border-[#E05252]' : 'border-[var(--border)]'} rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-all`}
           />
-          {cidadeError && <p className="text-xs text-red-500 font-medium mt-1">{cidadeError}</p>}
+          {cidadeError && <p className="text-xs text-[#E05252] font-medium mt-1">{cidadeError}</p>}
         </div>
         <div className="space-y-1">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Razão Social / Nome completo *</label>
+          <label className="block text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-1.5">Razão Social / Nome completo *</label>
           <input
             required
             name="nomeRazaoSocial"
             value={formData.nomeRazaoSocial}
             onChange={handleChange}
             onPaste={handlePaste}
-            className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-all font-mono"
             placeholder="Magazine Luiza S/A"
           />
         </div>
         <div className="space-y-1">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Link Google Maps *</label>
+          <label className="block text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-1.5">Link Google Maps *</label>
           <input
             required
             type="url"
             name="linkGoogleMaps"
             value={formData.linkGoogleMaps}
             onChange={handleChange}
-            className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
+            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-all font-mono"
             placeholder="https://maps.app.goo.gl/..."
           />
         </div>
 
         <div className="space-y-2 pt-2">
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
+            <label className="block text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest flex items-center gap-2">
               Observações Classificadas
               <button
                 type="button"
                 onClick={() => setIsCategoryModalOpen(true)}
-                className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-1 rounded text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-base)] transition-colors"
                 title="Configurar categorias"
               >
                 <Settings className="w-3.5 h-3.5" />
@@ -237,7 +237,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
             <button
               type="button"
               onClick={addObservacao}
-              className="flex items-center gap-1 text-[10px] font-medium text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-500/10 px-2 py-1 rounded"
+              className="flex items-center gap-1 text-[10px] font-mono text-[#0C0D0F] bg-[var(--accent)] px-2 py-1 rounded"
             >
               <Plus className="w-3 h-3" />
               Adicionar Obs.
@@ -245,7 +245,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           </div>
           
           {observacoes.length === 0 && (
-            <div className="text-xs text-slate-400 dark:text-slate-500 italic p-3 border border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-center">
+            <div className="text-xs text-[var(--text-secondary)] italic p-3 border border-dashed border-[var(--border)] rounded-md text-center">
               Nenhuma observação cadastrada (opcional)
             </div>
           )}
@@ -261,11 +261,11 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           style={provided.draggableProps.style}
-                          className={`flex gap-2 items-start border p-2 rounded-lg ${snapshot.isDragging ? 'bg-white dark:bg-slate-800 border-blue-500/50 shadow-xl opacity-95 z-50' : 'border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5'}`}
+                          className={`flex gap-2 items-start border p-2 rounded-md ${snapshot.isDragging ? 'bg-[var(--bg-surface)] border-[var(--accent-border)] shadow-[0_4px_24px_rgba(0,0,0,0.2)] z-50' : 'border-[var(--border)] bg-[var(--bg-base)]'}`}
                         >
                           <div 
                             {...provided.dragHandleProps} 
-                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 mt-2 cursor-grab active:cursor-grabbing"
+                            className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] mt-2 cursor-grab active:cursor-grabbing"
                             title="Arrastar para reordenar"
                           >
                             <GripVertical className="w-4 h-4" />
@@ -275,22 +275,22 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
                               value={obs.categoria}
                               options={categories.map(c => c.name)}
                               onChange={(val) => handleObsChange(index, 'categoria', val)}
-                              placeholder="Categoria (ex: Insumos, EPI, Bairro)"
-                              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded px-2 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                              placeholder="Categoria (ex: Insumos, EPI)"
+                              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-2 py-1.5 text-xs font-mono text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)]"
                             />
                             
                             <textarea
                               value={obs.texto}
                               onChange={(e) => handleObsChange(index, 'texto', e.target.value)}
                               rows={1}
-                              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded px-2 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 resize-none h-auto min-h-[36px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-2 py-1.5 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] resize-none h-auto min-h-[36px] focus:outline-none focus:border-[var(--accent)]"
                               placeholder="Descrição (ex: Requer 2 catracas)"
                             />
                           </div>
                           <button
                             type="button"
                             onClick={() => removeObservacao(index)}
-                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded mt-0.5"
+                            className="p-1.5 text-[var(--text-tertiary)] hover:text-[#E05252] hover:bg-[#E05252]/10 rounded mt-0.5"
                             title="Remover"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -306,19 +306,19 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
           </DragDropContext>
         </div>
 
-        <div className="pt-4 flex justify-end gap-3 border-t border-slate-200 dark:border-white/10">
+        <div className="pt-4 flex justify-end gap-3 border-t border-[var(--border)]">
           <button
             type="button"
             onClick={onCancel}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent"
+            className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-transparent hover:bg-[var(--bg-base)] rounded-md transition-colors"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center min-w-[100px] disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[#0C0D0F] rounded-md transition-colors flex items-center justify-center min-w-[100px] disabled:opacity-50"
           >
             {isLoading ? 'Salvando...' : 'Salvar Local'}
           </button>
@@ -379,8 +379,8 @@ function CategoryManagerModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Gerenciar Categorias">
-      <div className="space-y-4">
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+      <div className="space-y-4 pt-2">
+        <p className="text-sm text-[var(--text-secondary)]">
           Adicione ou remova as categorias de observações disponíveis.
         </p>
 
@@ -390,27 +390,27 @@ function CategoryManagerModal({
             onChange={e => setNewCatName(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
             placeholder="Nova categoria..."
-            className="flex-1 bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="flex-1 bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] font-mono"
           />
           <button
             onClick={handleAdd}
             disabled={!newCatName.trim()}
-            className="px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            className="px-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[#0C0D0F] rounded-md text-sm font-medium transition-colors disabled:opacity-50"
           >
             Adicionar
           </button>
         </div>
 
-        <div className="space-y-2 max-h-[300px] overflow-y-auto">
+        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
           {localCategories.length === 0 && (
-            <p className="text-xs text-center text-slate-400 py-4">Nenhuma categoria configurada.</p>
+            <p className="text-xs text-center text-[var(--text-tertiary)] py-4">Nenhuma categoria configurada.</p>
           )}
           {localCategories.map(cat => (
-            <div key={cat.id} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-lg text-sm text-slate-700 dark:text-slate-200">
+            <div key={cat.id} className="flex items-center justify-between p-2 bg-[var(--bg-base)] border border-[var(--border)] rounded-md text-sm text-[var(--text-primary)] font-mono">
               <span>{cat.name}</span>
               <button
                 onClick={() => handleRemove(cat.id)}
-                className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded"
+                className="p-1 text-[var(--text-tertiary)] hover:text-[#E05252] hover:bg-[#E05252]/10 rounded"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -418,16 +418,16 @@ function CategoryManagerModal({
           ))}
         </div>
 
-        <div className="pt-4 flex justify-end gap-3 border-t border-slate-200 dark:border-white/10 mt-4">
+        <div className="pt-4 flex justify-end gap-3 border-t border-[var(--border)] mt-4">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent"
+            className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-transparent hover:bg-[var(--bg-base)] rounded-md transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[#0C0D0F] rounded-md transition-colors"
           >
             Salvar
           </button>

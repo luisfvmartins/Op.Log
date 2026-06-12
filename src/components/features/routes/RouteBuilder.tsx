@@ -35,7 +35,7 @@ function DraggableRouteStop({
       id={place.id!}
       dragListener={false}
       dragControls={controls}
-      className="flex flex-col sm:flex-row items-start gap-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 rounded-xl pl-2 pr-3 py-3 relative transition-all"
+      className="flex flex-col sm:flex-row items-start gap-3 bg-[var(--bg-surface)] border border-[var(--border)] hover:border-[var(--border-hover)] rounded-xl pl-2 pr-3 py-3 relative transition-all"
     >
       <div 
         onPointerDown={(e) => {
@@ -43,7 +43,7 @@ function DraggableRouteStop({
           controls.start(e);
         }}
         style={{ touchAction: 'none' }}
-        className="mt-1 hidden sm:flex text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-grab active:cursor-grabbing p-1.5"
+        className="mt-1 hidden sm:flex text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors cursor-grab active:cursor-grabbing p-1.5"
       >
         <GripVertical className="w-5 h-5" />
       </div>
@@ -55,20 +55,20 @@ function DraggableRouteStop({
           controls.start(e);
         }}
         style={{ touchAction: 'none' }}
-        className="flex sm:hidden items-center justify-center w-full mb-2 pb-2 border-b border-slate-100 dark:border-white/5 text-slate-400 cursor-grab active:cursor-grabbing"
+        className="flex sm:hidden items-center justify-center w-full mb-2 pb-2 border-b border-[var(--border)] text-[var(--text-tertiary)] cursor-grab active:cursor-grabbing"
       >
          <GripVertical className="w-5 h-5 rotate-90" />
       </div>
       
       <div className="flex-1 min-w-0 pr-2 w-full">
-        <h4 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
-          <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 min-w-[24px] h-6 px-1 flex items-center justify-center rounded text-xs font-bold shrink-0">
+        <h4 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2 mb-1">
+          <span className="bg-[var(--bg-base)] text-[var(--text-tertiary)] border border-[var(--border)] min-w-[24px] h-6 px-1 flex items-center justify-center rounded text-xs font-bold shrink-0 font-mono">
             {index + 1}
           </span>
           <span className="truncate">{place.nomeFantasia}</span>
         </h4>
         <div className="ml-0 sm:ml-[10px] space-y-0.5">
-          <p className="text-xs text-slate-500 truncate flex items-center gap-1 font-medium"><MapPin className="w-3 h-3 text-slate-400 shrink-0"/> {renderCity(place.cidade)}</p>
+          <p className="text-xs text-[var(--text-secondary)] truncate flex items-center gap-1 font-mono"><MapPin className="w-3 h-3 text-[var(--text-tertiary)] shrink-0"/> {renderCity(place.cidade)}</p>
         </div>
         
         <div className="ml-0 sm:ml-[10px] mt-3" onPointerDown={(e) => e.stopPropagation()}>
@@ -76,7 +76,7 @@ function DraggableRouteStop({
             type="datetime-local"
             value={place.agendamento || ''}
             onChange={(e) => onStopChange(place.id!, 'agendamento', e.target.value)}
-            className="w-full shrink-0 text-xs bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-md px-2 py-2 text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:[color-scheme:dark] focus:outline-none focus:border-blue-500 transition-colors"
+            className="w-full shrink-0 text-xs bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-2 py-2 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors font-mono"
           />
         </div>
       </div>
@@ -201,8 +201,8 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
       {/* Header/Progress */}
       <div className="flex items-center gap-2 mb-6 shrink-0">
         {[1, 2, 3, 4].map(s => (
-          <div key={s} className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
-            <div className={`h-full transition-all duration-300 ${s <= step ? 'bg-blue-500' : 'bg-transparent'}`} />
+          <div key={s} className="flex-1 h-1.5 rounded-full bg-[var(--bg-base)] overflow-hidden border border-[var(--border)]">
+            <div className={`h-full transition-all duration-300 ${s <= step ? 'bg-[var(--accent)]' : 'bg-transparent'}`} />
           </div>
         ))}
       </div>
@@ -210,7 +210,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
       <div className="flex-1 overflow-y-auto pb-6 custom-scrollbar px-1">
         {step === 1 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Qual o tipo da operação?</h2>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">Qual o tipo da operação?</h2>
             <div className="grid grid-cols-2 gap-3 mt-4">
               {OPERATION_TYPES.map(type => (
                 <button
@@ -219,7 +219,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                     setOperacaoGeral(type.id);
                     setStep(2);
                   }}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${operacaoGeral === type.id ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400' : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-600 dark:text-slate-300 bg-white dark:bg-white/5'}`}
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all ${operacaoGeral === type.id ? 'border-[var(--accent)] bg-[var(--accent-tint)] text-[var(--accent)]' : 'border-[var(--border)] hover:border-[var(--border-hover)] text-[var(--text-secondary)] bg-[var(--bg-surface)]'}`}
                 >
                   <type.icon className="w-8 h-8 mb-2 opacity-80" />
                   <span className="font-semibold text-sm">{type.label}</span>
@@ -231,25 +231,25 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
 
         {step === 2 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300 h-full flex flex-col">
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Agendamento e Locais</h2>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">Agendamento e Locais</h2>
             
             {places.length === 1 ? (
-              <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-4">
+              <div className="bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border)] space-y-4 z-0">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Data e Hora</label>
+                  <label className="text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">Data e Hora</label>
                   <input
                     type="datetime-local"
                     value={agendamentoGeral}
                     onChange={(e) => setAgendamentoGeral(e.target.value)}
-                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:[color-scheme:dark] transition-all"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-all font-mono z-0"
                   />
                 </div>
               </div>
             ) : (
               <div className="flex-1 flex flex-col min-h-0">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-medium text-slate-500">Arraste para reordenar</span>
-                  <button onClick={applyAgendamentoToAll} className="text-[10px] sm:text-xs font-semibold text-blue-600 dark:text-blue-400 hover:opacity-80 bg-blue-50 dark:bg-blue-500/10 px-2 py-1.5 rounded-lg transition-colors">
+                  <span className="text-xs font-medium text-[var(--text-tertiary)]">Arraste para reordenar</span>
+                  <button onClick={applyAgendamentoToAll} className="text-[10px] sm:text-xs font-semibold text-[var(--text-primary)] hover:opacity-80 bg-[var(--bg-base)] border border-[var(--border)] px-2 py-1.5 rounded-md transition-colors">
                     Aplicar primeiro a todos
                   </button>
                 </div>
@@ -274,44 +274,44 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
 
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Qual(is) carreta(s) será(ão) utilizada(s)?</h2>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">Qual(is) carreta(s) será(ão) utilizada(s)?</h2>
             
             <div className="space-y-4">
-              <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-4">
+              <div className="bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border)] space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Carreta 1 *</label>
+                  <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 1 *</label>
                   <input
                     required
                     value={placa}
                     onChange={handlePlacaChange}
-                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono tracking-widest transition-all uppercase"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] font-mono tracking-widest transition-all uppercase"
                     placeholder="ABC1B34"
                     maxLength={7}
                   />
-                  {placa.length > 0 && !isPlateValid(placa) && <span className="text-xs text-red-500 mt-1 block">Placa inválida</span>}
+                  {placa.length > 0 && !isPlateValid(placa) && <span className="text-xs text-[#E05252] mt-1 block">Placa inválida</span>}
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Carreta 2 (Opcional)</label>
+                  <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 2 (Opcional)</label>
                   <input
                     value={placa2}
                     onChange={handlePlaca2Change}
-                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono tracking-widest transition-all uppercase"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] font-mono tracking-widest transition-all uppercase"
                     placeholder="XYZ9W87"
                     maxLength={7}
                   />
-                   {placa2.length > 0 && !isPlateValid(placa2) && <span className="text-xs text-red-500 mt-1 block">Placa inválida</span>}
-                   {placa2.length > 0 && placa2 === placa && <span className="text-xs text-red-500 mt-1 block">As placas devem ser diferentes</span>}
+                   {placa2.length > 0 && !isPlateValid(placa2) && <span className="text-xs text-[#E05252] mt-1 block">Placa inválida</span>}
+                   {placa2.length > 0 && placa2 === placa && <span className="text-xs text-[#E05252] mt-1 block">As placas devem ser diferentes</span>}
                 </div>
               </div>
 
-              <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-2">
-                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Observações da Operação (Opcional)</label>
+              <div className="bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border)] space-y-2">
+                 <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Observações da Operação (Opcional)</label>
                  <textarea
                     value={observacaoGeral}
                     onChange={e => setObservacaoGeral(e.target.value)}
                     rows={3}
-                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-all"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] resize-none transition-all"
                     placeholder="Conferir documentação, prioridade de descarga..."
                   />
               </div>
@@ -321,59 +321,59 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
 
         {step === 4 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Confira os dados antes de finalizar</h2>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">Confira os dados antes de finalizar</h2>
             
-            <div className="bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
-               <div className="p-4 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-white dark:bg-white/5">
+            <div className="bg-[var(--bg-surface)] rounded-xl border border-[var(--border)] overflow-hidden">
+               <div className="p-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--bg-surface)]">
                  <div>
-                   <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Tipo de operação</span>
-                   <p className="font-semibold text-slate-900 dark:text-white">{operacaoGeral}</p>
+                   <span className="text-[10px] uppercase font-mono text-[var(--text-tertiary)] tracking-wider">Tipo de operação</span>
+                   <p className="font-semibold text-[var(--text-primary)]">{operacaoGeral}</p>
                  </div>
-                 <button onClick={() => setStep(1)} className="text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline">Editar</button>
+                 <button onClick={() => setStep(1)} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] font-medium hover:underline">Editar</button>
                </div>
                
-               <div className="p-4 border-b border-slate-200 dark:border-white/10 relative bg-white dark:bg-white/5">
+               <div className="p-4 border-b border-[var(--border)] relative bg-[var(--bg-surface)]">
                  <div className="flex justify-between items-end mb-3">
-                   <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">Locais e Agendamentos</span>
-                   <button onClick={() => setStep(2)} className="text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline">Editar</button>
+                   <span className="text-[10px] uppercase font-mono text-[var(--text-tertiary)] tracking-wider block">Locais e Agendamentos</span>
+                   <button onClick={() => setStep(2)} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] font-medium hover:underline">Editar</button>
                  </div>
                  <div className="space-y-3">
                    {places.map((place, i) => {
                      const agendamentoInfo = places.length === 1 && agendamentoGeral ? agendamentoGeral : place.agendamento;
                      return (
                      <div key={place.id} className="text-sm">
-                       <span className="font-medium text-slate-900 dark:text-white">{i + 1}. {place.nomeFantasia}</span>
-                       {agendamentoInfo && <span className="block text-slate-500 mt-0.5 ml-4">• {formatDateToBR(agendamentoInfo)}</span>}
+                       <span className="font-medium text-[var(--text-primary)]">{i + 1}. {place.nomeFantasia}</span>
+                       {agendamentoInfo && <span className="block text-[var(--text-secondary)] font-mono text-xs mt-0.5 ml-4">• {formatDateToBR(agendamentoInfo)}</span>}
                      </div>
                    )})}
                  </div>
                </div>
                
-               <div className="p-4 border-b border-slate-200 dark:border-white/10 flex justify-between items-start bg-white dark:bg-white/5">
+               <div className="p-4 border-b border-[var(--border)] flex justify-between items-start bg-[var(--bg-surface)]">
                  <div>
-                   <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block mb-2">Implementos</span>
-                   <div className="space-y-1 text-sm">
-                     <p className="text-slate-900 dark:text-white"><span className="text-slate-500">Carreta 1:</span> {placa}</p>
-                     {placa2 && <p className="text-slate-900 dark:text-white"><span className="text-slate-500">Carreta 2:</span> {placa2}</p>}
+                   <span className="text-[10px] uppercase font-mono text-[var(--text-tertiary)] tracking-wider block mb-2">Implementos</span>
+                   <div className="space-y-1 text-sm font-mono">
+                     <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 1:</span> {placa}</p>
+                     {placa2 && <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 2:</span> {placa2}</p>}
                    </div>
                  </div>
-                 <button onClick={() => setStep(3)} className="text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline">Editar</button>
+                 <button onClick={() => setStep(3)} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] font-medium hover:underline">Editar</button>
                </div>
 
                {observacaoGeral && (
-                 <div className="p-4 relative bg-white dark:bg-white/5">
+                 <div className="p-4 relative bg-[var(--bg-surface)]">
                    <div className="flex justify-between items-end mb-2">
-                     <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">Observações</span>
-                     <button onClick={() => setStep(3)} className="text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline">Editar</button>
+                     <span className="text-[10px] uppercase font-mono text-[var(--text-tertiary)] tracking-wider block">Observações</span>
+                     <button onClick={() => setStep(3)} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] font-medium hover:underline">Editar</button>
                    </div>
-                   <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">{observacaoGeral}</p>
+                   <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed">{observacaoGeral}</p>
                  </div>
                )}
             </div>
             
             {!canFinish && (
-              <div className="p-4 bg-red-50/80 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <div className="p-4 bg-[var(--bg-surface)] border border-[#E05252]/30 rounded-xl text-sm text-[#E05252] font-medium flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#E05252] animate-pulse" />
                 Pendências encontradas nas etapas anteriores. Verifique os campos obrigatórios.
               </div>
             )}
@@ -381,11 +381,11 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
         )}
       </div>
 
-      <div className="mt-auto pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 bg-white dark:bg-slate-900 z-10 shrink-0">
+      <div className="mt-auto pt-4 border-t border-[var(--border)] flex items-center justify-between gap-3 bg-[var(--bg-surface)] z-10 shrink-0">
         {step > 1 ? (
           <button
             onClick={() => setStep(s => s - 1)}
-            className="px-4 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center gap-2"
+            className="px-4 py-3 text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-base)] hover:bg-transparent border border-[var(--border)] rounded-md transition-colors flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
             Voltar
@@ -393,7 +393,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
         ) : (
           <button
             onClick={onClose}
-            className="px-4 py-3 text-sm font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+            className="px-4 py-3 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
           >
             Cancelar
           </button>
@@ -403,7 +403,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
           <button
             onClick={() => setStep(s => s + 1)}
             disabled={(step === 1 && !canGoToStep2) || (step === 3 && !canGoToStep4)}
-            className="px-6 py-3 text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-blue-500/20 ml-auto"
+            className="px-6 py-3 text-sm font-medium text-[#0C0D0F] bg-[var(--accent)] hover:bg-[var(--accent-hover)] rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ml-auto"
           >
             Avançar
             <ArrowRight className="w-4 h-4" />
@@ -413,7 +413,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
             <button
               onClick={handleCopy}
               disabled={!canFinish || isSaving}
-              className="flex items-center justify-center gap-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-5 py-3 rounded-xl text-sm font-bold hover:bg-slate-700 dark:hover:bg-slate-200 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-surface)] px-5 py-3 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
             >
               <Copy className="w-4 h-4" />
               <span className="hidden sm:inline">Copiar Resumo</span>
@@ -422,7 +422,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
             <button
               onClick={handleShare}
               disabled={!canFinish || isSaving}
-              className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-green-900/20 disabled:opacity-50"
+              className="flex items-center justify-center gap-2 bg-[#4CAF7D] hover:bg-[#4CAF7D]/80 text-[#0C0D0F] px-5 py-3 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
             >
               <Send className="w-4 h-4 hidden sm:inline" />
               WhatsApp

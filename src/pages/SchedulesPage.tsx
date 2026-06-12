@@ -481,7 +481,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] pb-24">
+    <div className="min-h-screen bg-[var(--bg-base)] pb-24">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       <UnifiedHeader
@@ -512,14 +512,14 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       
       <main className="p-6 max-w-[1600px] mx-auto space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Dashboard Operacional</h2>
+          <h2 className="text-base font-semibold text-[var(--text-primary)] tracking-tight">Dashboard Operacional</h2>
           <button
             onClick={() => {
               const rpt = generateReport();
               setReportText(rpt);
               setReportModalOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] text-[#0C0D0F] text-sm font-medium rounded-md hover:bg-[var(--accent-hover)] transition-colors shadow-sm"
           >
             <FileText className="w-4 h-4" /> Gerar Relatório
           </button>
@@ -528,90 +528,90 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         {/* Dashboard Indicators */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
           {[
-            { id: 'emOperacao', label: 'Motoristas em operação', val: metrics.emOperacao, color: 'blue' },
-            { id: 'coletas', label: 'Coletas', val: metrics.coletas, color: 'emerald' },
-            { id: 'entregas', label: 'Entregas', val: metrics.entregas, color: 'sky' },
-            { id: 'transferencias', label: 'Transferências', val: metrics.transferencias, color: 'indigo' },
-            { id: 'manobras', label: 'Manobras', val: metrics.manobras, color: 'violet' },
-            { id: 'pendencias', label: 'Pendências', val: metrics.pendencias, color: 'amber' },
-            { id: 'folgas', label: 'Folgas/Férias', val: metrics.folgas, color: 'rose' },
-            { id: 'semProgramacao', label: 'Sem programação', val: metrics.semProgramacao, color: 'slate' }
+            { id: 'emOperacao', label: 'Motoristas em operação', val: metrics.emOperacao, style: 'bg-[var(--accent-tint)] border-[var(--accent-border)] font-semibold text-[var(--accent)]' },
+            { id: 'coletas', label: 'Coletas', val: metrics.coletas, style: 'bg-[var(--bg-surface)] border-[var(--border)] font-semibold text-[var(--text-primary)] hover:border-[var(--border-hover)]' },
+            { id: 'entregas', label: 'Entregas', val: metrics.entregas, style: 'bg-[var(--bg-surface)] border-[var(--border)] font-semibold text-[var(--text-primary)] hover:border-[var(--border-hover)]' },
+            { id: 'transferencias', label: 'Transferências', val: metrics.transferencias, style: 'bg-[var(--bg-surface)] border-[var(--border)] font-semibold text-[var(--text-primary)] hover:border-[var(--border-hover)]' },
+            { id: 'manobras', label: 'Manobras', val: metrics.manobras, style: 'bg-[var(--bg-surface)] border-[var(--border)] font-semibold text-[var(--text-primary)] hover:border-[var(--border-hover)]' },
+            { id: 'pendencias', label: 'Pendências', val: metrics.pendencias, style: 'bg-[#E0BC6A]/10 border-[#E0BC6A]/30 font-semibold text-[#E0BC6A]' },
+            { id: 'folgas', label: 'Folgas/Férias', val: metrics.folgas, style: 'bg-[#5B8FDB]/10 border-[#5B8FDB]/30 font-semibold text-[#5B8FDB]' },
+            { id: 'semProgramacao', label: 'Sem programação', val: metrics.semProgramacao, style: 'bg-[#4CAF7D]/10 border-[#4CAF7D]/30 font-semibold text-[#4CAF7D]' }
           ].map(card => (
             <button
               key={card.id}
               onClick={() => setDashboardFilter(dashboardFilter === card.id ? null : card.id)}
-              className={`text-left p-3 rounded-xl border transition-all ${dashboardFilter === card.id ? `bg-${card.color}-50 border-${card.color}-200 dark:bg-${card.color}-900/20 dark:border-${card.color}-800/50 shadow-sm ring-1 ring-${card.color}-500/20` : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-blue-200 dark:hover:border-blue-800'}`}
+              className={`text-left p-3 rounded-xl border transition-all ${dashboardFilter === card.id ? card.style.replace('bg-[var(--bg-surface)]', 'bg-[var(--accent-tint)]').replace('border-[var(--border)]', 'border-[var(--accent-border)]') : card.style}`}
             >
-              <p className="text-[10px] sm:text-xs text-slate-500 font-medium uppercase line-clamp-2 leading-tight h-8">{card.label}</p>
-              <p className={`text-xl sm:text-2xl font-bold mt-1 ${dashboardFilter === card.id ? `text-${card.color}-700 dark:text-${card.color}-400` : 'text-slate-900 dark:text-white'}`}>{card.val}</p>
+              <p className="text-[10px] font-mono text-[var(--text-tertiary)] uppercase tracking-widest line-clamp-2 leading-tight h-8">{card.label}</p>
+              <p className={`text-xl sm:text-2xl font-mono mt-1 ${dashboardFilter === card.id ? 'text-[var(--accent)]' : card.style.match(/text-\[[^\]]+\]/)?.[0] || 'text-[var(--text-primary)]'}`}>{card.val}</p>
             </button>
           ))}
         </div>
 
         {/* List / Cards */}
         {loading ? (
-          <div className="flex justify-center p-12"><div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full" /></div>
+          <div className="flex justify-center p-12"><div className="animate-spin w-8 h-8 rounded-full border-2 border-[var(--accent)] border-t-transparent" /></div>
         ) : itemsToDisplay.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
-             <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-             <p className="text-slate-500 dark:text-slate-400">Nenhuma programação encontrada.</p>
+          <div className="text-center py-12 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl">
+             <Calendar className="w-12 h-12 text-[var(--border)] mx-auto mb-3" />
+             <p className="text-[var(--text-secondary)]">Nenhuma programação encontrada.</p>
           </div>
         ) : viewMode === 'list' ? (
-           <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm">
+           <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
               <div className="overflow-x-auto">
                  <table className="w-full text-left text-sm whitespace-nowrap border-collapse">
-                    <thead className="bg-slate-50 dark:bg-[#09090B]/50 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs">
+                    <thead className="bg-transparent border-b border-[var(--border)]">
                        <tr>
-                          <th className="px-4 py-3 text-left">OPERAÇÃO</th>
-                          <th className="px-4 py-3 text-left">DATA / HORA</th>
-                          <th className="px-4 py-3 text-left">MOTORISTA</th>
-                          <th className="px-4 py-3 text-left">VEÍCULO</th>
-                          <th className="px-4 py-3 text-left">STATUS</th>
-                          <th className="px-5 py-3 pr-6 w-32 text-right">AÇÕES</th>
+                          <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">OPERAÇÃO</th>
+                          <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">DATA / HORA</th>
+                          <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">MOTORISTA</th>
+                          <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">VEÍCULO</th>
+                          <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">STATUS</th>
+                          <th className="px-5 py-3 pr-6 w-32 text-right text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">AÇÕES</th>
                        </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                    <tbody className="divide-y divide-[var(--border)]">
                        {itemsToDisplay.map(s => {
                           const drv = drivers.find(d => d.id === s.driverId);
                           const veh = vehicles.find(v => v.id === s.vehicleId);
                           const isEncerrado = s.status === 'Encerrado';
                           return (
-                             <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition">
-                                <td className="px-4 py-3 font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                             <tr key={s.id} className="hover:bg-[var(--bg-base)] transition">
+                                <td className="px-4 py-3 font-semibold text-[var(--text-primary)] uppercase">
                                    <div className="flex flex-col gap-1">
                                       <span>{getOperationsString(s)}</span>
                                       {s.locationName && (
-                                        <span className="text-xs text-slate-500 font-medium normal-case flex items-center gap-1">
-                                           <MapPin className="w-3 h-3"/> {s.locationName}
+                                        <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1">
+                                           {s.locationName}
                                         </span>
                                       )}
                                    </div>
                                 </td>
-                                <td className="px-4 py-3 text-slate-500 text-sm">
+                                <td className="px-4 py-3 text-[var(--text-secondary)] font-mono">
                                    <div className="flex items-center gap-2">
-                                      <Clock className="w-4 h-4 text-slate-400" />
+                                      <Clock className="w-[14px] h-[14px] text-[var(--text-tertiary)]" />
                                       {s.date ? formatDatePTBR(s.date) : ''} às {s.time}
                                    </div>
                                 </td>
-                                <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-200">{drv?.nome || 'N/A'}</td>
-                                <td className="px-4 py-3 font-mono text-slate-900 dark:text-slate-200">{veh?.placa || 'N/A'}</td>
+                                <td className="px-4 py-3 font-medium text-[var(--text-primary)]">{drv?.nome || 'N/A'}</td>
+                                <td className="px-4 py-3 font-mono text-[var(--text-primary)]">{veh?.placa || 'N/A'}</td>
                                 <td className="px-4 py-3">
-                                   <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider rounded border ${isEncerrado ? 'bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-white/5 dark:text-slate-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800'}`}>
+                                   <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-mono border ${isEncerrado ? 'bg-[var(--bg-base)] text-[var(--text-secondary)] border-[var(--border)]' : 'bg-[var(--accent-tint)] text-[var(--accent)] border-[var(--accent-border)]'}`}>
                                       {s.status}
                                    </span>
                                 </td>
                                 <td className="px-5 py-3 pr-6 text-right">
-       <div className="flex items-center justify-end gap-1">
-         <button onClick={() => handleOpenModal(s)} className="p-1.5 text-slate-400 hover:text-blue-600 transition" title="Editar">
-                                      <Edit2 className="w-4 h-4"/>
+       <div className="flex items-center justify-end gap-3">
+         <button onClick={() => handleOpenModal(s)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition" title="Editar">
+                                      <Edit2 className="w-[14px] h-[14px]"/>
                                    </button>
                                    {!isEncerrado && (
-                                      <button onClick={() => handleComplete(s)} className="p-1.5 text-slate-400 hover:text-emerald-600 transition" title="Encerrar">
-                                         <CheckCircle className="w-4 h-4" />
+                                      <button onClick={() => handleComplete(s)} className="text-[var(--text-tertiary)] hover:text-[#4CAF7D] transition" title="Encerrar">
+                                         <CheckCircle className="w-[14px] h-[14px]" />
                                       </button>
                                    )}
-                                   <button onClick={() => setDeletingId(s.id!)} className="p-1.5 text-slate-400 hover:text-red-600 transition" title="Excluir">
-                                      <Trash2 className="w-4 h-4" />
+                                   <button onClick={() => setDeletingId(s.id!)} className="text-[var(--text-tertiary)] hover:text-[#E05252] transition" title="Excluir">
+                                      <Trash2 className="w-[14px] h-[14px]" />
                                    </button>
                                 
        </div>
@@ -631,69 +631,73 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
               const isEncerrado = s.status === 'Encerrado';
 
               return (
-                <div key={s.id} className={`bg-white dark:bg-white/5 border rounded-xl p-5 hover:border-blue-500 dark:hover:border-blue-500/50 transition flex flex-col ${isEncerrado ? 'border-slate-200 dark:border-white/10 opacity-75' : 'border-blue-200 dark:border-blue-900/50'}`}>
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                <div key={s.id} className={`bg-[var(--bg-surface)] border rounded-xl overflow-hidden flex flex-col transition-all min-h-[220px] ${isEncerrado ? 'border-[var(--border)] opacity-75' : 'border-[var(--border)] hover:border-[var(--border-hover)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]'}`}>
+                  <div className="p-5 flex-1 flex flex-col relative">
+                    <div className="absolute top-4 right-4 z-10">
+                      <span className={`px-1.5 py-0.5 mt-1 rounded text-[10px] uppercase font-mono border ${isEncerrado ? 'bg-[var(--bg-base)] text-[var(--text-secondary)] border-[var(--border)]' : 'bg-[var(--accent-tint)] text-[var(--accent)] border-[var(--accent-border)]'}`}>
+                        {s.status}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1 pr-16 mb-4">
+                        <span className="text-base font-semibold text-[var(--text-primary)] uppercase tracking-tight">
                           {getOperationsString(s)}
                         </span>
                         {s.locationName && (
-                          <span className="text-xs text-slate-500 font-medium normal-case flex items-center gap-1">
-                             <MapPin className="w-3 h-3"/> {s.locationName}
+                          <span className="text-xs font-mono text-[var(--text-tertiary)] flex items-center gap-1">
+                             {s.locationName}
                           </span>
                         )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded w-fit">
-                        <Clock className="w-3.5 h-3.5" />
-                        {s.date ? formatDatePTBR(s.date) : ''} às {s.time}
-                      </div>
                     </div>
-                    <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider rounded border ${isEncerrado ? 'bg-slate-100 text-slate-700 dark:bg-white/5 dark:text-slate-300 border-slate-200 dark:border-slate-700' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800'}`}>
-                      {s.status}
-                    </span>
+
+                    <div className="flex flex-col gap-3 flex-1">
+                      <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] font-mono">
+                        <Clock className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                        <span className="font-medium">{s.date ? formatDatePTBR(s.date) : ''} às {s.time}</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">Motorista</p>
+                          <p className="text-sm font-semibold text-[var(--text-primary)]">{drv?.nome || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">Veículo</p>
+                          <p className="text-sm font-mono text-[var(--text-primary)]">{veh?.placa || 'N/A'}</p>
+                        </div>
+                      </div>
+
+                      {s.observations && (
+                        <div className="pt-3 border-t border-[var(--border)] flex-1">
+                          <p className="text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Obs</p>
+                          <p className="text-xs font-mono text-[var(--text-secondary)] line-clamp-2">{s.observations}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="space-y-3 mb-4 flex-1">
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase font-medium">Motorista</p>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-200">{drv?.nome || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase font-medium">Veículo</p>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-200 font-mono">{veh?.placa || 'N/A'}</p>
-                    </div>
-                    {s.observations && (
-                      <div className="pt-2 border-t border-slate-100 dark:border-white/10">
-                        <p className="text-xs text-slate-500 uppercase font-medium mb-1">Obs</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{s.observations}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-4 border-t border-slate-100 dark:border-white/10">
+                  <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-base)] flex items-center justify-end gap-3">
                     <button 
                       onClick={() => handleOpenModal(s)} 
-                      className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                      className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"
                       title="Editar"
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Edit2 className="w-[14px] h-[14px]" />
                     </button>
                     {!isEncerrado && (
                       <button 
                         onClick={() => handleComplete(s)} 
-                        className="p-1.5 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+                        className="text-[var(--text-tertiary)] hover:text-[#4CAF7D] transition"
                         title="Encerrar e Liberar Motorista/Veículo"
                       >
-                        <CheckCircle className="w-4 h-4" />
+                        <CheckCircle className="w-[14px] h-[14px]" />
                       </button>
                     )}
                     <button 
                       onClick={() => setDeletingId(s.id!)} 
-                      className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition ml-auto"
+                      className="text-[var(--text-tertiary)] hover:text-[#E05252] transition"
                       title="Excluir"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-[14px] h-[14px]" />
                     </button>
                   </div>
                 </div>
@@ -707,7 +711,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         <form onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Motorista</label>
+              <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Motorista</label>
               <div className="relative">
                  <input
                     type="text"
@@ -730,10 +734,10 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                     }}
                     onFocus={() => setDriverDropdownOpen(true)}
                     placeholder="Digite o nome..."
-                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                  />
                  {driverDropdownOpen && driverSearchDisplay.trim() !== '' && (
-                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#18181B] border border-slate-200 dark:border-white/10 rounded-lg shadow-lg overflow-hidden flex flex-col">
+                    <div className="absolute z-10 w-full mt-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md shadow-[0_4px_24px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col">
                        {drivers
                           .filter(d => d.nome.toLowerCase().includes(driverSearchDisplay.toLowerCase()))
                           .slice(0, 2)
@@ -751,34 +755,34 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                                       if (v) setVehicleSearchDisplay(v.placa);
                                    }
                                 }}
-                                className="px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 flex justify-between items-center"
+                                className="px-4 py-2 text-left text-sm hover:bg-[var(--bg-base)] text-[var(--text-primary)] flex justify-between items-center border-b border-[var(--border)] last:border-0"
                              >
-                                <span>{d.nome}</span>
+                                <span className="font-semibold">{d.nome}</span>
                                 {d.status !== 'Disponível' && editingSchedule?.driverId !== d.id && (
-                                  <span className="text-xs text-amber-500 font-medium">({d.status})</span>
+                                  <span className="text-[10px] uppercase font-mono tracking-widest text-[#E0BC6A]">({d.status})</span>
                                 )}
                              </button>
                           ))}
                        {!drivers.find(d => d.nome.toLowerCase() === driverSearchDisplay.toLowerCase()) && (
-                          <div className="px-4 py-3 border-t border-slate-100 dark:border-white/5">
+                          <div className="px-4 py-3 border-t border-[var(--border)] bg-[var(--bg-base)]">
                              <button
                                 type="button"
                                 onClick={() => handleQuickCreateDriver(driverSearchDisplay)}
-                                className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:underline"
+                                className="text-xs font-semibold text-[var(--text-primary)] hover:underline"
                              >
                                 Cadastrar motorista "{driverSearchDisplay}"?
                              </button>
                           </div>
                        )}
-                       <div className="px-4 py-2 bg-slate-100 dark:bg-white/5 text-xs text-slate-500 flex justify-end">
-                         <button type="button" onClick={() => setDriverDropdownOpen(false)}>Fechar</button>
+                       <div className="px-4 py-2 bg-[var(--bg-base)] text-xs text-[var(--text-tertiary)] flex justify-end border-t border-[var(--border)]">
+                         <button type="button" className="hover:text-[var(--text-primary)]" onClick={() => setDriverDropdownOpen(false)}>Fechar</button>
                        </div>
                     </div>
                  )}
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Veículo (Placa)</label>
+              <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Veículo (Placa)</label>
               <div className="relative">
                  <input
                     type="text"
@@ -797,10 +801,10 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                     }}
                     onFocus={() => setVehicleDropdownOpen(true)}
                     placeholder="Digite a placa..."
-                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white font-mono uppercase"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono uppercase focus:outline-none focus:border-[var(--accent)] tracking-widest"
                  />
                  {vehicleDropdownOpen && vehicleSearchDisplay.trim() !== '' && (
-                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#18181B] border border-slate-200 dark:border-white/10 rounded-lg shadow-lg overflow-hidden flex flex-col">
+                    <div className="absolute z-10 w-full mt-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md shadow-[0_4px_24px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col">
                        {vehicles
                           .filter(v => v.placa.toUpperCase().includes(vehicleSearchDisplay))
                           .slice(0, 2)
@@ -813,27 +817,27 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                                    setVehicleId(v.id!);
                                    setVehicleDropdownOpen(false);
                                 }}
-                                className="px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 font-mono flex justify-between items-center"
+                                className="px-4 py-2 text-left text-sm hover:bg-[var(--bg-base)] text-[var(--text-primary)] font-mono flex justify-between items-center border-b border-[var(--border)] last:border-0"
                              >
                                 <span>{v.placa}</span>
                                 {v.status !== 'Disponível' && editingSchedule?.vehicleId !== v.id && (
-                                  <span className="text-xs text-amber-500 font-medium font-sans">({v.status})</span>
+                                  <span className="text-[10px] uppercase font-mono tracking-widest text-[#E0BC6A]">({v.status})</span>
                                 )}
                              </button>
                           ))}
                        {!vehicles.find(v => v.placa.toUpperCase() === vehicleSearchDisplay) && (
-                          <div className="px-4 py-3 border-t border-slate-100 dark:border-white/5">
+                          <div className="px-4 py-3 border-t border-[var(--border)] bg-[var(--bg-base)]">
                              <button
                                 type="button"
                                 onClick={() => handleQuickCreateVehicle(vehicleSearchDisplay)}
-                                className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:underline"
+                                className="text-xs font-semibold text-[var(--text-primary)] hover:underline"
                              >
                                 Cadastrar placa {vehicleSearchDisplay}?
                              </button>
                           </div>
                        )}
-                       <div className="px-4 py-2 bg-slate-100 dark:bg-white/5 text-xs text-slate-500 flex justify-end">
-                         <button type="button" onClick={() => setVehicleDropdownOpen(false)}>Fechar</button>
+                       <div className="px-4 py-2 bg-[var(--bg-base)] text-xs text-[var(--text-tertiary)] flex justify-end border-t border-[var(--border)]">
+                         <button type="button" className="hover:text-[var(--text-primary)]" onClick={() => setVehicleDropdownOpen(false)}>Fechar</button>
                        </div>
                     </div>
                  )}
@@ -843,33 +847,33 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Data</label>
+              <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Data</label>
               <input
                 type="date"
                 required
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Horário</label>
+              <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Horário</label>
               <input
                 type="time"
                 required
                 value={time}
                 onChange={e => setTime(e.target.value)}
-                className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4">
              <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tipo de Operação *</label>
+              <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Tipo de Operação *</label>
               <div className="flex flex-wrap gap-3">
                 {['Coleta', 'Entrega', 'Transferência', 'Viagem', 'Manobra', 'Manutenção'].map(op => (
-                  <label key={op} className="flex items-center gap-2 cursor-pointer">
+                  <label key={op} className="flex items-center gap-2 cursor-pointer group">
                     <input
                       type="checkbox"
                       value={op}
@@ -881,9 +885,9 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                           setOperations(operations.filter(o => o !== op));
                         }
                       }}
-                      className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
+                       className="w-4 h-4 text-[var(--accent)] bg-[var(--bg-base)] border-[var(--border)] rounded focus:ring-[var(--accent)] focus:ring-offset-[var(--bg-surface)] cursor-pointer"
                     />
-                    <span className="text-sm text-slate-700 dark:text-slate-300 select-none">{op}</span>
+                    <span className="text-sm text-[var(--text-primary)] select-none group-hover:text-[var(--accent)] transition-colors">{op}</span>
                   </label>
                 ))}
               </div>
@@ -892,7 +896,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cliente / Local</label>
+              <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Cliente / Local</label>
               <div className="relative">
                  <input
                     type="text"
@@ -903,10 +907,10 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                     }}
                     onFocus={() => setLocationDropdownOpen(true)}
                     placeholder="Pesquisar local..."
-                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] tracking-tight"
                  />
                  {locationDropdownOpen && locationSearchDisplay.trim() !== '' && (
-                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#18181B] border border-slate-200 dark:border-white/10 rounded-lg shadow-lg overflow-hidden flex flex-col max-h-60 overflow-y-auto">
+                    <div className="absolute z-10 w-full mt-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md shadow-[0_4px_24px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col max-h-60 overflow-y-auto">
                        {places
                           .filter(p => (p.nomeFantasia && p.nomeFantasia.toLowerCase().includes(locationSearchDisplay.toLowerCase())) || (p.cidade && p.cidade.toLowerCase().includes(locationSearchDisplay.toLowerCase())))
                           .map(p => (
@@ -917,25 +921,25 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                                    setLocationSearchDisplay(p.nomeFantasia || p.cidade);
                                    setLocationDropdownOpen(false);
                                 }}
-                                className="px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 flex flex-col"
+                                className="px-4 py-2 text-left text-sm hover:bg-[var(--bg-base)] text-[var(--text-primary)] flex flex-col border-b border-[var(--border)] last:border-0"
                              >
-                                <span className="font-medium">{p.nomeFantasia || p.cidade}</span>
-                                {p.nomeFantasia && <span className="text-xs text-slate-500">{p.cidade}</span>}
+                                <span className="font-semibold">{p.nomeFantasia || p.cidade}</span>
+                                {p.nomeFantasia && <span className="text-[10px] font-mono text-[var(--text-secondary)] uppercase">{p.cidade}</span>}
                              </button>
                           ))}
-                       <div className="px-4 py-2 bg-slate-100 dark:bg-white/5 text-xs text-slate-500 flex justify-end">
-                         <button type="button" onClick={() => setLocationDropdownOpen(false)}>Fechar</button>
+                       <div className="px-4 py-2 bg-[var(--bg-base)] text-xs text-[var(--text-tertiary)] flex justify-end border-t border-[var(--border)] flex-shrink-0">
+                         <button type="button" className="hover:text-[var(--text-primary)]" onClick={() => setLocationDropdownOpen(false)}>Fechar</button>
                        </div>
                     </div>
                  )}
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
+              <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Status</label>
               <select
                 value={status}
                 onChange={e => setStatus(e.target.value)}
-                className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
               >
                 <option value="Ativo">Ativo</option>
                 <option value="Encerrado">Encerrado</option>
@@ -944,13 +948,13 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Observação Operacional</label>
+            <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Observação Operacional</label>
             <textarea
               value={observations}
               onChange={e => setObservations(e.target.value)}
               rows={2}
               placeholder="Ex: Retornando ao pátio novo para troca de carreta."
-              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white resize-none"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] resize-none focus:outline-none focus:border-[var(--accent)] font-mono text-sm tracking-tight"
             />
           </div>
 
@@ -958,14 +962,14 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition"
+              className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-base)] rounded-md transition"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isBusy}
-              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium bg-[var(--accent)] text-[#0C0D0F] hover:bg-[var(--accent-hover)] rounded-md transition disabled:opacity-50"
             >
               {isBusy ? 'Salvando...' : 'Salvar'}
             </button>
@@ -990,12 +994,12 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
           <textarea
             readOnly
             value={reportText}
-            className="w-full h-96 p-4 text-xs font-mono bg-slate-900 border border-slate-700 text-slate-100 rounded-lg resize-none outline-none hide-scrollbar leading-relaxed"
+            className="w-full h-96 p-4 text-xs font-mono bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text-primary)] rounded-md resize-none outline-none focus:border-[var(--accent)] hide-scrollbar leading-relaxed"
           />
           <div className="flex justify-between items-center w-full pt-2">
             <button
               onClick={() => setReportModalOpen(false)}
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition"
+              className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-base)] rounded-md transition"
             >
               Fechar
             </button>
@@ -1023,7 +1027,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                   newWin.focus();
                   setTimeout(() => newWin.print(), 100);
                 }}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-lg hover:bg-slate-200 dark:hover:bg-white/20 transition"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text-primary)] rounded-md hover:border-[var(--border-hover)] transition"
               >
                 📄 Exportar PDF
               </button>
@@ -1032,7 +1036,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                   navigator.clipboard.writeText(reportText);
                   addToast('Copiado para a área de transferência', 'success');
                 }}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#25D366] text-white rounded-lg hover:bg-[#128C7E] shadow-sm transition"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-[#4CAF7D] text-[#0C0D0F] rounded-md hover:bg-[#4CAF7D]/90 shadow-sm transition"
               >
                 📋 Copiar para WhatsApp
               </button>

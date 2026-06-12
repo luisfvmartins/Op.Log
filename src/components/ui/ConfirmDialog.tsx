@@ -38,18 +38,18 @@ export function ConfirmDialog({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <p className="text-slate-600 dark:text-slate-400 text-sm mb-6 pb-2 border-b border-slate-100 dark:border-white/10">{description}</p>
+      <p className="text-[var(--text-secondary)] text-sm mb-6 pb-2 border-b border-[var(--border)]">{description}</p>
       
       {requireInputConfirm && (
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-            Digite <span className="font-bold font-mono bg-slate-100 dark:bg-white/10 px-1 py-0.5 rounded text-slate-900 dark:text-white select-all">{requireInputConfirm}</span> para confirmar:
+          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+            Digite <span className="font-bold font-mono bg-[var(--bg-base)] border border-[var(--border)] px-1 py-0.5 rounded text-[var(--text-primary)] select-all">{requireInputConfirm}</span> para confirmar:
           </label>
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 font-mono text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#E05252] focus:ring-0"
             placeholder={requireInputConfirm}
             autoFocus
           />
@@ -59,7 +59,7 @@ export function ConfirmDialog({
       <div className="flex justify-end gap-3">
         <button
           onClick={onClose}
-          className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent"
+          className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-transparent rounded-md transition-colors border border-transparent"
         >
           {cancelText}
         </button>
@@ -70,11 +70,11 @@ export function ConfirmDialog({
             }
           }}
           disabled={!isValid}
-          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-            !isValid ? 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-600 cursor-not-allowed' :
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            !isValid ? 'border border-[var(--border)] text-[var(--text-tertiary)] cursor-not-allowed opacity-50' :
             isDestructive 
-              ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20' 
-              : 'bg-blue-600 text-white hover:bg-blue-500'
+              ? 'bg-transparent border border-[#E05252]/30 text-[#E05252] hover:bg-[#E05252]/10' 
+              : 'bg-transparent border border-[var(--accent-border)] text-[var(--accent)] hover:bg-[var(--accent-tint)]'
           }`}
         >
           {confirmText}

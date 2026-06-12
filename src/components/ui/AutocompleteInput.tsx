@@ -62,12 +62,12 @@ export function AutocompleteInput({
       />
       
       {isOpen && hasFocus && filteredOptions.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden">
+        <div className="absolute z-10 w-full mt-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md shadow-[0_4px_24px_rgba(0,0,0,0.12)] overflow-hidden">
           {filteredOptions.map((opt, idx) => (
             <button
               key={idx}
               type="button"
-              className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:bg-slate-100 dark:focus:bg-slate-700 focus:outline-none"
+              className="w-full text-left px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-base)] transition-colors focus:bg-[var(--bg-base)] focus:outline-none"
               onMouseDown={(e) => {
                 e.preventDefault(); // prevent blur
                 onChange(opt);

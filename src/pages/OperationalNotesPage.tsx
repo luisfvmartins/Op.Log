@@ -213,7 +213,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] pb-24">
+    <div className="min-h-screen bg-[var(--bg-base)] pb-24">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       <UnifiedHeader
@@ -244,15 +244,15 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
 
       <main className="p-6 max-w-[1600px] mx-auto space-y-6">
         {/* Tabs */}
-        <div className="flex space-x-1 bg-slate-200/50 dark:bg-white/5 p-1 rounded-xl w-fit">
+        <div className="flex space-x-1 bg-[var(--bg-surface)] border border-[var(--border)] p-1 rounded-md w-fit">
           {(['Anotações', 'Tarefas'] as const).map(tab => (
             <button
                key={tab}
                onClick={() => setActiveTab(tab)}
-               className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+               className={`px-4 py-1.5 text-sm font-medium rounded transition-colors ${
                   activeTab === tab 
-                     ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' 
-                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                     ? 'bg-[var(--accent-tint)] text-[var(--text-primary)] border border-[var(--accent-border)]' 
+                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-transparent'
                }`}
             >
                {tab}
@@ -262,27 +262,27 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
 
         {/* Dashboard Indicators */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium uppercase">Total de Anotações</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4">
+            <p className="text-[10px] text-[var(--text-tertiary)] font-mono uppercase tracking-widest">Total de Anotações</p>
+            <p className="text-2xl font-mono text-[var(--text-primary)] mt-1">
               {operations.filter(o => o.type === 'note').length}
             </p>
           </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium uppercase">Anotações Fixadas</p>
-            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4">
+            <p className="text-[10px] text-[var(--text-tertiary)] font-mono uppercase tracking-widest">Anotações Fixadas</p>
+            <p className="text-2xl font-mono text-[#D4A843] mt-1">
               {operations.filter(o => o.type === 'note' && o.isPinned).length}
             </p>
           </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium uppercase">Tarefas Pendentes</p>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4">
+            <p className="text-[10px] text-[var(--text-tertiary)] font-mono uppercase tracking-widest">Tarefas Pendentes</p>
+            <p className="text-2xl font-mono text-[#5B8FDB] mt-1">
               {operations.filter(o => o.type === 'task' && o.status !== 'Concluído').length}
             </p>
           </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium uppercase">Tarefas Concluídas</p>
-            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4">
+            <p className="text-[10px] text-[var(--text-tertiary)] font-mono uppercase tracking-widest">Tarefas Concluídas</p>
+            <p className="text-2xl font-mono text-[#4CAF7D] mt-1">
               {operations.filter(o => o.type === 'task' && o.status === 'Concluído').length}
             </p>
           </div>
@@ -293,23 +293,23 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
            <div className="space-y-6">
              {pinnedNotes.length > 0 && (
                 <div>
-                   <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Fixadas</h3>
+                   <h3 className="text-[10px] font-mono text-[var(--accent)] uppercase tracking-widest mb-3">Fixadas</h3>
                    <div className={viewMode === 'list' ? "flex flex-col gap-3" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"}>
                       {pinnedNotes.map(note => <NoteCard key={note.id} note={note} onEdit={() => handleOpenModal(note)} onDelete={() => setDeletingId(note.id!)} onTogglePin={() => handleTogglePin(note)} viewMode={viewMode} />)}
                    </div>
                 </div>
              )}
              <div>
-                {pinnedNotes.length > 0 && <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 mt-8">Outras</h3>}
+                {pinnedNotes.length > 0 && <h3 className="text-[10px] font-mono text-[var(--text-tertiary)] uppercase tracking-widest mb-3 mt-8">Outras</h3>}
                 {otherNotes.length > 0 ? (
                    <div className={viewMode === 'list' ? "flex flex-col gap-3" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"}>
                       {otherNotes.map(note => <NoteCard key={note.id} note={note} onEdit={() => handleOpenModal(note)} onDelete={() => setDeletingId(note.id!)} onTogglePin={() => handleTogglePin(note)} viewMode={viewMode} />)}
                    </div>
                 ) : (
                    !pinnedNotes.length && (
-                      <div className="text-center py-12 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl">
-                         <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                         <p className="text-slate-500 dark:text-slate-400">Nenhuma anotação encontrada.</p>
+                      <div className="text-center py-12 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl">
+                         <BookOpen className="w-12 h-12 text-[var(--border)] mx-auto mb-3" />
+                         <p className="text-[var(--text-secondary)]">Nenhuma anotação encontrada.</p>
                       </div>
                    )
                 )}
@@ -318,38 +318,42 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
         )}
 
         {activeTab === 'Tarefas' && (
-           <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden">
+           <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl overflow-hidden">
              {filteredOps.length > 0 ? (
-               <div className="divide-y divide-slate-100 dark:divide-white/10">
+               <div className="divide-y divide-[var(--border)]">
                  {filteredOps.map(task => (
-                   <div key={task.id} className={`p-4 flex gap-4 hover:bg-slate-50 dark:hover:bg-white/5 transition group ${task.status === 'Concluída' ? 'opacity-60' : ''}`}>
-                     <button onClick={() => handleCompleteTask(task)} className="mt-1 flex-shrink-0 text-slate-300 hover:text-emerald-500 transition">
-                       <CheckCircle className={`w-6 h-6 ${task.status === 'Concluída' ? 'text-emerald-500 fill-emerald-500/20' : ''}`} />
+                   <div key={task.id} className={`p-4 flex gap-4 hover:bg-[var(--bg-base)] transition-colors group ${task.status === 'Concluída' ? 'opacity-60' : ''}`}>
+                     <button onClick={() => handleCompleteTask(task)} className="mt-1 flex-shrink-0 text-[var(--text-tertiary)] hover:text-[#4CAF7D] transition">
+                       <CheckCircle className={`w-[18px] h-[18px] ${task.status === 'Concluída' ? 'text-[#4CAF7D] fill-[#4CAF7D]/20' : ''}`} />
                      </button>
                      <div className="flex-1">
                        <div className="flex items-start justify-between">
-                         <h4 className={`text-base font-semibold text-slate-900 dark:text-white ${task.status === 'Concluída' ? 'line-through' : ''}`}>
+                         <h4 className={`text-base font-semibold text-[var(--text-primary)] tracking-tight ${task.status === 'Concluída' ? 'line-through' : ''}`}>
                             {task.title}
                          </h4>
                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
-                            <button onClick={() => handleOpenModal(task)} className="p-1.5 text-slate-400 hover:text-blue-600 transition"><Edit2 className="w-4 h-4"/></button>
-                            <button onClick={() => setDeletingId(task.id!)} className="p-1.5 text-slate-400 hover:text-red-600 transition"><Trash2 className="w-4 h-4"/></button>
+                            <button onClick={() => handleOpenModal(task)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"><Edit2 className="w-[14px] h-[14px]"/></button>
+                            <button onClick={() => setDeletingId(task.id!)} className="text-[var(--text-tertiary)] hover:text-[#E05252] transition"><Trash2 className="w-[14px] h-[14px]"/></button>
                          </div>
                        </div>
                        {task.description && (
-                         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">{task.description}</p>
+                         <p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2">{task.description}</p>
                        )}
                        <div className="flex flex-wrap items-center gap-2 mt-3">
                          {task.date && (
-                           <span className="flex items-center gap-1 text-[11px] font-medium text-slate-500 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded">
+                           <span className="flex items-center gap-1 text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-base)] border border-[var(--border)] px-1.5 py-0.5 rounded">
                              <Calendar className="w-3 h-3"/> {task.date} {task.time}
                            </span>
                          )}
-                         <span className={`flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${getPriorityColor(task.priority || 'Baixa')}`}>
+                         <span className={`flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded border ${
+                            task.priority === 'Alta' || task.priority === 'Crítica' ? 'bg-[#E05252]/10 text-[#E05252] border-[#E05252]/30' :
+                            task.priority === 'Média' ? 'bg-[#E0BC6A]/10 text-[#E0BC6A] border-[#E0BC6A]/30' :
+                            'bg-[#4CAF7D]/10 text-[#4CAF7D] border-[#4CAF7D]/30'
+                         }`}>
                            <Flag className="w-3 h-3"/> {task.priority}
                          </span>
                          {task.status !== 'Pendente' && task.status !== 'Concluída' && (
-                           <span className="text-[11px] font-bold text-amber-600 uppercase bg-amber-50 px-2 py-0.5 rounded">{task.status}</span>
+                           <span className="text-[10px] font-mono text-[#E0BC6A] uppercase bg-[#E0BC6A]/10 border border-[#E0BC6A]/30 px-1.5 py-0.5 rounded">{task.status}</span>
                          )}
                        </div>
                      </div>
@@ -358,8 +362,8 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                </div>
              ) : (
                 <div className="text-center py-12">
-                   <CheckCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                   <p className="text-slate-500 dark:text-slate-400">Nenhuma tarefa pendente.</p>
+                   <CheckCircle className="w-12 h-12 text-[var(--border)] mx-auto mb-3" />
+                   <p className="text-[var(--text-secondary)]">Nenhuma tarefa pendente.</p>
                 </div>
              )}
            </div>
@@ -372,41 +376,41 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingOp ? "Editar Registro" : "Novo Registro"}>
         <form onSubmit={handleSave} className="space-y-4">
           
-          <div className="flex space-x-1 bg-slate-100 dark:bg-white/5 p-1 rounded-lg w-full mb-4">
-             <button type="button" onClick={() => setType('note')} className={`flex-1 py-2 text-sm font-medium rounded-md transition ${type === 'note' ? 'bg-white dark:bg-slate-800 shadow text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}>Anotação</button>
-             <button type="button" onClick={() => setType('task')} className={`flex-1 py-2 text-sm font-medium rounded-md transition ${type === 'task' ? 'bg-white dark:bg-slate-800 shadow text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}>Tarefa</button>
+          <div className="flex space-x-1 bg-[var(--bg-base)] p-1 rounded-md w-full mb-4">
+             <button type="button" onClick={() => setType('note')} className={`flex-1 py-1.5 text-sm font-medium rounded transition-colors ${type === 'note' ? 'bg-[var(--bg-surface)] border border-[var(--border)] shadow-sm text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>Anotação</button>
+             <button type="button" onClick={() => setType('task')} className={`flex-1 py-1.5 text-sm font-medium rounded transition-colors ${type === 'task' ? 'bg-[var(--bg-surface)] border border-[var(--border)] shadow-sm text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>Tarefa</button>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Título</label>
+            <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Título</label>
             <input
               type="text"
               required
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="Ex: Conferir documento da carga 123"
-              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
+            <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Descrição</label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={3}
               placeholder="Detalhes adicionais..."
-              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] resize-none text-sm tracking-tight"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Categoria</label>
+               <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Categoria</label>
                <select
                  value={category}
                  onChange={e => setCategory(e.target.value)}
-                 className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                 className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                >
                  <option value="Operacional">Operacional</option>
                  <option value="Programação">Programação</option>
@@ -418,11 +422,11 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
             {type === 'task' && (
                <>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Prioridade</label>
+                    <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Prioridade</label>
                     <select
                       value={priority}
                       onChange={e => setPriority(e.target.value)}
-                      className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                      className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                     >
                       <option value="Baixa">Baixa</option>
                       <option value="Média">Média</option>
@@ -431,11 +435,11 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
+                    <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Status</label>
                     <select
                       value={status}
                       onChange={e => setStatus(e.target.value)}
-                      className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                      className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                     >
                       <option value="Pendente">Pendente</option>
                       <option value="Em andamento">Em andamento</option>
@@ -449,33 +453,33 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
 
           <div className="grid grid-cols-2 gap-4">
              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{type === 'task' ? 'Prazo (Data)' : 'Data do Evento'}</label>
+                <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">{type === 'task' ? 'Prazo (Data)' : 'Data do Evento'}</label>
                 <input
                   type="date"
                   value={dueDate}
                   onChange={e => setDueDate(e.target.value)}
-                  className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
                 />
              </div>
              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Hora</label>
+                <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Hora</label>
                 <input
                   type="time"
                   value={dueTime}
                   onChange={e => setDueTime(e.target.value)}
-                  className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
                 />
              </div>
           </div>
 
           {/* Vínculos */}
-          <div className="border border-slate-200 dark:border-white/10 rounded-xl p-4 bg-slate-50 dark:bg-white/5 space-y-3">
-             <p className="text-xs font-bold text-slate-500 uppercase">Vincular a (Opcional)</p>
+          <div className="border border-[var(--border)] rounded-xl p-4 bg-[var(--bg-base)] space-y-3">
+             <p className="text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">Vincular a (Opcional)</p>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                  <select
                     value={driverId}
                     onChange={e => setDriverId(e.target.value)}
-                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-md px-3 py-1.5 text-sm text-slate-900 dark:text-white"
+                    className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-3 py-1.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                  >
                     <option value="">Motorista...</option>
                     {drivers.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
@@ -483,7 +487,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                  <select
                     value={vehicleId}
                     onChange={e => setVehicleId(e.target.value)}
-                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-md px-3 py-1.5 text-sm text-slate-900 dark:text-white font-mono"
+                    className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-3 py-1.5 text-sm text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
                  >
                     <option value="">Veículo...</option>
                     {vehicles.map(v => <option key={v.id} value={v.id}>{v.placa}</option>)}
@@ -498,9 +502,9 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                  id="isPinned"
                  checked={isPinned}
                  onChange={e => setIsPinned(e.target.checked)}
-                 className="w-4 h-4 text-blue-600 rounded border-slate-300"
+                 className="w-4 h-4 text-[var(--accent)] bg-[var(--bg-base)] border border-[var(--border)] rounded focus:ring-[var(--accent)] focus:ring-offset-[var(--bg-surface)]"
                />
-               <label htmlFor="isPinned" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+               <label htmlFor="isPinned" className="text-sm font-medium text-[var(--text-primary)]">
                  Fixar anotação
                </label>
             </div>
@@ -510,14 +514,14 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition"
+              className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-base)] rounded-md transition"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isBusy}
-              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium bg-[var(--accent)] text-[#0C0D0F] hover:bg-[var(--accent-hover)] rounded-md transition disabled:opacity-50"
             >
               {isBusy ? 'Salvando...' : 'Salvar'}
             </button>
@@ -543,32 +547,32 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
 // Subcomponent: NoteCard
 function NoteCard({ note, onEdit, onDelete, onTogglePin, viewMode }: { note: OperationLog, onEdit: () => void, onDelete: () => void, onTogglePin: () => void, viewMode?: string }) {
    return (
-      <div className={`bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-5 hover:shadow-md transition group relative ${viewMode === 'list' ? 'flex flex-row items-center gap-4' : 'flex flex-col min-h-[140px]'}`}>
-         <button onClick={onTogglePin} className={`absolute top-4 right-4 p-1.5 transition rounded-full ${note.isPinned ? 'text-blue-500 bg-blue-50 dark:bg-blue-500/10' : 'text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100'}`}>
-            <Pin className="w-4 h-4" />
+      <div className={`bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 hover:border-[var(--border-hover)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all group relative ${viewMode === 'list' ? 'flex flex-row items-center gap-4' : 'flex flex-col min-h-[140px]'}`}>
+         <button onClick={onTogglePin} className={`absolute top-4 right-4 p-1.5 transition rounded-full ${note.isPinned ? 'text-[#D4A843] bg-[var(--accent-tint)]' : 'text-[var(--text-tertiary)] hover:text-[var(--accent)] opacity-0 group-hover:opacity-100'}`}>
+            <Pin className="w-3.5 h-3.5" />
          </button>
          
          <div className="flex-1 pr-8">
-            <h4 className="font-semibold text-slate-900 dark:text-white leading-tight mb-2 line-clamp-2 pr-4">{note.title}</h4>
+            <h4 className="text-base font-semibold text-[var(--text-primary)] tracking-tight mb-2 line-clamp-2 pr-4">{note.title}</h4>
             <div className="flex flex-wrap gap-1.5 mb-2 relative z-10">
                {note.category && (
-                  <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded tracking-wider">
+                  <span className="text-[10px] uppercase font-mono tracking-widest text-[var(--text-secondary)] bg-[var(--bg-base)] border border-[var(--border)] px-1.5 py-0.5 rounded">
                      {note.category}
                   </span>
                )}
             </div>
             {note.description && (
-               <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">{note.description}</p>
+               <p className="text-sm text-[var(--text-secondary)] line-clamp-3 mb-4">{note.description}</p>
             )}
          </div>
 
-         <div className="mt-auto pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
+         <div className="mt-auto pt-3 border-t border-[var(--border)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-               {note.date && <span className="text-xs font-medium text-slate-400 flex items-center gap-1"><Calendar className="w-3 h-3"/> {note.date}</span>}
+               {note.date && <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1"><Calendar className="w-3 h-3"/> {note.date}</span>}
             </div>
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
-               <button onClick={onEdit} className="p-1.5 text-slate-400 hover:text-blue-600 transition"><Edit2 className="w-3.5 h-3.5"/></button>
-               <button onClick={onDelete} className="p-1.5 text-slate-400 hover:text-red-600 transition"><Trash2 className="w-3.5 h-3.5"/></button>
+            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+               <button onClick={onEdit} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"><Edit2 className="w-[14px] h-[14px]"/></button>
+               <button onClick={onDelete} className="text-[var(--text-tertiary)] hover:text-[#E05252] transition"><Trash2 className="w-[14px] h-[14px]"/></button>
             </div>
          </div>
       </div>

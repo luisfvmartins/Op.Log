@@ -301,16 +301,16 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
             ))}
           </div>
         ) : (
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm">
+          <div className="bg-[var(--bg-base)] border border-[var(--border)] rounded-xl overflow-hidden shadow-sm">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-slate-50 dark:bg-[#09090B]/50 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs">
+              <thead className="bg-transparent border-b border-[var(--border)] text-[var(--text-tertiary)] font-mono tracking-widest text-[10px] uppercase">
                 <tr>
                   <th className="px-4 py-3 w-10">
                     <button
                       onClick={handleSelectAllToggle}
                       className="cursor-pointer flex items-center justify-center w-full h-full"
                     >
-                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 dark:border-white/20 hover:border-blue-500'}`}>
+                      <div className={`w-4 h-4 rounded flex items-center justify-center transition-colors border ${selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 ? 'bg-[var(--accent)] border-[var(--accent)] text-[#0C0D0F]' : 'border-[var(--border)] hover:border-[var(--border-hover)]'}`}>
                         {selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 && <Check className="w-3 h-3" />}
                       </div>
                     </button>
@@ -321,7 +321,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
                   <th className="px-5 py-3 pr-6 w-32 text-right">AÇÕES</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+              <tbody className="divide-none">
                 {filteredPlaces.map(place => (
                   <PlaceRow
                     key={place.id}
@@ -343,30 +343,30 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
       {/* CONTEXTUAL ACTION BAR */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-blue-600 px-6 py-3 rounded-full flex items-center gap-6 shadow-2xl shadow-blue-600/40 animate-in slide-in-from-bottom-5">
-          <div className="flex items-center gap-2 pr-6 border-r border-blue-400">
-            <span className="w-6 h-6 bg-white text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-[var(--accent)] px-6 py-3 rounded-xl flex items-center gap-6 shadow-[0_4px_24px_rgba(212,168,67,0.3)] animate-in slide-in-from-bottom-5">
+          <div className="flex items-center gap-2 pr-6 border-r border-[#0C0D0F]/10">
+            <span className="w-6 h-6 bg-[#0C0D0F]/10 text-[#0C0D0F] rounded-md flex items-center justify-center text-xs font-mono font-bold">
               {selectedIds.size}
             </span>
-            <span className="text-sm font-medium text-white hidden sm:inline">Selecionados</span>
+            <span className="text-sm font-medium text-[#0C0D0F] hidden sm:inline">Selecionados</span>
           </div>
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsRouteModalOpen(true)}
-              className="text-sm font-bold text-white flex items-center gap-2 hover:opacity-80 transition-opacity"
+              className="text-sm font-semibold text-[#0C0D0F] flex items-center gap-2 hover:bg-[#0C0D0F]/10 px-3 py-1.5 rounded-md transition-colors border border-transparent"
             >
               Criar Roteiro
             </button>
             <button
               onClick={() => setDeleteAllConfirmStep(1)}
-              className="p-1.5 text-blue-200 hover:text-white hover:bg-white/10 rounded-lg transition-colors ml-2"
+              className="p-1.5 text-[#0C0D0F]/70 hover:text-[#0C0D0F] hover:bg-[#0C0D0F]/10 rounded-md transition-colors ml-2"
               title="Excluir selecionados"
             >
               <Trash2 className="w-4 h-4" />
             </button>
             <button
               onClick={clearSelection}
-              className="text-sm font-medium text-blue-200 hover:text-white transition-colors ml-2"
+              className="text-sm font-medium text-[#0C0D0F]/70 hover:text-[#0C0D0F] transition-colors ml-2"
             >
               Limpar
             </button>
@@ -450,38 +450,38 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
 function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity }: any) {
   return (
-    <div className={`relative p-5 rounded-2xl border flex flex-col gap-3 h-[300px] group transition-all duration-300 cursor-pointer ${isSelected ? 'border-blue-500/70 bg-blue-50/50 dark:bg-blue-500/10 shadow-[0_0_0_1px_rgba(59,130,246,0.4)]' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-md'}`} onClick={onSelect}>
+    <div className={`relative p-5 rounded-xl flex flex-col gap-3 min-h-[220px] group transition-all duration-150 cursor-pointer border ${isSelected ? 'border-[var(--accent-border)] bg-[var(--accent-tint)]' : 'border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--border-hover)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]'}`} onClick={onSelect}>
       
       {/* Checkbox */}
-      <div className="absolute top-4 right-4 z-10 transition-transform group-hover:scale-105">
-        <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600 border border-blue-600 shadow-sm' : 'bg-white dark:bg-black/40 border-2 border-slate-300 dark:border-white/20 group-hover:border-slate-400 dark:group-hover:border-white/40'}`}>
+      <div className={`absolute top-4 right-4 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+        <div className={`w-4 h-4 rounded-sm flex items-center justify-center transition-colors border ${isSelected ? 'bg-[var(--accent)] border-[var(--accent)] text-[#0C0D0F]' : 'bg-[var(--bg-surface)] border-[var(--border)]'}`}>
           {isSelected && (
-            <svg className="w-3.5 h-3.5 text-white stroke-[3] drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <svg className="w-3 h-3 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
           )}
         </div>
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="pr-8 shrink-0">
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate block mb-1">{place.nomeRazaoSocial}</span>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--text-tertiary)] truncate block mb-1">{place.nomeRazaoSocial}</span>
           <div className="flex items-center gap-2">
-            <h3 className="text-slate-900 dark:text-white font-semibold text-lg tracking-tight truncate">{place.nomeFantasia}</h3>
+            <h3 className="text-base font-semibold text-[var(--text-primary)] tracking-tight truncate">{place.nomeFantasia}</h3>
             {place.linkGoogleMaps && (
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
                   window.open(ensureAbsoluteUrl(place.linkGoogleMaps), '_blank', 'noopener,noreferrer');
                 }}
-                className="text-slate-300 hover:text-blue-500 transition-colors shrink-0" title="Abrir no Mapa"
+                className="text-[var(--text-tertiary)] hover:text-[var(--accent)] transition-colors shrink-0" title="Abrir no Mapa"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
           
-          <div className="flex flex-col gap-1 mt-2 mb-1">
-            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs font-medium">
-              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <div className="flex flex-col gap-1 mt-1 mb-1">
+            <div className="flex items-center gap-1.5 text-[var(--text-secondary)] font-mono text-xs">
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">{renderCity(place.cidade)}</span>
             </div>
           </div>
@@ -490,63 +490,63 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
         <div className="flex-1 overflow-y-auto pr-1 -mr-1 space-y-3 mt-2 pb-2 
           [&::-webkit-scrollbar]:w-1 
           [&::-webkit-scrollbar-track]:bg-transparent 
-          [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 
+          [&::-webkit-scrollbar-thumb]:bg-[var(--border)]
           [&::-webkit-scrollbar-thumb]:rounded-full"
         >
           {Array.isArray(place.tags) && place.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-1">
               {place.tags.map((tag: string) => (
-                 <span key={tag} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 text-[10px] font-medium rounded-md border border-slate-200/50 dark:border-white/5 shadow-sm">{tag}</span>
+                 <span key={tag} className="px-1.5 py-0.5 bg-[var(--bg-base)] text-[var(--text-tertiary)] text-[10px] font-mono rounded border border-[var(--border)] shadow-sm">{tag}</span>
               ))}
             </div>
           )}
           
           {place.observacoes && place.observacoes.length > 0 && (
-            <div className="flex flex-col gap-1.5 mt-2">
+            <div className="flex flex-col gap-2 mt-3">
               {place.observacoes.map((obs: any, i: number) => (
-                <div key={i} className="py-2 px-3 bg-amber-50/80 dark:bg-amber-500/10 rounded-lg border border-amber-200/60 dark:border-amber-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] dark:shadow-none shrink-0">
-                  <span className="text-[10px] text-amber-700/90 dark:text-amber-500 uppercase tracking-wide font-bold mr-1.5 block mb-0.5">{obs.categoria}</span>
-                  <span className="text-[11px] text-amber-900/90 dark:text-amber-200 leading-snug inline-block">{obs.texto}</span>
+                <div key={i} className="border-l-2 border-[var(--accent)] pl-2 shrink-0">
+                  <span className="text-[10px] text-[var(--accent)] uppercase tracking-widest font-mono block mb-0.5">{obs.categoria}</span>
+                  <span className="text-xs text-[var(--text-secondary)] leading-snug inline-block">{obs.texto}</span>
                 </div>
               ))}
             </div>
           )}
 
           {place.observacao && (!place.observacoes || place.observacoes.length === 0) && (
-            <div className="py-2 px-3 mt-2 bg-amber-50/80 dark:bg-amber-500/10 rounded-lg border border-amber-200/60 dark:border-amber-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] dark:shadow-none shrink-0">
-              <span className="text-[10px] text-amber-700/90 dark:text-amber-500 uppercase tracking-wide font-bold mr-1.5 block mb-0.5">Observação</span>
-              <span className="text-[11px] text-amber-900/90 dark:text-amber-200 leading-snug">{place.observacao}</span>
+            <div className="mt-3 border-l-2 border-[var(--accent)] pl-2 shrink-0">
+              <span className="text-[10px] text-[var(--accent)] uppercase tracking-widest font-mono block mb-0.5">Observação</span>
+              <span className="text-xs text-[var(--text-secondary)] leading-snug">{place.observacao}</span>
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100 dark:border-white/5 shrink-0" onClick={e => e.stopPropagation()}>
-        <button onClick={onCopy} className="text-xs font-medium text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5 group-hover:text-blue-500 dark:group-hover:text-blue-400 bg-slate-50 dark:bg-white/5 py-1.5 px-2.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-500/10">
+      <div className="flex items-center justify-between mt-auto pt-4 border-t border-[var(--border)] shrink-0" onClick={e => e.stopPropagation()}>
+        <button onClick={onCopy} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:underline transition-colors flex items-center gap-1.5 py-1.5">
           <Copy className="w-3.5 h-3.5" />
           Copiar Info
         </button>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 text-[var(--text-tertiary)]">
           {place.linkGoogleMaps && (
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 window.open(ensureAbsoluteUrl(place.linkGoogleMaps), '_blank', 'noopener,noreferrer');
               }}
-              className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-md transition-all" 
+              className="p-1.5 hover:text-[var(--accent)] rounded-md transition-colors" 
               title="Abrir no Mapa"
             >
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-3.5 h-3.5" />
             </button>
           )}
-          <button onClick={onShare} className="p-1.5 text-slate-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-md transition-all" title="WhatsApp">
-            <Share2 className="w-4 h-4" />
+          <button onClick={onShare} className="p-1.5 hover:text-[#4CAF7D] rounded-md transition-colors" title="WhatsApp">
+            <Share2 className="w-3.5 h-3.5" />
           </button>
-          <button onClick={onEdit} className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-md transition-all" title="Editar">
-            <Edit2 className="w-4 h-4" />
+          <button onClick={onEdit} className="p-1.5 hover:text-[var(--text-primary)] rounded-md transition-colors" title="Editar">
+            <Edit2 className="w-3.5 h-3.5" />
           </button>
-          <button onClick={onDelete} className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-all" title="Excluir">
-            <Trash2 className="w-4 h-4" />
+          <button onClick={onDelete} className="p-1.5 hover:text-[#E05252] rounded-md transition-colors" title="Excluir">
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

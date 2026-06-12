@@ -210,11 +210,11 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
   });
 
   const getStatusColor = (s: string) => {
-    if (s === 'Disponível') return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
-    if (s === 'Programado') return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800';
-    if (s === 'Manutenção') return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800';
-    if (s === 'Inativo') return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800';
-    return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+    if (s === 'Disponível') return 'bg-[#4CAF7D]/10 text-[#4CAF7D] border-[#4CAF7D]/30';
+    if (s === 'Programado') return 'bg-[var(--accent-tint)] text-[var(--accent)] border-[var(--accent-border)]';
+    if (s === 'Manutenção') return 'bg-[#E0BC6A]/10 text-[#E0BC6A] border-[#E0BC6A]/30';
+    if (s === 'Inativo') return 'bg-[#E05252]/10 text-[#E05252] border-[#E05252]/30';
+    return 'bg-[var(--bg-base)] text-[var(--text-secondary)] border-[var(--border)]';
   };
 
   const handleExport = () => {
@@ -303,7 +303,7 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] pb-24">
+    <div className="min-h-screen bg-[var(--bg-base)] pb-24">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       {/* HEADER */}
@@ -341,35 +341,35 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
       <main className="p-6 max-w-[1600px] mx-auto pb-32">
         {/* Dashboard Indicators */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          <button onClick={() => setDashboardFilter(dashboardFilter === 'total' ? null : 'total')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'total' ? 'bg-slate-100 dark:bg-white/10 border-slate-300 dark:border-white/20' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'}`}>
-             <p className="text-xs text-slate-500 font-medium uppercase">Total</p>
-             <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'total' ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-white'}`}>{vehicles.length}</p>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'total' ? null : 'total')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'total' ? 'bg-[var(--accent-tint)] border-[var(--accent-border)]' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--border-hover)]'}`}>
+             <p className="text-[10px] font-mono text-[var(--text-tertiary)] uppercase tracking-widest">Total</p>
+             <p className={`text-2xl font-semibold mt-1 font-mono ${dashboardFilter === 'total' ? 'text-[var(--text-primary)]' : 'text-[var(--text-primary)]'}`}>{vehicles.length}</p>
           </button>
-          <button onClick={() => setDashboardFilter(dashboardFilter === 'disp' ? null : 'disp')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'disp' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-emerald-200'}`}>
-             <p className="text-xs text-slate-500 font-medium uppercase">Disponíveis</p>
-             <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'disp' ? 'text-emerald-700 dark:text-emerald-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{vehicles.filter(v => v.status === 'Disponível').length}</p>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'disp' ? null : 'disp')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'disp' ? 'bg-[#4CAF7D]/10 border-[#4CAF7D]/30' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[#4CAF7D]/30'}`}>
+             <p className="text-[10px] font-mono text-[var(--text-tertiary)] uppercase tracking-widest">Disponíveis</p>
+             <p className={`text-2xl font-semibold mt-1 font-mono ${dashboardFilter === 'disp' ? 'text-[#4CAF7D]' : 'text-[#4CAF7D]'}`}>{vehicles.filter(v => v.status === 'Disponível').length}</p>
           </button>
-          <button onClick={() => setDashboardFilter(dashboardFilter === 'prog' ? null : 'prog')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'prog' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-blue-200'}`}>
-             <p className="text-xs text-slate-500 font-medium uppercase">Programados</p>
-             <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'prog' ? 'text-blue-700 dark:text-blue-400' : 'text-blue-600 dark:text-blue-400'}`}>{vehicles.filter(v => v.status === 'Programado').length}</p>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'prog' ? null : 'prog')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'prog' ? 'bg-[var(--accent-tint)] border-[var(--accent-border)]' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--accent-border)]'}`}>
+             <p className="text-[10px] font-mono text-[var(--text-tertiary)] uppercase tracking-widest">Programados</p>
+             <p className={`text-2xl font-semibold mt-1 font-mono ${dashboardFilter === 'prog' ? 'text-[var(--accent)]' : 'text-[var(--accent)]'}`}>{vehicles.filter(v => v.status === 'Programado').length}</p>
           </button>
-          <button onClick={() => setDashboardFilter(dashboardFilter === 'manut' ? null : 'manut')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'manut' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-amber-200'}`}>
-             <p className="text-xs text-slate-500 font-medium uppercase">Manutenção</p>
-             <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'manut' ? 'text-amber-700 dark:text-amber-400' : 'text-amber-600 dark:text-amber-400'}`}>{vehicles.filter(v => v.status === 'Manutenção').length}</p>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'manut' ? null : 'manut')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'manut' ? 'bg-[#E0BC6A]/10 border-[#E0BC6A]/30' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[#E0BC6A]/30'}`}>
+             <p className="text-[10px] font-mono text-[var(--text-tertiary)] uppercase tracking-widest">Manutenção</p>
+             <p className={`text-2xl font-semibold mt-1 font-mono ${dashboardFilter === 'manut' ? 'text-[#E0BC6A]' : 'text-[#E0BC6A]'}`}>{vehicles.filter(v => v.status === 'Manutenção').length}</p>
           </button>
-          <button onClick={() => setDashboardFilter(dashboardFilter === 'inativo' ? null : 'inativo')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'inativo' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-red-200'}`}>
-             <p className="text-xs text-slate-500 font-medium uppercase">Inativos</p>
-             <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'inativo' ? 'text-red-700 dark:text-red-400' : 'text-red-600 dark:text-red-400'}`}>{vehicles.filter(v => v.status === 'Inativo').length}</p>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'inativo' ? null : 'inativo')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'inativo' ? 'bg-[#E05252]/10 border-[#E05252]/30' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[#E05252]/30'}`}>
+             <p className="text-[10px] font-mono text-[var(--text-tertiary)] uppercase tracking-widest">Inativos</p>
+             <p className={`text-2xl font-semibold mt-1 font-mono ${dashboardFilter === 'inativo' ? 'text-[#E05252]' : 'text-[#E05252]'}`}>{vehicles.filter(v => v.status === 'Inativo').length}</p>
           </button>
         </div>
 
         {/* List / Cards */}
         {loading ? (
-          <div className="flex justify-center p-12"><div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full" /></div>
+          <div className="flex justify-center p-12"><div className="animate-spin w-8 h-8 flex border-2 border-[var(--accent)] border-t-transparent rounded-full" /></div>
         ) : filteredVehicles.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
-             <Truck className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-             <p className="text-slate-500 dark:text-slate-400">Nenhum veículo encontrado.</p>
+          <div className="text-center py-12 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl">
+             <Truck className="w-12 h-12 text-[var(--border)] mx-auto mb-3" />
+             <p className="text-[var(--text-secondary)]">Nenhum veículo encontrado.</p>
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -377,126 +377,118 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
               const vincDrivers = drivers.filter(d => d.veiculoPadraoId === v.id);
               return (
               <div key={v.id} 
-                className={`bg-white dark:bg-white/5 border rounded-xl p-5 hover:border-blue-500 dark:hover:border-blue-500/50 transition flex flex-col relative group cursor-pointer ${
-                  selectedIds.has(v.id!) ? 'border-blue-500 ring-1 ring-blue-500 dark:border-blue-500/50' : 'border-slate-200 dark:border-white/10'
+                className={`bg-[var(--bg-surface)] border rounded-xl overflow-hidden flex flex-col group cursor-pointer transition-all min-h-[200px] ${
+                  selectedIds.has(v.id!) ? 'border-[var(--accent-border)] bg-[var(--accent-tint)]' : 'border-[var(--border)] hover:border-[var(--border-hover)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]'
                 }`}
                 onClick={() => toggleSelection(v.id!)}
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-3">
-                    <button 
-                      onClick={(e) => toggleSelection(v.id!, e)} 
-                      className={`text-slate-300 hover:text-blue-500 transition ${selectedIds.has(v.id!) ? 'text-blue-600 dark:text-blue-400' : 'opacity-0 group-hover:opacity-100'}`}
-                    >
-                      <CheckSquare className="w-5 h-5" />
-                    </button>
-                    <div className="w-10 h-10 rounded bg-slate-100 dark:bg-white/5 flex items-center justify-center border border-slate-200 dark:border-white/10">
-                       <Truck className="w-5 h-5 text-slate-500" />
-                    </div>
+                <div className="p-5 flex-1 flex flex-col relative">
+                  <div className="absolute top-4 right-4 z-10 flex gap-2">
+                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono border ${getStatusColor(v.status)}`}>
+                       {v.status}
+                     </span>
+                     <button 
+                       onClick={(e) => toggleSelection(v.id!, e)} 
+                       className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedIds.has(v.id!) ? 'bg-[var(--accent)] border-[var(--accent)] text-[#0C0D0F]' : 'border-[var(--border)] opacity-0 group-hover:opacity-100'}`}
+                     >
+                        {selectedIds.has(v.id!) && <CheckSquare className="w-3.5 h-3.5" />}
+                     </button>
+                  </div>
+                  <div className="flex items-start gap-3 mb-2 pr-16">
                     <div>
-                      <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight font-mono">{v.placa}</h3>
-                      <p className="text-sm text-slate-500">{v.tipo}</p>
+                      <h3 className="font-semibold text-base text-[var(--text-primary)] font-mono tracking-widest">{v.placa}</h3>
+                      <p className="text-xs font-mono text-[var(--text-secondary)] uppercase">{v.tipo}</p>
                     </div>
                   </div>
-                  <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider rounded border ${getStatusColor(v.status)}`}>
-                    {v.status}
-                  </span>
+
+                  {vincDrivers.length > 0 && (
+                    <div className="mt-3 text-xs text-[var(--text-secondary)] border-l-2 border-[var(--accent)] pl-3 py-1">
+                      <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-tertiary)] block mb-0.5">Motorista(s) Vinculado(s):</span>
+                      <span className="truncate block font-medium" title={vincDrivers.map(d => d.nome).join(', ')}>
+                        {vincDrivers.map(d => d.nome).join(', ')}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {vincDrivers.length > 0 && (
-                  <div className="mt-2 text-sm text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-white/10 pt-3">
-                    <span className="font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider text-[10px] block mb-1">Motorista(s) Vinculado(s):</span>
-                    <span className="truncate block" title={vincDrivers.map(d => d.nome).join(', ')}>
-                      {vincDrivers.map(d => d.nome).join(', ')}
-                    </span>
-                  </div>
-                )}
-
-                <div className={`${vincDrivers.length > 0 ? 'mt-4 pt-4' : 'mt-auto pt-4'} flex items-center justify-between border-t border-slate-100 dark:border-white/10`}>
+                <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-base)] flex items-center justify-between">
+                  <button className="text-xs font-medium text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:underline">
+                     Programações
+                  </button>
                   <div className="flex gap-2">
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleOpenModal(v); }} 
-                      className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                      className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"
                       title="Editar"
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Edit2 className="w-[14px] h-[14px]" />
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); setDeletingId(v.id!); }} 
-                      className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition"
+                      className="text-[var(--text-tertiary)] hover:text-[#E05252] transition"
                       title="Excluir"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-[14px] h-[14px]" />
                     </button>
                   </div>
-                   <button className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">
-                      Programações
-                   </button>
                 </div>
               </div>
             );
             })}
           </div>
         ) : (
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl overflow-hidden">
              <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm whitespace-nowrap border-collapse">
-                   <thead className="bg-slate-50 dark:bg-[#09090B]/50 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs">
+                   <thead className="bg-transparent border-b border-[var(--border)]">
                       <tr>
-                         <th className="px-4 py-3 w-12 text-center">
-                            <button onClick={toggleSelectAll} className="text-slate-400 hover:text-blue-500 transition">
-                               <CheckSquare className={`w-5 h-5 ${selectedIds.size === filteredVehicles.length && filteredVehicles.length > 0 ? 'text-blue-600 dark:text-blue-400' : ''}`} />
+                         <th className="px-4 py-3 w-12 text-center text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">
+                            <button onClick={toggleSelectAll} className={`w-4 h-4 rounded border flex items-center justify-center transition-colors mx-auto ${selectedIds.size === filteredVehicles.length && filteredVehicles.length > 0 ? 'bg-[var(--accent)] border-[var(--accent)] text-[#0C0D0F]' : 'border-[var(--border)]'}`}>
+                               {selectedIds.size === filteredVehicles.length && filteredVehicles.length > 0 && <CheckSquare className="w-3 h-3" />}
                             </button>
                          </th>
-                         <th className="px-4 py-3 text-left"></th>
-                         <th className="px-4 py-3 text-left">PLACA</th>
-                         <th className="px-4 py-3 text-left">TIPO</th>
-                         <th className="px-4 py-3 text-left">MOTORISTA(S)</th>
-                         <th className="px-4 py-3 text-left">STATUS</th>
-                         <th className="px-5 py-3 pr-6 w-32 text-right">AÇÕES</th>
+                         <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">PLACA</th>
+                         <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">TIPO</th>
+                         <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">MOTORISTA(S)</th>
+                         <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">STATUS</th>
+                         <th className="px-5 py-3 pr-6 w-32 text-right text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">AÇÕES</th>
                       </tr>
                    </thead>
-                   <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                   <tbody className="divide-y divide-[var(--border)]">
                       {filteredVehicles.map(v => {
                          const vincDrivers = drivers.filter(d => d.veiculoPadraoId === v.id);
                          return (
-                         <tr key={v.id} className={`hover:bg-slate-50 dark:hover:bg-white/5 transition cursor-pointer ${selectedIds.has(v.id!) ? 'bg-blue-50/50 dark:bg-blue-500/10' : ''}`} onClick={() => toggleSelection(v.id!)}>
-                            <td className="px-4 py-3 text-center">
-                               <button onClick={(e) => toggleSelection(v.id!, e)} className={`text-slate-300 hover:text-blue-500 transition ${selectedIds.has(v.id!) ? 'text-blue-600 dark:text-blue-400' : ''}`}>
-                                  <CheckSquare className="w-5 h-5" />
+                         <tr key={v.id} className={`hover:bg-[var(--bg-surface)] transition cursor-pointer ${selectedIds.has(v.id!) ? 'bg-[var(--accent-tint)]' : ''}`} onClick={() => toggleSelection(v.id!)}>
+                            <td className="px-4 py-3 text-center border-b border-[var(--border)]">
+                               <button onClick={(e) => toggleSelection(v.id!, e)} className={`w-4 h-4 rounded border flex items-center justify-center mx-auto transition-colors ${selectedIds.has(v.id!) ? 'bg-[var(--accent)] border-[var(--accent)] text-[#0C0D0F]' : 'border-[var(--border)]'}`}>
+                                  {selectedIds.has(v.id!) && <CheckSquare className="w-3 h-3" />}
                                </button>
                             </td>
-                            <td className="px-4 py-3 w-14">
-                              <div className="w-8 h-8 rounded bg-slate-100 dark:bg-white/5 flex items-center justify-center border border-slate-200 dark:border-white/10">
-                                <Truck className="w-4 h-4 text-slate-500" />
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 font-bold text-slate-900 dark:text-white font-mono">{v.placa}</td>
-                            <td className="px-4 py-3 text-slate-500 text-sm">{v.tipo}</td>
-                            <td className="px-4 py-3 text-slate-500 text-sm max-w-[200px] truncate" title={vincDrivers.map(d => d.nome).join(', ')}>
+                            <td className="px-4 py-3 font-semibold text-[var(--text-primary)] font-mono border-b border-[var(--border)] text-sm tracking-widest">{v.placa}</td>
+                            <td className="px-4 py-3 text-[var(--text-secondary)] font-mono border-b border-[var(--border)] text-sm uppercase">{v.tipo}</td>
+                            <td className="px-4 py-3 text-[var(--text-secondary)] text-sm max-w-[200px] truncate border-b border-[var(--border)]" title={vincDrivers.map(d => d.nome).join(', ')}>
                                {vincDrivers.length > 0 ? vincDrivers.map(d => d.nome).join(', ') : '-'}
                             </td>
-                            <td className="px-4 py-3">
-                               <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider rounded border ${getStatusColor(v.status)}`}>{v.status}</span>
+                            <td className="px-4 py-3 border-b border-[var(--border)]">
+                               <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono border ${getStatusColor(v.status)}`}>{v.status}</span>
                             </td>
-                            <td className="px-5 py-3 pr-6 text-right">
-       <div className="flex items-center justify-end gap-1">
-         <button 
-                                 onClick={(e) => { e.stopPropagation(); handleOpenModal(v); }}
-                                 className="p-1.5 text-slate-400 hover:text-blue-600 transition"
-                               >
-                                 <Edit2 className="w-4 h-4"/>
-                               </button>
-                               <button 
-                                 onClick={(e) => { e.stopPropagation(); setDeletingId(v.id!); }}
-                                 className="p-1.5 text-slate-400 hover:text-red-600 transition"
-                               >
-                                 <Trash2 className="w-4 h-4"/>
-                               </button>
-                            
-       </div>
-     </td>
-                         </tr>
+                            <td className="px-5 py-3 pr-6 text-right border-b border-[var(--border)]">
+                               <div className="flex items-center justify-end gap-3">
+                                 <button 
+                                   onClick={(e) => { e.stopPropagation(); handleOpenModal(v); }}
+                                   className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"
+                                 >
+                                   <Edit2 className="w-[14px] h-[14px]"/>
+                                 </button>
+                                 <button 
+                                   onClick={(e) => { e.stopPropagation(); setDeletingId(v.id!); }}
+                                   className="text-[var(--text-tertiary)] hover:text-[#E05252] transition"
+                                 >
+                                   <Trash2 className="w-[14px] h-[14px]"/>
+                                 </button>
+                               </div>
+                             </td>
+                          </tr>
                          );
                       })}
                    </tbody>
@@ -509,7 +501,7 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingVehicle ? "Editar Veículo" : "Novo Veículo"}>
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Placa do Cavalo</label>
+            <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Placa do Cavalo</label>
             <input
               type="text"
               required
@@ -517,16 +509,16 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
               onChange={handlePlacaChange}
               maxLength={7}
               placeholder="ABC1D23"
-              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white font-mono uppercase tracking-widest"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] font-mono uppercase tracking-widest"
             />
-             {placa.length > 0 && !isPlateValid(placa) && <span className="text-xs text-red-500 mt-1 block">Placa inválida</span>}
+             {placa.length > 0 && !isPlateValid(placa) && <span className="text-xs text-[#E05252] mt-1 block">Placa inválida</span>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo de Cavalo</label>
+            <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Tipo de Cavalo</label>
             <select
               value={tipo}
               onChange={e => setTipo(e.target.value)}
-              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
             >
               <option value="Simples">Simples</option>
               <option value="Trucado">Trucado</option>
@@ -535,11 +527,11 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
+            <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Status</label>
             <select
               value={status}
               onChange={e => setStatus(e.target.value)}
-              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
             >
               <option value="Disponível">Disponível</option>
               <option value="Programado">Programado</option>
@@ -552,14 +544,14 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition"
+              className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-base)] rounded-md transition"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isBusy}
-              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium bg-[var(--accent)] text-[#0C0D0F] hover:bg-[var(--accent-hover)] rounded-md transition disabled:opacity-50"
             >
               {isBusy ? 'Salvando...' : 'Salvar'}
             </button>
@@ -589,24 +581,24 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
 
       {/* CONTEXTUAL ACTION BAR */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-slate-900 dark:bg-white px-6 py-3 rounded-full flex items-center gap-6 shadow-2xl animate-in slide-in-from-bottom-5">
-          <div className="flex items-center gap-2 pr-6 border-r border-slate-700 dark:border-slate-300">
-            <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-[var(--accent)] px-6 py-3 rounded-xl flex items-center gap-6 shadow-[0_4px_24px_rgba(212,168,67,0.3)] animate-in slide-in-from-bottom-5">
+          <div className="flex items-center gap-2 pr-6 border-r border-[#0C0D0F]/10">
+            <span className="w-6 h-6 bg-[#0C0D0F]/10 text-[#0C0D0F] rounded-md flex items-center justify-center text-xs font-mono font-bold">
               {selectedIds.size}
             </span>
-            <span className="text-sm font-medium text-white dark:text-slate-900 hidden sm:inline">Selecionados</span>
+            <span className="text-sm font-medium text-[#0C0D0F] hidden sm:inline">Selecionados</span>
           </div>
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsDeleteSelectedModalOpen(true)}
-              className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors ml-2"
+              className="p-1.5 text-[#0C0D0F]/70 hover:text-[#0C0D0F] hover:bg-[#0C0D0F]/10 rounded-md transition-colors ml-2"
               title="Excluir selecionados"
             >
               <Trash2 className="w-4 h-4" />
             </button>
             <button
               onClick={() => setSelectedIds(new Set())}
-              className="text-sm font-medium text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-slate-900 transition-colors ml-2"
+              className="text-sm font-medium text-[#0C0D0F]/70 hover:text-[#0C0D0F] transition-colors ml-2"
             >
               Limpar
             </button>

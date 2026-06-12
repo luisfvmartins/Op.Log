@@ -27,11 +27,11 @@ export function Login({ theme, toggleTheme }: { theme?: 'light' | 'dark', toggle
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] text-slate-800 dark:text-slate-200 flex items-center justify-center p-4 selection:bg-blue-500/30 relative">
+    <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center p-4 relative">
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <button
           onClick={() => setIsAboutModalOpen(true)}
-          className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors"
+          className="p-2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] rounded-md transition-colors"
           title="Sobre"
         >
           <Info className="w-5 h-5" />
@@ -39,7 +39,7 @@ export function Login({ theme, toggleTheme }: { theme?: 'light' | 'dark', toggle
         {toggleTheme && theme && (
           <button
             onClick={toggleTheme}
-            className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors"
+            className="p-2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] rounded-md transition-colors"
             title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
           >
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -47,17 +47,12 @@ export function Login({ theme, toggleTheme }: { theme?: 'light' | 'dark', toggle
         )}
       </div>
 
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl w-full max-w-sm p-8 flex flex-col items-center">
-        <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white mb-6 shadow-lg shadow-blue-500/20">
-          <LogIn className="w-6 h-6" />
-        </div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 text-center">Locais e Roteiros</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">
-          Acesse para gerenciar seus locais de parada e organizar seus roteiros.
-        </p>
+      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] w-full max-w-[360px] p-8 flex flex-col items-center">
+        <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)] mb-1">Op.Log</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1 mb-6">Locais e Roteiros</p>
 
         {error && (
-          <div className="w-full bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 p-3 rounded-lg flex items-start gap-2 mb-6 text-sm">
+          <div className="w-full bg-[#E05252]/10 border border-[#E05252]/20 text-[#E05252] p-3 rounded-md flex items-start gap-2 mb-6 text-sm">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
@@ -66,7 +61,7 @@ export function Login({ theme, toggleTheme }: { theme?: 'light' | 'dark', toggle
         <button
           onClick={handleLogin}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/20 transition-all px-4 py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-3 bg-transparent border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-base)] transition-colors px-4 py-3 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
@@ -99,14 +94,14 @@ export function Login({ theme, toggleTheme }: { theme?: 'light' | 'dark', toggle
         onClose={() => setIsAboutModalOpen(false)}
         title="Sobre"
       >
-        <div className="p-2 sm:p-4 text-slate-600 dark:text-slate-300">
-          <p className="text-sm sm:text-base leading-relaxed mb-6">
-            O <strong>Locais e Roteiros</strong> é um aplicativo desenhado para gerenciar de forma simples e eficiente seus locais de parada e organizar seus roteiros de viagens.
+        <div className="p-2 sm:p-4 text-[var(--text-secondary)]">
+          <p className="text-sm leading-relaxed mb-6">
+            O <strong>Op.Log</strong> é um aplicativo desenhado para gerenciar de forma simples e eficiente suas operações logísticas e viagens.
           </p>
           
-          <div className="bg-slate-100 dark:bg-black/40 p-5 rounded-xl border border-slate-200 dark:border-white/10">
-            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Criador</h4>
-            <p className="text-base text-slate-900 dark:text-white font-medium mb-4">
+          <div className="bg-[var(--bg-base)] p-5 rounded-xl border border-[var(--border)]">
+            <h4 className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-2 font-mono">Criador</h4>
+            <p className="text-base text-[var(--text-primary)] font-medium mb-4">
               Desenvolvido por Luis Martins
             </p>
             
@@ -115,9 +110,9 @@ export function Login({ theme, toggleTheme }: { theme?: 'light' | 'dark', toggle
                 href="https://instagram.com/luisfvmartins" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
+                className="flex items-center gap-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors group"
               >
-                <div className="p-2 bg-white dark:bg-white/5 shadow-sm rounded-md border border-slate-200 dark:border-white/10 group-hover:border-blue-200 dark:group-hover:border-blue-500/30">
+                <div className="p-2 bg-[var(--bg-surface)] shadow-[0_2px_8px_rgba(0,0,0,0.05)] rounded-md border border-[var(--border)] group-hover:border-[var(--border-hover)]">
                   <Instagram className="w-4 h-4" />
                 </div>
                 <span className="text-sm font-medium">@luisfvmartins</span>
@@ -126,9 +121,9 @@ export function Login({ theme, toggleTheme }: { theme?: 'light' | 'dark', toggle
                 href="https://linkedin.com/in/luisfvmartins" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
+                className="flex items-center gap-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors group"
               >
-                <div className="p-2 bg-white dark:bg-white/5 shadow-sm rounded-md border border-slate-200 dark:border-white/10 group-hover:border-blue-200 dark:group-hover:border-blue-500/30">
+                <div className="p-2 bg-[var(--bg-surface)] shadow-[0_2px_8px_rgba(0,0,0,0.05)] rounded-md border border-[var(--border)] group-hover:border-[var(--border-hover)]">
                   <Linkedin className="w-4 h-4" />
                 </div>
                 <span className="text-sm font-medium">/in/luisfvmartins</span>
@@ -139,7 +134,7 @@ export function Login({ theme, toggleTheme }: { theme?: 'light' | 'dark', toggle
           <div className="mt-8 flex justify-end">
             <button
               onClick={() => setIsAboutModalOpen(false)}
-              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white rounded-lg text-sm font-medium transition-colors"
+              className="px-5 py-2.5 bg-transparent hover:bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text-primary)] rounded-md text-sm font-medium transition-colors"
             >
               Fechar
             </button>
