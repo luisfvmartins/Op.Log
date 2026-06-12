@@ -426,7 +426,21 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     return rpt;
   };
 
-  const itemsToDisplay = filteredItems();
+  const itemsToDisplay = filteredItems().sort((a, b) => {
+    if (sortBy === 'az') {
+      const drvA = drivers.find(d => d.id === a.driverId)?.nome || '';
+      const drvB = drivers.find(d => d.id === b.driverId)?.nome || '';
+      return drvA.localeCompare(drvB);
+    } else if (sortBy === 'antigos') {
+      const timeA = a.date ? new Date(`${a.date}T${a.time || '00:00'}`).getTime() : 0;
+      const timeB = b.date ? new Date(`${b.date}T${b.time || '00:00'}`).getTime() : 0;
+      return timeA - timeB;
+    } else {
+      const timeA = a.date ? new Date(`${a.date}T${a.time || '00:00'}`).getTime() : 0;
+      const timeB = b.date ? new Date(`${b.date}T${b.time || '00:00'}`).getTime() : 0;
+      return timeB - timeA;
+    }
+  });
 
   const formatDatePTBR = (dStr: string) => {
     const [y, m, d] = dStr.split('-');
@@ -455,7 +469,8 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         setSortBy={setSortBy}
         sortOptions={[
           {value: 'recentes', label: 'Mais recentes'},
-          {value: 'antigos', label: 'Mais antigos'}
+          {value: 'antigos', label: 'Mais antigos'},
+          {value: 'az', label: 'Ordem alfabética'}
         ]}
         onOpenModal={() => handleOpenModal()}
         buttonText="Nova Programação"

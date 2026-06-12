@@ -187,6 +187,18 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
     const filterText = `${op.title} ${op.description} ${op.category}`.toLowerCase();
     const typeMatch = (activeTab === 'Anotações' && op.type === 'note') || (activeTab === 'Tarefas' && op.type === 'task');
     return filterText.includes(searchQuery.toLowerCase()) && typeMatch;
+  }).sort((a, b) => {
+    if (sortBy === 'az') {
+      return a.title.localeCompare(b.title);
+    } else if (sortBy === 'antigos') {
+      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return timeA - timeB;
+    } else {
+      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return timeB - timeA;
+    }
   });
 
   const pinnedNotes = filteredOps.filter(o => o.isPinned);
@@ -215,7 +227,8 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
         setSortBy={setSortBy}
         sortOptions={[
           {value: 'recentes', label: 'Mais recentes'},
-          {value: 'antigos', label: 'Mais antigos'}
+          {value: 'antigos', label: 'Mais antigos'},
+          {value: 'az', label: 'Ordem alfabética'}
         ]}
         onOpenModal={() => handleOpenModal()}
         buttonText="Novo Registro"
