@@ -23,6 +23,7 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
   const [loading, setLoading] = useState(true);
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [dashboardFilter, setDashboardFilter] = useState<string | null>(null);
   const { viewMode, setViewMode, sortBy, setSortBy } = useViewPrefs('vehicles', 'grid', 'recentes');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleteSelectedModalOpen, setIsDeleteSelectedModalOpen] = useState(false);
@@ -186,11 +187,18 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
     }
   };
 
-  let filteredVehicles = vehicles.filter(v => 
-    v.placa.includes(searchQuery.toUpperCase()) ||
-    v.tipo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    v.status.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  let filteredVehicles = vehicles.filter(v => {
+    if (dashboardFilter) {
+      if (dashboardFilter === 'total') return true;
+      if (dashboardFilter === 'disp' && v.status !== 'Disponível') return false;
+      if (dashboardFilter === 'prog' && v.status !== 'Programado') return false;
+      if (dashboardFilter === 'manut' && v.status !== 'Manutenção') return false;
+      if (dashboardFilter === 'inativo' && v.status !== 'Inativo') return false;
+    }
+    return v.placa.includes(searchQuery.toUpperCase()) ||
+           v.tipo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           v.status.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   filteredVehicles.sort((a, b) => {
     if (sortBy === 'placa-az') return a.placa.localeCompare(b.placa);
@@ -332,23 +340,27 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
 
       <main className="p-6 max-w-[1600px] mx-auto pb-32">
         {/* Dashboard Indicators */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium uppercase">Total</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{vehicles.length}</p>
-          </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium uppercase">Disponíveis</p>
-            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{vehicles.filter(v => v.status === 'Disponível').length}</p>
-          </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium uppercase">Programados</p>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{vehicles.filter(v => v.status === 'Programado').length}</p>
-          </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium uppercase">Manutenção</p>
-            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{vehicles.filter(v => v.status === 'Manutenção').length}</p>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'total' ? null : 'total')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'total' ? 'bg-slate-100 dark:bg-white/10 border-slate-300 dark:border-white/20' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'}`}>
+             <p className="text-xs text-slate-500 font-medium uppercase">Total</p>
+             <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'total' ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-white'}`}>{vehicles.length}</p>
+          </button>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'disp' ? null : 'disp')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'disp' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-emerald-200'}`}>
+             <p className="text-xs text-slate-500 font-medium uppercase">Disponíveis</p>
+             <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'disp' ? 'text-emerald-700 dark:text-emerald-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{vehicles.filter(v => v.status === 'Disponível').length}</p>
+          </button>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'prog' ? null : 'prog')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'prog' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-blue-200'}`}>
+             <p className="text-xs text-slate-500 font-medium uppercase">Programados</p>
+             <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'prog' ? 'text-blue-700 dark:text-blue-400' : 'text-blue-600 dark:text-blue-400'}`}>{vehicles.filter(v => v.status === 'Programado').length}</p>
+          </button>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'manut' ? null : 'manut')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'manut' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-amber-200'}`}>
+             <p className="text-xs text-slate-500 font-medium uppercase">Manutenção</p>
+             <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'manut' ? 'text-amber-700 dark:text-amber-400' : 'text-amber-600 dark:text-amber-400'}`}>{vehicles.filter(v => v.status === 'Manutenção').length}</p>
+          </button>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'inativo' ? null : 'inativo')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'inativo' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-red-200'}`}>
+             <p className="text-xs text-slate-500 font-medium uppercase">Inativos</p>
+             <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'inativo' ? 'text-red-700 dark:text-red-400' : 'text-red-600 dark:text-red-400'}`}>{vehicles.filter(v => v.status === 'Inativo').length}</p>
+          </button>
         </div>
 
         {/* List / Cards */}
@@ -428,20 +440,20 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
         ) : (
           <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                   <thead>
-                      <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5">
-                         <th className="p-4 w-12 text-center">
+                <table className="w-full text-left text-sm whitespace-nowrap border-collapse">
+                   <thead className="bg-slate-50 dark:bg-[#09090B]/50 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs">
+                      <tr>
+                         <th className="px-4 py-3 w-12 text-center">
                             <button onClick={toggleSelectAll} className="text-slate-400 hover:text-blue-500 transition">
                                <CheckSquare className={`w-5 h-5 ${selectedIds.size === filteredVehicles.length && filteredVehicles.length > 0 ? 'text-blue-600 dark:text-blue-400' : ''}`} />
                             </button>
                          </th>
-                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left"></th>
-                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">PLACA</th>
-                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">TIPO</th>
-                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">MOTORISTA(S)</th>
-                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">STATUS</th>
-                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">AÇÕES</th>
+                         <th className="px-4 py-3 text-left"></th>
+                         <th className="px-4 py-3 text-left">PLACA</th>
+                         <th className="px-4 py-3 text-left">TIPO</th>
+                         <th className="px-4 py-3 text-left">MOTORISTA(S)</th>
+                         <th className="px-4 py-3 text-left">STATUS</th>
+                         <th className="px-4 py-3 text-right">AÇÕES</th>
                       </tr>
                    </thead>
                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -449,25 +461,25 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
                          const vincDrivers = drivers.filter(d => d.veiculoPadraoId === v.id);
                          return (
                          <tr key={v.id} className={`hover:bg-slate-50 dark:hover:bg-white/5 transition cursor-pointer ${selectedIds.has(v.id!) ? 'bg-blue-50/50 dark:bg-blue-500/10' : ''}`} onClick={() => toggleSelection(v.id!)}>
-                            <td className="p-4 text-center">
+                            <td className="px-4 py-3 text-center">
                                <button onClick={(e) => toggleSelection(v.id!, e)} className={`text-slate-300 hover:text-blue-500 transition ${selectedIds.has(v.id!) ? 'text-blue-600 dark:text-blue-400' : ''}`}>
                                   <CheckSquare className="w-5 h-5" />
                                </button>
                             </td>
-                            <td className="p-4 w-14">
+                            <td className="px-4 py-3 w-14">
                               <div className="w-8 h-8 rounded bg-slate-100 dark:bg-white/5 flex items-center justify-center border border-slate-200 dark:border-white/10">
                                 <Truck className="w-4 h-4 text-slate-500" />
                               </div>
                             </td>
-                            <td className="p-4 font-bold text-slate-900 dark:text-white font-mono">{v.placa}</td>
-                            <td className="p-4 text-slate-500 text-sm">{v.tipo}</td>
-                            <td className="p-4 text-slate-500 text-sm max-w-[200px] truncate" title={vincDrivers.map(d => d.nome).join(', ')}>
+                            <td className="px-4 py-3 font-bold text-slate-900 dark:text-white font-mono">{v.placa}</td>
+                            <td className="px-4 py-3 text-slate-500 text-sm">{v.tipo}</td>
+                            <td className="px-4 py-3 text-slate-500 text-sm max-w-[200px] truncate" title={vincDrivers.map(d => d.nome).join(', ')}>
                                {vincDrivers.length > 0 ? vincDrivers.map(d => d.nome).join(', ') : '-'}
                             </td>
-                            <td className="p-4">
+                            <td className="px-4 py-3">
                                <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider rounded border ${getStatusColor(v.status)}`}>{v.status}</span>
                             </td>
-                            <td className="p-4 text-right">
+                            <td className="px-4 py-3 text-right">
                                <button 
                                  onClick={(e) => { e.stopPropagation(); handleOpenModal(v); }}
                                  className="p-1.5 text-slate-400 hover:text-blue-600 transition"

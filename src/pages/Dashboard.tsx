@@ -144,6 +144,8 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
     return result.sort((a, b) => {
       if (sortBy === 'alpha') {
         return a.nomeFantasia.localeCompare(b.nomeFantasia);
+      } else if (sortBy === 'alpha-za') {
+        return b.nomeFantasia.localeCompare(a.nomeFantasia);
       } else if (sortBy === 'updated') {
         const dateA = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : new Date(a.updatedAt || 0).getTime();
         const dateB = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : new Date(b.updatedAt || 0).getTime();
@@ -238,7 +240,8 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         sortOptions={[
           {value: 'created', label: 'Mais Recentes'},
           {value: 'updated', label: 'Editados'},
-          {value: 'alpha', label: 'A-Z'}
+          {value: 'alpha', label: 'Ordem alfabética (A-Z)'},
+          {value: 'alpha-za', label: 'Ordem alfabética (Z-A)'}
         ]}
         onOpenModal={() => {
           setEditingPlace(undefined);

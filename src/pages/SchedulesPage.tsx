@@ -455,6 +455,10 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       const drvA = drivers.find(d => d.id === a.driverId)?.nome || '';
       const drvB = drivers.find(d => d.id === b.driverId)?.nome || '';
       return drvA.localeCompare(drvB);
+    } else if (sortBy === 'za') {
+      const drvA = drivers.find(d => d.id === a.driverId)?.nome || '';
+      const drvB = drivers.find(d => d.id === b.driverId)?.nome || '';
+      return drvB.localeCompare(drvA);
     } else if (sortBy === 'antigos') {
       const timeA = a.date ? new Date(`${a.date}T${a.time || '00:00'}`).getTime() : 0;
       const timeB = b.date ? new Date(`${b.date}T${b.time || '00:00'}`).getTime() : 0;
@@ -494,7 +498,8 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         sortOptions={[
           {value: 'recentes', label: 'Mais recentes'},
           {value: 'antigos', label: 'Mais antigos'},
-          {value: 'az', label: 'Ordem alfabética'}
+          {value: 'az', label: 'Ordem alfabética (A-Z)'},
+          {value: 'za', label: 'Ordem alfabética (Z-A)'}
         ]}
         onOpenModal={() => handleOpenModal()}
         buttonText="Nova Programação"
@@ -554,15 +559,15 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         ) : viewMode === 'list' ? (
            <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
-                 <table className="w-full text-left border-collapse">
-                    <thead>
-                       <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5">
-                          <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">OPERAÇÃO</th>
-                          <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">DATA / HORA</th>
-                          <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">MOTORISTA</th>
-                          <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">VEÍCULO</th>
-                          <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">STATUS</th>
-                          <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">AÇÕES</th>
+                 <table className="w-full text-left text-sm whitespace-nowrap border-collapse">
+                    <thead className="bg-slate-50 dark:bg-[#09090B]/50 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs">
+                       <tr>
+                          <th className="px-4 py-3 text-left">OPERAÇÃO</th>
+                          <th className="px-4 py-3 text-left">DATA / HORA</th>
+                          <th className="px-4 py-3 text-left">MOTORISTA</th>
+                          <th className="px-4 py-3 text-left">VEÍCULO</th>
+                          <th className="px-4 py-3 text-left">STATUS</th>
+                          <th className="px-4 py-3 text-right">AÇÕES</th>
                        </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -572,7 +577,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                           const isEncerrado = s.status === 'Encerrado';
                           return (
                              <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition">
-                                <td className="p-4 font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                                <td className="px-4 py-3 font-bold text-slate-900 dark:text-white uppercase tracking-wide">
                                    <div className="flex flex-col gap-1">
                                       <span>{getOperationsString(s)}</span>
                                       {s.locationName && (
@@ -582,20 +587,20 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                                       )}
                                    </div>
                                 </td>
-                                <td className="p-4 text-slate-500 text-sm">
+                                <td className="px-4 py-3 text-slate-500 text-sm">
                                    <div className="flex items-center gap-2">
                                       <Clock className="w-4 h-4 text-slate-400" />
                                       {s.date ? formatDatePTBR(s.date) : ''} às {s.time}
                                    </div>
                                 </td>
-                                <td className="p-4 font-medium text-slate-900 dark:text-slate-200">{drv?.nome || 'N/A'}</td>
-                                <td className="p-4 font-mono text-slate-900 dark:text-slate-200">{veh?.placa || 'N/A'}</td>
-                                <td className="p-4">
+                                <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-200">{drv?.nome || 'N/A'}</td>
+                                <td className="px-4 py-3 font-mono text-slate-900 dark:text-slate-200">{veh?.placa || 'N/A'}</td>
+                                <td className="px-4 py-3">
                                    <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider rounded border ${isEncerrado ? 'bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-white/5 dark:text-slate-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800'}`}>
                                       {s.status}
                                    </span>
                                 </td>
-                                <td className="p-4 text-right">
+                                <td className="px-4 py-3 text-right">
                                    <button onClick={() => handleOpenModal(s)} className="p-1.5 text-slate-400 hover:text-blue-600 transition" title="Editar">
                                       <Edit2 className="w-4 h-4"/>
                                    </button>

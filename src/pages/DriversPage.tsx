@@ -25,6 +25,7 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
   const [loading, setLoading] = useState(true);
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [dashboardFilter, setDashboardFilter] = useState<string | null>(null);
   const { viewMode, setViewMode, sortBy, setSortBy } = useViewPrefs('drivers', 'grid', 'recentes');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleteSelectedModalOpen, setIsDeleteSelectedModalOpen] = useState(false);
@@ -214,11 +215,18 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
     }
   };
 
-  let filteredDrivers = drivers.filter(d => 
-    d.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    d.tipo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    d.status.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  let filteredDrivers = drivers.filter(d => {
+    if (dashboardFilter) {
+      if (dashboardFilter === 'total') return true;
+      if (dashboardFilter === 'disp' && d.status !== 'Disponível') return false;
+      if (dashboardFilter === 'prog' && d.status !== 'Programado') return false;
+      if (dashboardFilter === 'folga' && d.status !== 'Folga') return false;
+      if (dashboardFilter === 'afast' && !['Férias', 'Afastado'].includes(d.status)) return false;
+    }
+    return d.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           d.tipo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           d.status.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   filteredDrivers.sort((a, b) => {
     if (sortBy === 'nome-az') return a.nome.localeCompare(b.nome);
@@ -358,26 +366,26 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
       <main className="p-6 max-w-[1600px] mx-auto pb-32">
         {/* Dashboard Indicators */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'total' ? null : 'total')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'total' ? 'bg-slate-100 dark:bg-white/10 border-slate-300 dark:border-white/20' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'}`}>
             <p className="text-xs text-slate-500 font-medium uppercase">Total</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{drivers.length}</p>
-          </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
+            <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'total' ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-white'}`}>{drivers.length}</p>
+          </button>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'disp' ? null : 'disp')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'disp' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-emerald-200'}`}>
             <p className="text-xs text-slate-500 font-medium uppercase">Disponíveis</p>
-            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{drivers.filter(d => d.status === 'Disponível').length}</p>
-          </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
+            <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'disp' ? 'text-emerald-700 dark:text-emerald-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{drivers.filter(d => d.status === 'Disponível').length}</p>
+          </button>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'prog' ? null : 'prog')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'prog' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-blue-200'}`}>
             <p className="text-xs text-slate-500 font-medium uppercase">Programados</p>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{drivers.filter(d => d.status === 'Programado').length}</p>
-          </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
+            <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'prog' ? 'text-blue-700 dark:text-blue-400' : 'text-blue-600 dark:text-blue-400'}`}>{drivers.filter(d => d.status === 'Programado').length}</p>
+          </button>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'folga' ? null : 'folga')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'folga' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-amber-200'}`}>
             <p className="text-xs text-slate-500 font-medium uppercase">Folga</p>
-            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{drivers.filter(d => d.status === 'Folga').length}</p>
-          </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
+            <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'folga' ? 'text-amber-700 dark:text-amber-400' : 'text-amber-600 dark:text-amber-400'}`}>{drivers.filter(d => d.status === 'Folga').length}</p>
+          </button>
+          <button onClick={() => setDashboardFilter(dashboardFilter === 'afast' ? null : 'afast')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'afast' ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-purple-200'}`}>
             <p className="text-xs text-slate-500 font-medium uppercase">Férias/Afastado</p>
-            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{drivers.filter(d => ['Férias', 'Afastado'].includes(d.status)).length}</p>
-          </div>
+            <p className={`text-2xl font-bold mt-1 ${dashboardFilter === 'afast' ? 'text-purple-700 dark:text-purple-400' : 'text-purple-600 dark:text-purple-400'}`}>{drivers.filter(d => ['Férias', 'Afastado'].includes(d.status)).length}</p>
+          </button>
         </div>
 
         {/* List / Cards */}
@@ -456,32 +464,32 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
         ) : (
           <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                   <thead>
-                      <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5">
-                         <th className="p-4 w-12 text-center">
+                <table className="w-full text-left text-sm whitespace-nowrap border-collapse">
+                   <thead className="bg-slate-50 dark:bg-[#09090B]/50 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs">
+                      <tr>
+                         <th className="px-4 py-3 w-12 text-center">
                             <button onClick={toggleSelectAll} className="text-slate-400 hover:text-blue-500 transition">
                                <CheckSquare className={`w-5 h-5 ${selectedIds.size === filteredDrivers.length && filteredDrivers.length > 0 ? 'text-blue-600 dark:text-blue-400' : ''}`} />
                             </button>
                          </th>
-                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">NOME</th>
-                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">TIPO</th>
-                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">JORNADA</th>
-                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">STATUS</th>
-                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">AÇÕES</th>
+                         <th className="px-4 py-3 text-left">NOME</th>
+                         <th className="px-4 py-3 text-left">TIPO</th>
+                         <th className="px-4 py-3 text-left">JORNADA</th>
+                         <th className="px-4 py-3 text-left">STATUS</th>
+                         <th className="px-4 py-3 text-right">AÇÕES</th>
                       </tr>
                    </thead>
                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                       {filteredDrivers.map(d => (
                          <tr key={d.id} className={`hover:bg-slate-50 dark:hover:bg-white/5 transition cursor-pointer ${selectedIds.has(d.id!) ? 'bg-blue-50/50 dark:bg-blue-500/10' : ''}`} onClick={() => toggleSelection(d.id!)}>
-                            <td className="p-4 text-center">
+                            <td className="px-4 py-3 text-center">
                                <button onClick={(e) => toggleSelection(d.id!, e)} className={`text-slate-300 hover:text-blue-500 transition ${selectedIds.has(d.id!) ? 'text-blue-600 dark:text-blue-400' : ''}`}>
                                   <CheckSquare className="w-5 h-5" />
                                </button>
                             </td>
-                            <td className="p-4 font-bold text-slate-900 dark:text-white">{d.nome}</td>
-                            <td className="p-4 text-slate-500 text-sm">{d.tipo}</td>
-                            <td className="p-4 text-slate-500 text-sm">
+                            <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">{d.nome}</td>
+                            <td className="px-4 py-3 text-slate-500 text-sm">{d.tipo}</td>
+                            <td className="px-4 py-3 text-slate-500 text-sm">
                                <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4"/>{d.inicioJornada} - {d.fimJornada}</div>
                                {d.veiculoPadraoId && (
                                   <div className="text-xs mt-1 bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded inline-block w-max">
@@ -489,10 +497,10 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
                                   </div>
                                )}
                             </td>
-                            <td className="p-4">
+                            <td className="px-4 py-3">
                                <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider rounded border ${getStatusColor(d.status)}`}>{d.status}</span>
                             </td>
-                            <td className="p-4 text-right">
+                            <td className="px-4 py-3 text-right">
                                <button 
                                  onClick={(e) => { e.stopPropagation(); handleOpenModal(d); }}
                                  className="p-1.5 text-slate-400 hover:text-blue-600 transition"

@@ -190,6 +190,8 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
   }).sort((a, b) => {
     if (sortBy === 'az') {
       return a.title.localeCompare(b.title);
+    } else if (sortBy === 'za') {
+      return b.title.localeCompare(a.title);
     } else if (sortBy === 'antigos') {
       const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
       const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
@@ -228,7 +230,8 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
         sortOptions={[
           {value: 'recentes', label: 'Mais recentes'},
           {value: 'antigos', label: 'Mais antigos'},
-          {value: 'az', label: 'Ordem alfabética'}
+          {value: 'az', label: 'Ordem alfabética (A-Z)'},
+          {value: 'za', label: 'Ordem alfabética (Z-A)'}
         ]}
         onOpenModal={() => handleOpenModal()}
         buttonText="Novo Registro"
@@ -255,6 +258,34 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                {tab}
             </button>
           ))}
+        </div>
+
+        {/* Dashboard Indicators */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
+            <p className="text-xs text-slate-500 font-medium uppercase">Total de Anotações</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+              {operations.filter(o => o.type === 'note').length}
+            </p>
+          </div>
+          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
+            <p className="text-xs text-slate-500 font-medium uppercase">Anotações Fixadas</p>
+            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+              {operations.filter(o => o.type === 'note' && o.isPinned).length}
+            </p>
+          </div>
+          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
+            <p className="text-xs text-slate-500 font-medium uppercase">Tarefas Pendentes</p>
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+              {operations.filter(o => o.type === 'task' && o.status !== 'Concluído').length}
+            </p>
+          </div>
+          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
+            <p className="text-xs text-slate-500 font-medium uppercase">Tarefas Concluídas</p>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+              {operations.filter(o => o.type === 'task' && o.status === 'Concluído').length}
+            </p>
+          </div>
         </div>
 
         {/* Content based on Tab */}
