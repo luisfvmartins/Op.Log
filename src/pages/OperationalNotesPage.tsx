@@ -600,7 +600,7 @@ ${operations.filter(o => o.type === 'note' && o.isPinned).map(o => `• [FIXADA]
         onConfirm={handleDelete}
         onClose={() => setDeletingId(null)}
         confirmText="Excluir"
-        type="danger"
+        isDestructive={true}
       />
     </div>
   );

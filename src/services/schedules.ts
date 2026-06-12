@@ -8,7 +8,10 @@ export interface Schedule {
   vehicleId: string;
   date: string;
   time: string;
-  operation: string; // "Coleta", "Entrega", "Transferência", "Devolução", "Manobra", "Viagem"
+  operation: string | string[]; // Backwards compatibility, use operations when possible
+  operations?: string[];
+  locationId?: string;
+  locationName?: string;
   observations?: string;
   status: string; // "Ativo", "Encerrado"
   createdAt?: Timestamp;

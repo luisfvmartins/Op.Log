@@ -67,19 +67,6 @@ export function UnifiedHeader({
         </div>
         
         <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
-          {onImport && (
-            <>
-              <input type="file" ref={fileInputRef} accept=".json" onChange={onImport} className="hidden" />
-              <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-                <Upload className="w-4 h-4 shrink-0" /> Importar
-              </button>
-            </>
-          )}
-          {onExport && (
-            <button onClick={onExport} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              <Download className="w-4 h-4 shrink-0" /> Exportar
-            </button>
-          )}
           {toggleTheme && (
             <button onClick={toggleTheme} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
               {theme === 'dark' ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />} Tema
@@ -99,8 +86,8 @@ export function UnifiedHeader({
       </div>
 
       {/* SEGUNDA LINHA */}
-      <div className="flex items-center justify-end">
-        <div className="flex items-center bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1 w-full sm:w-auto overflow-x-auto hide-scrollbar">
           {toggleSelectAll && selectedIds && (
             <button
               onClick={toggleSelectAll}
@@ -109,7 +96,7 @@ export function UnifiedHeader({
               Todos
             </button>
           )}
-          <div className="relative border-r border-slate-200 dark:border-white/10 mr-1">
+          <div className="relative border-r border-slate-200 dark:border-white/10 mr-1 flex-shrink-0">
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
@@ -135,6 +122,22 @@ export function UnifiedHeader({
           >
             <ListIcon className="w-4 h-4 shrink-0" /> Lista
           </button>
+        </div>
+        
+        <div className="flex items-center justify-end gap-2 shrink-0">
+          {onImport && (
+            <>
+              <input type="file" ref={fileInputRef} accept=".json" onChange={onImport} className="hidden" />
+              <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+                <Upload className="w-4 h-4 shrink-0" /> Importar
+              </button>
+            </>
+          )}
+          {onExport && (
+            <button onClick={onExport} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+              <Download className="w-4 h-4 shrink-0" /> Exportar
+            </button>
+          )}
         </div>
       </div>
 

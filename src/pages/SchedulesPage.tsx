@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Plus, Search, Edit2, Trash2, CheckCircle, Clock, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut } from 'lucide-react';
+import { Calendar, Plus, Search, Edit2, Trash2, CheckCircle, Clock, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut, FileText, MapPin } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getSchedules, createSchedule, updateSchedule, deleteSchedule, Schedule } from '../services/schedules';
-import { getDrivers, updateDriver, Driver } from '../services/drivers';
-import { getVehicles, updateVehicle, Vehicle } from '../services/vehicles';
+import { getDrivers, updateDriver, createDriver, Driver } from '../services/drivers';
+import { getVehicles, updateVehicle, createVehicle, Vehicle } from '../services/vehicles';
 import { Modal } from '../components/ui/Modal';
 import { ToastContainer } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { UnifiedHeader } from '../components/UnifiedHeader';
 import { useViewPrefs } from '../hooks/useViewPrefs';
+import { usePlaces } from '../hooks/usePlaces';
 
 import { AboutModal } from '../components/ui/AboutModal';
 
@@ -26,6 +27,9 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
   const [searchQuery, setSearchQuery] = useState('');
   const { viewMode, setViewMode, sortBy, setSortBy } = useViewPrefs('schedules', 'grid', 'recentes');
   
+  const [dashboardFilter, setDashboardFilter] = useState<string | null>(null);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportText, setReportText] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | undefined>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -36,9 +40,19 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
   const [vehicleId, setVehicleId] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [operation, setOperation] = useState('Viagem');
+  const [operations, setOperations] = useState<string[]>(['Viagem']);
+  const [locationSearchDisplay, setLocationSearchDisplay] = useState('');
+  const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
   const [observations, setObservations] = useState('');
   const [status, setStatus] = useState('Ativo');
+  
+  const { places, loading: placesLoading } = usePlaces();
+
+  const [driverSearchDisplay, setDriverSearchDisplay] = useState('');
+  const [driverDropdownOpen, setDriverDropdownOpen] = useState(false);
+
+  const [vehicleSearchDisplay, setVehicleSearchDisplay] = useState('');
+  const [vehicleDropdownOpen, setVehicleDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (user?.uid) {
@@ -67,6 +81,66 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     }
   };
 
+  const loadDrivers = async () => {
+    if (user) {
+       const drvData = await getDrivers(user.uid);
+       setDrivers(drvData);
+    }
+  };
+
+  const loadVehicles = async () => {
+    if (user) {
+       const vehData = await getVehicles(user.uid);
+       setVehicles(vehData);
+    }
+  };
+
+  const handleQuickCreateDriver = async (nome: string) => {
+    if (!user) return;
+    setIsBusy(true);
+    try {
+      const did = await createDriver({
+        userId: user.uid,
+        nome: nome.trim(),
+        tipo: 'Regional',
+        inicioJornada: '08:00',
+        fimJornada: '18:00',
+        status: 'Disponível'
+      });
+      addToast('Motorista criado e vinculado.', 'success');
+      await loadDrivers();
+      setDriverId(did);
+      setDriverSearchDisplay(nome.trim());
+      setDriverDropdownOpen(false);
+    } catch(err) {
+      addToast('Erro ao criar motorista', 'error');
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleQuickCreateVehicle = async (placa: string) => {
+    if (!user) return;
+    setIsBusy(true);
+    try {
+      const vid = await createVehicle({
+        userId: user.uid,
+        placa: placa.toUpperCase(),
+        tipo: 'Trucado',
+        status: 'Disponível'
+      });
+      addToast('Veículo criado e vinculado.', 'success');
+      await loadVehicles();
+      setVehicleId(vid);
+      setVehicleSearchDisplay(placa.toUpperCase());
+      setVehicleDropdownOpen(false);
+    } catch(err) {
+      addToast('Erro ao criar veículo', 'error');
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
   const checkForAlerts = (allDrivers: Driver[], allVehicles: Vehicle[], allSchedules: Schedule[]) => {
     // Alerta operacional simple. We can show it as toasts or banner.
     // 16:00 check is hard to simulate cleanly here without a robust backend or banner.
@@ -80,9 +154,19 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       setVehicleId(sched.vehicleId);
       setDate(sched.date);
       setTime(sched.time);
-      setOperation(sched.operation);
+      
+      const opArr = sched.operations || (sched.operation ? (Array.isArray(sched.operation) ? sched.operation : [sched.operation]) : []);
+      setOperations(opArr);
+      
+      setLocationSearchDisplay(sched.locationName || '');
+      
       setObservations(sched.observations || '');
       setStatus(sched.status);
+      
+      const d = drivers.find(d => d.id === sched.driverId);
+      setDriverSearchDisplay(d?.nome || '');
+      const v = vehicles.find(v => v.id === sched.vehicleId);
+      setVehicleSearchDisplay(v?.placa || '');
     } else {
       const today = new Date();
       const nextDay = new Date(today);
@@ -93,18 +177,25 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       setVehicleId('');
       setDate(nextDay.toISOString().split('T')[0]); // Default para o dia seguinte
       setTime('08:00');
-      setOperation('Viagem');
+      setOperations(['Viagem']);
+      setLocationSearchDisplay('');
       setObservations('');
       setStatus('Ativo');
+      
+      setDriverSearchDisplay('');
+      setVehicleSearchDisplay('');
     }
+    setDriverDropdownOpen(false);
+    setVehicleDropdownOpen(false);
+    setLocationDropdownOpen(false);
     setIsModalOpen(true);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!driverId || !vehicleId || !date || !time || !operation || !status) {
-      addToast('Preencha os campos obrigatórios', 'error');
+    if (!driverId || !vehicleId || !date || !time || operations.length === 0 || !status) {
+      addToast('Preencha todos os campos obrigatórios', 'error');
       return;
     }
 
@@ -123,13 +214,18 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
 
     setIsBusy(true);
     try {
+      const locationMatch = places.find(p => p.cidade === locationSearchDisplay || p.nomeFantasia === locationSearchDisplay || p.nomeRazaoSocial === locationSearchDisplay);
+      
       const data = {
         userId: user.uid,
         driverId,
         vehicleId,
         date,
         time,
-        operation,
+        operation: operations[0] || '', // compat
+        operations,
+        locationId: locationMatch?.id || '',
+        locationName: locationSearchDisplay.trim(),
         observations,
         status,
       };
@@ -191,16 +287,155 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     }
   };
 
-  const filteredSchedules = schedules.filter(s => {
-    const drv = drivers.find(d => d.id === s.driverId);
-    const veh = vehicles.find(v => v.id === s.vehicleId);
-    const filterText = `${s.operation} ${s.status} ${drv?.nome} ${veh?.placa} ${s.date}`.toLowerCase();
-    return filterText.includes(searchQuery.toLowerCase());
-  });
+  const activeSchedules = schedules.filter(s => s.status === 'Ativo');
+  
+  const metrics = {
+    emOperacao: activeSchedules.length,
+    coletas: activeSchedules.filter(s => (s.operations || [s.operation]).includes('Coleta')).length,
+    entregas: activeSchedules.filter(s => (s.operations || [s.operation]).includes('Entrega')).length,
+    transferencias: activeSchedules.filter(s => (s.operations || [s.operation]).includes('Transferência')).length,
+    manobras: activeSchedules.filter(s => (s.operations || [s.operation]).includes('Manobra')).length,
+    pendencias: activeSchedules.filter(s => s.observations && s.observations.trim().length > 0).length,
+    folgas: drivers.filter(d => ['Folga', 'Férias', 'Afastado'].includes(d.status)).length,
+    semProgramacao: drivers.filter(d => 
+      !['Folga', 'Férias', 'Afastado'].includes(d.status) &&
+      !activeSchedules.some(s => s.driverId === d.id)
+    ).length
+  };
+
+  const filteredItems = () => {
+    // Return what should be displayed on screen based on the active dashboard filter
+    if (dashboardFilter === 'emOperacao') return activeSchedules;
+    if (dashboardFilter === 'coletas') return activeSchedules.filter(s => (s.operations || [s.operation]).includes('Coleta'));
+    if (dashboardFilter === 'entregas') return activeSchedules.filter(s => (s.operations || [s.operation]).includes('Entrega'));
+    if (dashboardFilter === 'transferencias') return activeSchedules.filter(s => (s.operations || [s.operation]).includes('Transferência'));
+    if (dashboardFilter === 'manobras') return activeSchedules.filter(s => (s.operations || [s.operation]).includes('Manobra'));
+    if (dashboardFilter === 'pendencias') return activeSchedules.filter(s => s.observations && s.observations.trim().length > 0);
+    
+    // For folgas and semProgramacao, we are showing drivers instead of schedules!
+    // But since the main list is meant for schedules, we'll create "fake" schedules just for display, or render a different component.
+    // Let's create fake schedule objects to reuse the same table and card rendering.
+    if (dashboardFilter === 'folgas') {
+      const dFolgas = drivers.filter(d => ['Folga', 'Férias', 'Afastado'].includes(d.status));
+      return dFolgas.map(d => {
+         const v = vehicles.find(vh => vh.id === d.veiculoPadraoId);
+         return { id: `drv-${d.id}`, driverId: d.id, vehicleId: v?.id || '', date: '', time: '', operation: d.status, operations: [d.status], status: d.status } as Schedule;
+      });
+    }
+    if (dashboardFilter === 'semProgramacao') {
+      const dSem = drivers.filter(d => !['Folga', 'Férias', 'Afastado'].includes(d.status) && !activeSchedules.some(s => s.driverId === d.id));
+      return dSem.map(d => {
+         const v = vehicles.find(vh => vh.id === d.veiculoPadraoId);
+         return { id: `drv-${d.id}`, driverId: d.id, vehicleId: v?.id || '', date: '', time: `${d.inicioJornada || '08:00'} - ${d.fimJornada || '18:00'}`, operation: 'Sem Programação', operations: ['Sem Programação'], status: 'Disponível' } as Schedule;
+      });
+    }
+    
+    // Default search filter
+    return schedules.filter(s => {
+      const drv = drivers.find(d => d.id === s.driverId);
+      const veh = vehicles.find(v => v.id === s.vehicleId);
+      const opArr = s.operations || (s.operation ? (Array.isArray(s.operation) ? s.operation : [s.operation]) : []);
+      const filterText = `${opArr.join(' ')} ${s.status} ${drv?.nome} ${veh?.placa} ${s.date} ${s.locationName || ''}`.toLowerCase();
+      return filterText.includes(searchQuery.toLowerCase());
+    });
+  };
+
+  const generateReport = () => {
+    const today = new Date().toLocaleDateString('pt-BR');
+    let rpt = `📊 RELATÓRIO OPERACIONAL | ${today}\n\n`;
+
+    const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nome || '(Sem motorista)';
+    const getVehiclePlate = (vehicleId: string) => vehicles.find(v => v.id === vehicleId)?.placa || '(Sem veículo)';
+
+    // Pendências
+    rpt += `──────────────────\n⚠️ PENDÊNCIAS OPERACIONAIS\n──────────────────\n\n`;
+    const pended = activeSchedules.filter(s => s.observations && s.observations.trim().length > 0);
+    if (pended.length === 0) rpt += `Nenhuma pendência.\n\n`;
+    pended.forEach(s => {
+      rpt += `🟡 [${getVehiclePlate(s.vehicleId)}] [${getDriverName(s.driverId)}] - ${s.observations}\n`;
+    });
+    rpt += `\n`;
+
+    // Grouping schedules by location
+    // Find unique locations
+    const opsWithLocation = activeSchedules.filter(s => s.locationName && s.locationName.trim() !== '');
+    const locations = Array.from(new Set(opsWithLocation.map(s => s.locationName)));
+    
+    // We can show specifically "Operação [Cliente]" for big ops? Or Coletas/Entregas? 
+    // The prompt says "Operação [Cliente]" and "Coletas/Entregas" generally.
+    // Let's list by location
+    const othersColEnt = activeSchedules.filter(s => {
+       const opArr = s.operations || [s.operation];
+       return opArr.includes('Coleta') || opArr.includes('Entrega');
+    });
+
+    if (locations.length > 0) {
+      locations.forEach(loc => {
+        rpt += `──────────────────\n🚛 OPERAÇÃO ${loc?.toUpperCase()}\n──────────────────\n\n`;
+        const locOps = activeSchedules.filter(s => s.locationName === loc);
+        locOps.forEach(s => {
+          const opsStr = (s.operations || [s.operation]).join(', ');
+          rpt += `🟢 [${getVehiclePlate(s.vehicleId)}] [${getDriverName(s.driverId)}] - ${opsStr} ${s.locationName}\n`;
+        });
+        rpt += `\n`;
+      });
+    } else if (othersColEnt.length > 0) {
+      rpt += `──────────────────\n🚚 COLETAS / ENTREGAS\n──────────────────\n\n`;
+      othersColEnt.forEach(s => {
+        const opsStr = (s.operations || [s.operation]).join(', ');
+        rpt += `🟢 [${getVehiclePlate(s.vehicleId)}] [${getDriverName(s.driverId)}] - ${opsStr} ${s.locationName || ''}\n`;
+      });
+      rpt += `\n`;
+    }
+
+    // Viagens
+    const viagens = activeSchedules.filter(s => (s.operations || [s.operation]).includes('Viagem'));
+    if (viagens.length > 0) {
+      // Group by location? The prompt says "🌎 [REGIÃO] 🔵 [PLACA] [MOT] - Em viagem"
+      rpt += `──────────────────\n🌎 VIAGENS\n──────────────────\n\n`;
+      viagens.forEach(s => {
+         rpt += `🔵 [${getVehiclePlate(s.vehicleId)}] [${getDriverName(s.driverId)}] - Em viagem ${s.locationName ? `(${s.locationName})` : ''}\n`;
+      });
+      rpt += `\n`;
+    }
+
+    // Folga / Férias / Afastamentos
+    rpt += `──────────────────\n🟡 FOLGA / FÉRIAS / AFASTAMENTOS\n──────────────────\n\n`;
+    const folgas = drivers.filter(d => ['Folga', 'Férias', 'Afastado'].includes(d.status));
+    if (folgas.length === 0) rpt += `Nenhum.\n\n`;
+    folgas.forEach(d => {
+      const v = vehicles.find(vh => vh.id === d.veiculoPadraoId);
+      const placa = v?.placa || 'SEM CAVALO';
+      rpt += `🟡 [${placa}] [${d.nome}] - ${d.status}\n`;
+    });
+    rpt += `\n`;
+
+    // Sem programação
+    rpt += `──────────────────\n⚪ SEM PROGRAMAÇÃO\n──────────────────\n\n`;
+    const semProg = drivers.filter(d => 
+      !['Folga', 'Férias', 'Afastado'].includes(d.status) &&
+      !activeSchedules.some(s => s.driverId === d.id)
+    );
+    if (semProg.length === 0) rpt += `Nenhum.\n\n`;
+    semProg.forEach(d => {
+      const v = vehicles.find(vh => vh.id === d.veiculoPadraoId);
+      const placa = v?.placa || 'SEM CAVALO';
+      rpt += `⚪ [${placa}] [${d.nome}] - ${d.inicioJornada || '08:00'} às ${d.fimJornada || '18:00'}\n`;
+    });
+
+    return rpt;
+  };
+
+  const itemsToDisplay = filteredItems();
 
   const formatDatePTBR = (dStr: string) => {
     const [y, m, d] = dStr.split('-');
     return `${d}/${m}/${y}`;
+  };
+
+  const getOperationsString = (sched: Schedule) => {
+    const arr = sched.operations || (sched.operation ? (Array.isArray(sched.operation) ? sched.operation : [sched.operation]) : []);
+    return arr.join(', ');
   };
 
   return (
@@ -211,7 +446,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         title="Programações"
         subtitle="Vincule motoristas e veículos as operações."
         totalCount={schedules.length}
-        filteredCount={filteredSchedules.length}
+        filteredCount={itemsToDisplay.length}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         viewMode={viewMode as 'grid'|'list'}
@@ -232,26 +467,47 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       />
       
       <main className="p-6 max-w-[1600px] mx-auto space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Dashboard Operacional</h2>
+          <button
+            onClick={() => {
+              const rpt = generateReport();
+              setReportText(rpt);
+              setReportModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
+          >
+            <FileText className="w-4 h-4" /> Gerar Relatório
+          </button>
+        </div>
+
         {/* Dashboard Indicators */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium uppercase">Total</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{schedules.length}</p>
-          </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium uppercase">Ativas</p>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{schedules.filter(s => s.status === 'Ativo').length}</p>
-          </div>
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-500 font-medium uppercase">Encerradas</p>
-            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{schedules.filter(s => s.status === 'Encerrado').length}</p>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+          {[
+            { id: 'emOperacao', label: 'Motoristas em operação', val: metrics.emOperacao, color: 'blue' },
+            { id: 'coletas', label: 'Coletas', val: metrics.coletas, color: 'emerald' },
+            { id: 'entregas', label: 'Entregas', val: metrics.entregas, color: 'sky' },
+            { id: 'transferencias', label: 'Transferências', val: metrics.transferencias, color: 'indigo' },
+            { id: 'manobras', label: 'Manobras', val: metrics.manobras, color: 'violet' },
+            { id: 'pendencias', label: 'Pendências', val: metrics.pendencias, color: 'amber' },
+            { id: 'folgas', label: 'Folgas/Férias', val: metrics.folgas, color: 'rose' },
+            { id: 'semProgramacao', label: 'Sem programação', val: metrics.semProgramacao, color: 'slate' }
+          ].map(card => (
+            <button
+              key={card.id}
+              onClick={() => setDashboardFilter(dashboardFilter === card.id ? null : card.id)}
+              className={`text-left p-3 rounded-xl border transition-all ${dashboardFilter === card.id ? `bg-${card.color}-50 border-${card.color}-200 dark:bg-${card.color}-900/20 dark:border-${card.color}-800/50 shadow-sm ring-1 ring-${card.color}-500/20` : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-blue-200 dark:hover:border-blue-800'}`}
+            >
+              <p className="text-[10px] sm:text-xs text-slate-500 font-medium uppercase line-clamp-2 leading-tight h-8">{card.label}</p>
+              <p className={`text-xl sm:text-2xl font-bold mt-1 ${dashboardFilter === card.id ? `text-${card.color}-700 dark:text-${card.color}-400` : 'text-slate-900 dark:text-white'}`}>{card.val}</p>
+            </button>
+          ))}
         </div>
 
         {/* List / Cards */}
         {loading ? (
           <div className="flex justify-center p-12"><div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full" /></div>
-        ) : filteredSchedules.length === 0 ? (
+        ) : itemsToDisplay.length === 0 ? (
           <div className="text-center py-12 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
              <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
              <p className="text-slate-500 dark:text-slate-400">Nenhuma programação encontrada.</p>
@@ -271,13 +527,22 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                        </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                       {filteredSchedules.map(s => {
+                       {itemsToDisplay.map(s => {
                           const drv = drivers.find(d => d.id === s.driverId);
                           const veh = vehicles.find(v => v.id === s.vehicleId);
                           const isEncerrado = s.status === 'Encerrado';
                           return (
                              <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition">
-                                <td className="p-4 font-bold text-slate-900 dark:text-white uppercase tracking-wide">{s.operation}</td>
+                                <td className="p-4 font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                                   <div className="flex flex-col gap-1">
+                                      <span>{getOperationsString(s)}</span>
+                                      {s.locationName && (
+                                        <span className="text-xs text-slate-500 font-medium normal-case flex items-center gap-1">
+                                           <MapPin className="w-3 h-3"/> {s.locationName}
+                                        </span>
+                                      )}
+                                   </div>
+                                </td>
                                 <td className="p-4 text-slate-500 text-sm">
                                    <div className="flex items-center gap-2">
                                       <Clock className="w-4 h-4 text-slate-400" />
@@ -313,7 +578,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
            </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredSchedules.map(s => {
+            {itemsToDisplay.map(s => {
               const drv = drivers.find(d => d.id === s.driverId);
               const veh = vehicles.find(v => v.id === s.vehicleId);
               const isEncerrado = s.status === 'Encerrado';
@@ -322,9 +587,16 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                 <div key={s.id} className={`bg-white dark:bg-white/5 border rounded-xl p-5 hover:border-blue-500 dark:hover:border-blue-500/50 transition flex flex-col ${isEncerrado ? 'border-slate-200 dark:border-white/10 opacity-75' : 'border-blue-200 dark:border-blue-900/50'}`}>
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-col gap-1">
-                      <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
-                        {s.operation}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                          {getOperationsString(s)}
+                        </span>
+                        {s.locationName && (
+                          <span className="text-xs text-slate-500 font-medium normal-case flex items-center gap-1">
+                             <MapPin className="w-3 h-3"/> {s.locationName}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded w-fit">
                         <Clock className="w-3.5 h-3.5" />
                         {s.date ? formatDatePTBR(s.date) : ''} às {s.time}
@@ -384,45 +656,141 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         )}
       </main>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingSchedule ? "Editar Programação" : "Nova Programação"}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Planejamento Operacional">
         <form onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Motorista</label>
-              <select
-                required
-                value={driverId}
-                onChange={e => {
-                   const newDriverId = e.target.value;
-                   setDriverId(newDriverId);
-                   if (newDriverId) {
-                      const selDriver = drivers.find(d => d.id === newDriverId);
-                      if (selDriver?.veiculoPadraoId) {
-                         setVehicleId(selDriver.veiculoPadraoId);
-                      }
-                   }
-                }}
-                className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
-              >
-                <option value="">Selecione...</option>
-                {drivers.map(d => (
-                  <option key={d.id} value={d.id}>{d.nome} {d.status !== 'Disponível' && editingSchedule?.driverId !== d.id ? `(${d.status})` : ''}</option>
-                ))}
-              </select>
+              <div className="relative">
+                 <input
+                    type="text"
+                    required
+                    value={driverSearchDisplay}
+                    onChange={(e) => {
+                       setDriverSearchDisplay(e.target.value);
+                       setDriverDropdownOpen(true);
+                       const exactMatch = drivers.find(d => d.nome.toLowerCase() === e.target.value.toLowerCase());
+                       if (exactMatch) {
+                          setDriverId(exactMatch.id!);
+                          if (exactMatch.veiculoPadraoId) {
+                             setVehicleId(exactMatch.veiculoPadraoId);
+                             const v = vehicles.find(vh => vh.id === exactMatch.veiculoPadraoId);
+                             if (v) setVehicleSearchDisplay(v.placa);
+                          }
+                       } else {
+                          setDriverId('');
+                       }
+                    }}
+                    onFocus={() => setDriverDropdownOpen(true)}
+                    placeholder="Digite o nome..."
+                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                 />
+                 {driverDropdownOpen && driverSearchDisplay.trim() !== '' && (
+                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#18181B] border border-slate-200 dark:border-white/10 rounded-lg shadow-lg overflow-hidden flex flex-col">
+                       {drivers
+                          .filter(d => d.nome.toLowerCase().includes(driverSearchDisplay.toLowerCase()))
+                          .slice(0, 2)
+                          .map(d => (
+                             <button
+                                key={d.id}
+                                type="button"
+                                onClick={() => {
+                                   setDriverSearchDisplay(d.nome);
+                                   setDriverId(d.id!);
+                                   setDriverDropdownOpen(false);
+                                   if (d.veiculoPadraoId) {
+                                      setVehicleId(d.veiculoPadraoId);
+                                      const v = vehicles.find(vh => vh.id === d.veiculoPadraoId);
+                                      if (v) setVehicleSearchDisplay(v.placa);
+                                   }
+                                }}
+                                className="px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 flex justify-between items-center"
+                             >
+                                <span>{d.nome}</span>
+                                {d.status !== 'Disponível' && editingSchedule?.driverId !== d.id && (
+                                  <span className="text-xs text-amber-500 font-medium">({d.status})</span>
+                                )}
+                             </button>
+                          ))}
+                       {!drivers.find(d => d.nome.toLowerCase() === driverSearchDisplay.toLowerCase()) && (
+                          <div className="px-4 py-3 border-t border-slate-100 dark:border-white/5">
+                             <button
+                                type="button"
+                                onClick={() => handleQuickCreateDriver(driverSearchDisplay)}
+                                className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:underline"
+                             >
+                                Cadastrar motorista "{driverSearchDisplay}"?
+                             </button>
+                          </div>
+                       )}
+                       <div className="px-4 py-2 bg-slate-100 dark:bg-white/5 text-xs text-slate-500 flex justify-end">
+                         <button type="button" onClick={() => setDriverDropdownOpen(false)}>Fechar</button>
+                       </div>
+                    </div>
+                 )}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Veículo (Placa)</label>
-              <select
-                required
-                value={vehicleId}
-                onChange={e => setVehicleId(e.target.value)}
-                className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white font-mono"
-              >
-                <option value="">Selecione...</option>
-                {vehicles.map(v => (
-                  <option key={v.id} value={v.id}>{v.placa} {v.status !== 'Disponível' && editingSchedule?.vehicleId !== v.id ? `(${v.status})` : ''}</option>
-                ))}
-              </select>
+              <div className="relative">
+                 <input
+                    type="text"
+                    required
+                    value={vehicleSearchDisplay}
+                    onChange={(e) => {
+                       const val = e.target.value.toUpperCase();
+                       setVehicleSearchDisplay(val);
+                       setVehicleDropdownOpen(true);
+                       const exactMatch = vehicles.find(v => v.placa.toUpperCase() === val);
+                       if (exactMatch) {
+                          setVehicleId(exactMatch.id!);
+                       } else {
+                          setVehicleId('');
+                       }
+                    }}
+                    onFocus={() => setVehicleDropdownOpen(true)}
+                    placeholder="Digite a placa..."
+                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white font-mono uppercase"
+                 />
+                 {vehicleDropdownOpen && vehicleSearchDisplay.trim() !== '' && (
+                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#18181B] border border-slate-200 dark:border-white/10 rounded-lg shadow-lg overflow-hidden flex flex-col">
+                       {vehicles
+                          .filter(v => v.placa.toUpperCase().includes(vehicleSearchDisplay))
+                          .slice(0, 2)
+                          .map(v => (
+                             <button
+                                key={v.id}
+                                type="button"
+                                onClick={() => {
+                                   setVehicleSearchDisplay(v.placa);
+                                   setVehicleId(v.id!);
+                                   setVehicleDropdownOpen(false);
+                                }}
+                                className="px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 font-mono flex justify-between items-center"
+                             >
+                                <span>{v.placa}</span>
+                                {v.status !== 'Disponível' && editingSchedule?.vehicleId !== v.id && (
+                                  <span className="text-xs text-amber-500 font-medium font-sans">({v.status})</span>
+                                )}
+                             </button>
+                          ))}
+                       {!vehicles.find(v => v.placa.toUpperCase() === vehicleSearchDisplay) && (
+                          <div className="px-4 py-3 border-t border-slate-100 dark:border-white/5">
+                             <button
+                                type="button"
+                                onClick={() => handleQuickCreateVehicle(vehicleSearchDisplay)}
+                                className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:underline"
+                             >
+                                Cadastrar placa {vehicleSearchDisplay}?
+                             </button>
+                          </div>
+                       )}
+                       <div className="px-4 py-2 bg-slate-100 dark:bg-white/5 text-xs text-slate-500 flex justify-end">
+                         <button type="button" onClick={() => setVehicleDropdownOpen(false)}>Fechar</button>
+                       </div>
+                    </div>
+                 )}
+              </div>
             </div>
           </div>
 
@@ -449,21 +817,71 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
              <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Operação</label>
-              <select
-                value={operation}
-                onChange={e => setOperation(e.target.value)}
-                className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
-              >
-                <option value="Coleta">Coleta</option>
-                <option value="Entrega">Entrega</option>
-                <option value="Transferência">Transferência</option>
-                <option value="Devolução">Devolução</option>
-                <option value="Manobra">Manobra</option>
-                <option value="Viagem">Viagem</option>
-              </select>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tipo de Operação *</label>
+              <div className="flex flex-wrap gap-3">
+                {['Coleta', 'Entrega', 'Transferência', 'Viagem', 'Manobra', 'Manutenção'].map(op => (
+                  <label key={op} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      value={op}
+                      checked={operations.includes(op)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setOperations([...operations, op]);
+                        } else {
+                          setOperations(operations.filter(o => o !== op));
+                        }
+                      }}
+                      className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
+                    />
+                    <span className="text-sm text-slate-700 dark:text-slate-300 select-none">{op}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cliente / Local</label>
+              <div className="relative">
+                 <input
+                    type="text"
+                    value={locationSearchDisplay}
+                    onChange={(e) => {
+                       setLocationSearchDisplay(e.target.value);
+                       setLocationDropdownOpen(true);
+                    }}
+                    onFocus={() => setLocationDropdownOpen(true)}
+                    placeholder="Pesquisar local..."
+                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+                 />
+                 {locationDropdownOpen && locationSearchDisplay.trim() !== '' && (
+                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#18181B] border border-slate-200 dark:border-white/10 rounded-lg shadow-lg overflow-hidden flex flex-col max-h-60 overflow-y-auto">
+                       {places
+                          .filter(p => (p.nomeFantasia && p.nomeFantasia.toLowerCase().includes(locationSearchDisplay.toLowerCase())) || (p.cidade && p.cidade.toLowerCase().includes(locationSearchDisplay.toLowerCase())))
+                          .map(p => (
+                             <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => {
+                                   setLocationSearchDisplay(p.nomeFantasia || p.cidade);
+                                   setLocationDropdownOpen(false);
+                                }}
+                                className="px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 flex flex-col"
+                             >
+                                <span className="font-medium">{p.nomeFantasia || p.cidade}</span>
+                                {p.nomeFantasia && <span className="text-xs text-slate-500">{p.cidade}</span>}
+                             </button>
+                          ))}
+                       <div className="px-4 py-2 bg-slate-100 dark:bg-white/5 text-xs text-slate-500 flex justify-end">
+                         <button type="button" onClick={() => setLocationDropdownOpen(false)}>Fechar</button>
+                       </div>
+                    </div>
+                 )}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
@@ -479,11 +897,12 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Observações (Opcional)</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Observação Operacional</label>
             <textarea
               value={observations}
               onChange={e => setObservations(e.target.value)}
               rows={2}
+              placeholder="Ex: Retornando ao pátio novo para troca de carreta."
               className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white resize-none"
             />
           </div>
@@ -516,8 +935,35 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         onConfirm={handleDelete}
         onClose={() => setDeletingId(null)}
         confirmText="Excluir"
-        type="danger"
+        isDestructive={true}
       />
+
+      <Modal isOpen={reportModalOpen} onClose={() => setReportModalOpen(false)} title="Relatório Operacional">
+        <div className="space-y-4">
+          <textarea
+            readOnly
+            value={reportText}
+            className="w-full h-96 p-4 text-xs font-mono bg-slate-900 border border-slate-700 text-slate-100 rounded-lg resize-none outline-none hide-scrollbar"
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setReportModalOpen(false)}
+              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition"
+            >
+              Fechar
+            </button>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(reportText);
+                addToast('Relatório copiado para a área de transferência', 'success');
+              }}
+              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              Copiar Texto
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

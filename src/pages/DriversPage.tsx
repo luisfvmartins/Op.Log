@@ -661,7 +661,7 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
         onConfirm={handleDelete}
         onClose={() => setDeletingId(null)}
         confirmText="Excluir"
-        type="danger"
+        isDestructive={true}
       />
 
       <ConfirmDialog
@@ -671,7 +671,7 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
         onConfirm={handleDeleteSelected}
         onClose={() => setIsDeleteSelectedModalOpen(false)}
         confirmText="Excluir"
-        type="danger"
+        isDestructive={true}
       />
 
       {/* CONTEXTUAL ACTION BAR */}

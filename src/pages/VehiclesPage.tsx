@@ -559,7 +559,7 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
         onConfirm={handleDelete}
         onClose={() => setDeletingId(null)}
         confirmText="Excluir"
-        type="danger"
+        isDestructive={true}
       />
 
       <ConfirmDialog
@@ -569,7 +569,7 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
         onConfirm={handleDeleteSelected}
         onClose={() => setIsDeleteSelectedModalOpen(false)}
         confirmText="Excluir"
-        type="danger"
+        isDestructive={true}
       />
 
       {/* CONTEXTUAL ACTION BAR */}
