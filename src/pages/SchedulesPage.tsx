@@ -332,7 +332,16 @@ export function SchedulesPage() {
               <select
                 required
                 value={driverId}
-                onChange={e => setDriverId(e.target.value)}
+                onChange={e => {
+                   const newDriverId = e.target.value;
+                   setDriverId(newDriverId);
+                   if (newDriverId) {
+                      const selDriver = drivers.find(d => d.id === newDriverId);
+                      if (selDriver?.veiculoPadraoId) {
+                         setVehicleId(selDriver.veiculoPadraoId);
+                      }
+                   }
+                }}
                 className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
               >
                 <option value="">Selecione...</option>

@@ -9,6 +9,7 @@ export interface Driver {
   inicioJornada: string; // e.g. "08:00"
   fimJornada: string;    // e.g. "18:00"
   status: string;        // "Disponível", "Programado", "Folga", "Férias", "Afastado"
+  veiculoPadraoId?: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }

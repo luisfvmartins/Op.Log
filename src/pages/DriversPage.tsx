@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Users, Plus, Search, MapPin, Map, Calendar, Edit2, Trash2, Upload, Download, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getDrivers, createDriver, updateDriver, deleteDriver, Driver } from '../services/drivers';
-import { getVehicles, createVehicle } from '../services/vehicles';
+import { getVehicles, createVehicle, Vehicle } from '../services/vehicles';
 import { Modal } from '../components/ui/Modal';
 import { ToastContainer } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
@@ -17,6 +17,7 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   
   const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,12 +36,25 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
   const [inicio, setInicio] = useState('08:00');
   const [fim, setFim] = useState('18:00');
   const [status, setStatus] = useState('Disponível');
+  const [veiculoPadraoId, setVeiculoPadraoId] = useState<string>('');
 
   useEffect(() => {
     if (user?.uid) {
       loadDrivers();
+      loadVehicles();
     }
   }, [user]);
+
+  const loadVehicles = async () => {
+    try {
+      if (user) {
+        const data = await getVehicles(user.uid);
+        setVehicles(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const loadDrivers = async () => {
     setLoading(true);
@@ -64,6 +78,7 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
       setInicio(driver.inicioJornada);
       setFim(driver.fimJornada);
       setStatus(driver.status);
+      setVeiculoPadraoId(driver.veiculoPadraoId || '');
     } else {
       setEditingDriver(undefined);
       setNome('');
@@ -71,6 +86,7 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
       setInicio('08:00');
       setFim('18:00');
       setStatus('Disponível');
+      setVeiculoPadraoId('');
     }
     setIsModalOpen(true);
   };
@@ -98,6 +114,7 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
         inicioJornada: inicio,
         fimJornada: fim,
         status,
+        ...(veiculoPadraoId ? { veiculoPadraoId } : { veiculoPadraoId: '' })
       };
 
       if (editingDriver?.id) {
@@ -426,6 +443,13 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
                     <Calendar className="w-4 h-4" />
                     <span className="font-medium">{d.inicioJornada} - {d.fimJornada}</span>
                   </div>
+                  {d.veiculoPadraoId && (
+                     <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded">
+                        <span className="font-medium" title="Veículo Padrão">
+                          {vehicles.find(v => v.id === d.veiculoPadraoId)?.placa || 'Sem Veículo'}
+                        </span>
+                     </div>
+                  )}
                 </div>
 
                 <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/10">
@@ -480,7 +504,14 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
                             </td>
                             <td className="p-4 font-bold text-slate-900 dark:text-white">{d.nome}</td>
                             <td className="p-4 text-slate-500 text-sm">{d.tipo}</td>
-                            <td className="p-4 text-slate-500 text-sm flex items-center gap-1.5"><Calendar className="w-4 h-4"/>{d.inicioJornada} - {d.fimJornada}</td>
+                            <td className="p-4 text-slate-500 text-sm">
+                               <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4"/>{d.inicioJornada} - {d.fimJornada}</div>
+                               {d.veiculoPadraoId && (
+                                  <div className="text-xs mt-1 bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded inline-block w-max">
+                                     {vehicles.find(v => v.id === d.veiculoPadraoId)?.placa}
+                                  </div>
+                               )}
+                            </td>
                             <td className="p-4">
                                <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider rounded border ${getStatusColor(d.status)}`}>{d.status}</span>
                             </td>
@@ -566,6 +597,20 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
               <option value="Folga">Folga</option>
               <option value="Férias">Férias</option>
               <option value="Afastado">Afastado</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Veículo Padrão (Opcional)</label>
+            <select
+              value={veiculoPadraoId}
+              onChange={e => setVeiculoPadraoId(e.target.value)}
+              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
+            >
+              <option value="">Nenhum Veículo Vinculado</option>
+              {vehicles.map(v => (
+                <option key={v.id} value={v.id}>{v.placa} ({v.tipo})</option>
+              ))}
             </select>
           </div>
 
