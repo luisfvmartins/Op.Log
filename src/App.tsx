@@ -16,11 +16,10 @@ import { Map, Users, Truck, Calendar, Menu, X, LogOut, Sun, Moon, BookOpen } fro
 function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<'locais' | 'programacoes' | 'anotacoes' | 'motoristas' | 'veiculos'>('locais');
 
   const navItems = [
-    { id: 'locais', label: 'Locais e Roteiros', icon: Map },
+    { id: 'locais', label: 'Locais', icon: Map },
     { id: 'programacoes', label: 'Programações', icon: Calendar },
     { id: 'anotacoes', label: 'Anotações', icon: BookOpen },
     { id: 'motoristas', label: 'Motoristas', icon: Users },
@@ -28,103 +27,78 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
   ] as const;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#09090B]">
-      {/* Sidebar Desktop */}
-      <aside className={`hidden md:flex flex-col transition-all duration-300 border-r border-slate-200 dark:border-white/10 bg-white dark:bg-[#09090B] relative ${isDesktopSidebarCollapsed ? 'w-20' : 'w-64'}`}>
-        <div className={`flex items-center p-6 border-b border-slate-200 dark:border-white/10 relative ${isDesktopSidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
-          {!isDesktopSidebarCollapsed && (
+    <div className="flex flex-col h-screen overflow-hidden bg-slate-50 dark:bg-[#09090B]">
+      {/* Top Navigation */}
+      <header className="flex-none bg-white dark:bg-[#09090B] border-b border-slate-200 dark:border-white/10 z-40 relative">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            
+            {/* Logo area */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white shrink-0">
+              <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm">
                 <Truck className="w-5 h-5" />
               </div>
-              <span className="font-semibold text-lg text-slate-900 dark:text-white truncate">Op.Log</span>
+              <span className="font-display font-bold text-xl tracking-tight text-slate-900 dark:text-white">Op.Log</span>
             </div>
-          )}
-          {isDesktopSidebarCollapsed && (
-            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white shrink-0 cursor-pointer" onClick={() => setIsDesktopSidebarCollapsed(false)}>
-              <Truck className="w-5 h-5" />
-            </div>
-          )}
-        </div>
-        
-        <nav className="flex-1 p-4 flex flex-col gap-2 overflow-y-auto overflow-x-hidden">
-          {navItems.map(item => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1 mx-8 relative top-[1px]">
+              {navItems.map(item => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`flex items-center gap-2 px-4 py-5 border-b-2 text-sm font-medium transition-colors
+                      ${isActive 
+                        ? 'border-blue-600 text-blue-600 dark:border-blue-500 dark:text-blue-400' 
+                        : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700'
+                      }
+                    `}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Utilities */}
+            <div className="hidden md:flex items-center gap-2">
               <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`flex items-center gap-3 p-3 rounded-xl transition-all w-full
-                  ${isActive 
-                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 font-semibold' 
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
-                  } ${isDesktopSidebarCollapsed ? 'justify-center' : ''}
-                `}
-                title={isDesktopSidebarCollapsed ? item.label : undefined}
+                onClick={toggleTheme}
+                className="w-10 h-10 flex flex-col items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
               >
-                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'stroke-2' : 'stroke-[1.5]'}`} />
-                {!isDesktopSidebarCollapsed && <span>{item.label}</span>}
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
-            );
-          })}
-        </nav>
+              
+              <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-2"></div>
+              
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition-colors"
+              >
+                <LogOut className="w-4 h-4 shrink-0" />
+                <span>Sair</span>
+              </button>
+            </div>
 
-        <div className="p-4 border-t border-slate-200 dark:border-white/10 space-y-2">
-          <button
-            onClick={toggleTheme}
-            className={`flex items-center gap-3 w-full p-3 rounded-xl transition text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 ${isDesktopSidebarCollapsed ? 'justify-center' : ''}`}
-            title={isDesktopSidebarCollapsed ? "Alternar Tema" : undefined}
-          >
-            {theme === 'dark' ? <Sun className="w-5 h-5 shrink-0" /> : <Moon className="w-5 h-5 shrink-0" />}
-            {!isDesktopSidebarCollapsed && <span>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>}
-          </button>
-          
-          <button
-            onClick={logout}
-            className={`flex items-center gap-3 w-full p-3 rounded-xl transition text-slate-600 dark:text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 ${isDesktopSidebarCollapsed ? 'justify-center' : ''}`}
-            title={isDesktopSidebarCollapsed ? "Sair" : undefined}
-          >
-            <LogOut className="w-5 h-5 shrink-0" />
-            {!isDesktopSidebarCollapsed && <span>Sair</span>}
-          </button>
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center">
+              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 -mr-2 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5">
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+
+          </div>
         </div>
 
-        <div className="absolute top-1/2 -right-4 transform -translate-y-1/2">
-           <button
-             onClick={() => setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed)}
-             className="w-8 h-8 flex items-center justify-center bg-white dark:bg-[#09090B] border border-slate-200 dark:border-white/10 rounded-full text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500 dark:hover:border-blue-500 transition-all shadow-sm z-50 focus:outline-none"
-             title={isDesktopSidebarCollapsed ? "Expandir Menu" : "Recolher Menu"}
-           >
-              {isDesktopSidebarCollapsed ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-              )}
-           </button>
-        </div>
-      </aside>
-
-      {/* Mobile Header & Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden flex items-center justify-between p-4 border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#09090B]/50 backdrop-blur-md z-30 relative">
-          <div className="flex items-center gap-3">
-             <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white">
-                <Truck className="w-5 h-5" />
-             </div>
-             <span className="font-semibold text-slate-900 dark:text-white">Op.Log</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600 dark:text-slate-300">
-               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-        </header>
-
-        {/* Mobile Menu */}
+        {/* Mobile Navigation Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute inset-0 top-[73px] z-40 bg-white dark:bg-[#09090B] flex flex-col">
-            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          <div className="md:hidden border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#09090B]">
+            <div className="px-4 py-3 space-y-1">
               {navItems.map(item => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -132,25 +106,44 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
                   <button
                     key={item.id}
                     onClick={() => { setActiveTab(item.id); setIsMobileMenuOpen(false); }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-sm ${isActive ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-white/5'}`}
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-white/5'}`}
                   >
                     <Icon className="w-5 h-5" />
                     {item.label}
                   </button>
                 )
               })}
-            </nav>
+              
+              <div className="border-t border-slate-200 dark:border-white/10 my-2"></div>
+              
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-white/5 transition-colors"
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                <span>Alternar Tema</span>
+              </button>
+              
+              <button
+                onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Sair</span>
+              </button>
+            </div>
           </div>
         )}
+      </header>
 
-        <main className="flex-1 overflow-auto relative">
-          {activeTab === 'locais' && <Dashboard theme={theme} toggleTheme={toggleTheme} />}
-          {activeTab === 'programacoes' && <SchedulesPage theme={theme} toggleTheme={toggleTheme} />}
-          {activeTab === 'anotacoes' && <OperationalNotesPage theme={theme} toggleTheme={toggleTheme} />}
-          {activeTab === 'motoristas' && <DriversPage theme={theme} toggleTheme={toggleTheme} />}
-          {activeTab === 'veiculos' && <VehiclesPage theme={theme} toggleTheme={toggleTheme} />}
-        </main>
-      </div>
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-auto bg-slate-50 dark:bg-[#09090B]">
+        {activeTab === 'locais' && <Dashboard theme={theme} toggleTheme={toggleTheme} />}
+        {activeTab === 'programacoes' && <SchedulesPage theme={theme} toggleTheme={toggleTheme} />}
+        {activeTab === 'anotacoes' && <OperationalNotesPage theme={theme} toggleTheme={toggleTheme} />}
+        {activeTab === 'motoristas' && <DriversPage theme={theme} toggleTheme={toggleTheme} />}
+        {activeTab === 'veiculos' && <VehiclesPage theme={theme} toggleTheme={toggleTheme} />}
+      </main>
     </div>
   );
 }

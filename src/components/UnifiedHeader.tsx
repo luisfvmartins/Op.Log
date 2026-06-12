@@ -58,28 +58,18 @@ export function UnifiedHeader({
 
   return (
     <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#09090B]/50 backdrop-blur-md border-b border-slate-200 dark:border-white/10 flex flex-col">
-      <div className="px-6 sm:px-8 py-4 flex flex-col gap-4">
+      <div className="px-6 sm:px-8 py-6 flex flex-col gap-5">
         {/* PRIMEIRA LINHA */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="select-none">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">{title}</h1>
-          <p className="text-sm text-slate-500 font-medium">{subtitle}</p>
+          <h1 className="text-3xl font-display font-semibold tracking-tight text-slate-900 dark:text-white leading-tight">{title}</h1>
+          <p className="text-base text-slate-500 font-normal mt-1">{subtitle}</p>
         </div>
         
         <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
-          {toggleTheme && (
-            <button onClick={toggleTheme} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              {theme === 'dark' ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />} Tema
-            </button>
-          )}
           {setAboutModalOpen && (
-            <button onClick={() => setAboutModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+            <button onClick={() => setAboutModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap border border-transparent">
               <Info className="w-4 h-4 shrink-0" /> Sobre
-            </button>
-          )}
-          {logout && (
-            <button onClick={logout} className="flex items-center gap-1.5 px-3 py-1.5 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              <LogOut className="w-4 h-4 shrink-0" /> Sair
             </button>
           )}
         </div>
