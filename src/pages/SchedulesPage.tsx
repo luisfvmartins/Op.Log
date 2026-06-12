@@ -11,6 +11,8 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { UnifiedHeader } from '../components/UnifiedHeader';
 import { useViewPrefs } from '../hooks/useViewPrefs';
 
+import { AboutModal } from '../components/ui/AboutModal';
+
 export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
   const { user, logout } = useAuth();
   const { toasts, addToast, removeToast } = useToast();
@@ -505,28 +507,14 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         </form>
       </Modal>
 
-      <Modal
-        isOpen={isAboutModalOpen}
-        onClose={() => setIsAboutModalOpen(false)}
-        title="Sobre"
-      >
-        <div className="p-2 sm:p-4 text-slate-600 dark:text-slate-300">
-          <p className="text-sm sm:text-base leading-relaxed mb-6">
-            O <strong>Op.Log</strong> é um aplicativo desenhado para gerenciar de forma simples e eficiente suas operações logísticas e viagens.
-          </p>
-          <div className="bg-slate-100 dark:bg-black/40 p-5 rounded-xl border border-slate-200 dark:border-white/10">
-            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Criador</h4>
-            <p className="text-base text-slate-900 dark:text-white font-medium mb-4">Desenvolvido por Luis Martins</p>
-          </div>
-        </div>
-      </Modal>
+      <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
 
       <ConfirmDialog
         isOpen={deletingId !== null}
         title="Excluir Programação"
-        message="Tem certeza que deseja excluir? Esta ação não pode ser desfeita."
+        description="Tem certeza que deseja excluir? Esta ação não pode ser desfeita."
         onConfirm={handleDelete}
-        onCancel={() => setDeletingId(null)}
+        onClose={() => setDeletingId(null)}
         confirmText="Excluir"
         type="danger"
       />

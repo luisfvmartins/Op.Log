@@ -42,7 +42,7 @@ export function UnifiedHeader({
   sortOptions,
   onOpenModal,
   buttonText,
-  buttonIcon = <Plus className="w-5 h-5" />,
+  buttonIcon = <Plus className="w-5 h-5 shrink-0" />,
   theme,
   toggleTheme,
   logout,
@@ -71,28 +71,28 @@ export function UnifiedHeader({
             <>
               <input type="file" ref={fileInputRef} accept=".json" onChange={onImport} className="hidden" />
               <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-                <Upload className="w-4 h-4" /> Importar
+                <Upload className="w-4 h-4 shrink-0" /> Importar
               </button>
             </>
           )}
           {onExport && (
             <button onClick={onExport} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              <Download className="w-4 h-4" /> Exportar
+              <Download className="w-4 h-4 shrink-0" /> Exportar
             </button>
           )}
           {toggleTheme && (
             <button onClick={toggleTheme} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} Tema
+              {theme === 'dark' ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />} Tema
             </button>
           )}
           {setAboutModalOpen && (
             <button onClick={() => setAboutModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              <Info className="w-4 h-4" /> Sobre
+              <Info className="w-4 h-4 shrink-0" /> Sobre
             </button>
           )}
           {logout && (
             <button onClick={logout} className="flex items-center gap-1.5 px-3 py-1.5 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              <LogOut className="w-4 h-4" /> Sair
+              <LogOut className="w-4 h-4 shrink-0" /> Sair
             </button>
           )}
         </div>
@@ -127,13 +127,13 @@ export function UnifiedHeader({
             onClick={() => setViewMode('grid')}
             className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
           >
-            <LayoutGrid className="w-4 h-4" /> Cards
+            <LayoutGrid className="w-4 h-4 shrink-0" /> Cards
           </button>
           <button
             onClick={() => setViewMode('list')}
             className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
           >
-            <ListIcon className="w-4 h-4" /> Lista
+            <ListIcon className="w-4 h-4 shrink-0" /> Lista
           </button>
         </div>
       </div>

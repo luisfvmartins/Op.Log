@@ -50,11 +50,11 @@ export async function saveCategories(userId: string, categories: Category[]): Pr
 
   if (!db) {
     const localStr = localStorage.getItem(LOCAL_KEY);
-    let all = {};
+    let all: Record<string, Category[]> = {};
     if (localStr) {
       try { all = JSON.parse(localStr); } catch {}
     }
-    all[userId as keyof typeof all] = categories;
+    all[userId] = categories;
     localStorage.setItem(LOCAL_KEY, JSON.stringify(all));
     return;
   }

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin, ExternalLink } from 'lucide-react';
+import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin, ExternalLink, Check } from 'lucide-react';
 import { usePlaces } from '../hooks/usePlaces';
 import { useToast } from '../hooks/useToast';
 import { Place } from '../services/places';
@@ -13,6 +13,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { getCidadesBrasileiras } from '../services/ibge';
 import { useViewPrefs } from '../hooks/useViewPrefs';
 import { UnifiedHeader } from '../components/UnifiedHeader';
+
+import { AboutModal } from '../components/ui/AboutModal';
 
 export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
   const [cidadesReais, setCidadesReais] = useState<string[]>([]);
@@ -279,7 +281,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
               Novo Local
             </button>
           </div>
-        ) : viewMode === 'grid' || viewMode === 'cards' ? (
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredPlaces.map(place => (
               <PlaceCard
@@ -435,58 +437,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         />
       </Modal>
 
-      <Modal
-        isOpen={isAboutModalOpen}
-        onClose={() => setIsAboutModalOpen(false)}
-        title="Sobre"
-      >
-        <div className="p-2 sm:p-4 text-slate-600 dark:text-slate-300">
-          <p className="text-sm sm:text-base leading-relaxed mb-6">
-            O <strong>Locais e Roteiros</strong> é um aplicativo desenhado para gerenciar de forma simples e eficiente seus locais de parada e organizar seus roteiros de viagens.
-          </p>
-          
-          <div className="bg-slate-100 dark:bg-black/40 p-5 rounded-xl border border-slate-200 dark:border-white/10">
-            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Criador</h4>
-            <p className="text-base text-slate-900 dark:text-white font-medium mb-4">
-              Desenvolvido por Luis Martins
-            </p>
-            
-            <div className="flex flex-col gap-3">
-              <a 
-                href="https://instagram.com/luisfvmartins" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
-              >
-                <div className="p-2 bg-white dark:bg-white/5 shadow-sm rounded-md border border-slate-200 dark:border-white/10 group-hover:border-blue-200 dark:group-hover:border-blue-500/30">
-                  <Instagram className="w-4 h-4" />
-                </div>
-                <span className="text-sm font-medium">@luisfvmartins</span>
-              </a>
-              <a 
-                href="https://linkedin.com/in/luisfvmartins" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
-              >
-                <div className="p-2 bg-white dark:bg-white/5 shadow-sm rounded-md border border-slate-200 dark:border-white/10 group-hover:border-blue-200 dark:group-hover:border-blue-500/30">
-                  <Linkedin className="w-4 h-4" />
-                </div>
-                <span className="text-sm font-medium">/in/luisfvmartins</span>
-              </a>
-            </div>
-          </div>
-          
-          <div className="mt-8 flex justify-end">
-            <button
-              onClick={() => setIsAboutModalOpen(false)}
-              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              Fechar
-            </button>
-          </div>
-        </div>
-      </Modal>
+      <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
     </div>
   );
 }

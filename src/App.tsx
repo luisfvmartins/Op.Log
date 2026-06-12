@@ -59,23 +59,6 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
             )
           })}
         </nav>
-
-        <div className="p-4 border-t border-slate-200 dark:border-white/10 space-y-2">
-          <button 
-            onClick={toggleTheme}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-white/5 transition-colors text-sm font-medium"
-          >
-            {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-            Tema {theme === 'light' ? 'Escuro' : 'Claro'}
-          </button>
-          <button 
-            onClick={logout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors text-sm font-medium"
-          >
-            <LogOut className="w-5 h-5" />
-            Sair
-          </button>
-        </div>
       </aside>
 
       {/* Mobile Header & Content */}
@@ -117,22 +100,6 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
                 )
               })}
             </nav>
-            <div className="p-4 border-t border-slate-200 dark:border-white/10 space-y-2">
-               <button 
-                onClick={() => { toggleTheme(); setIsMobileMenuOpen(false); }}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-white/5 transition-colors text-sm font-medium"
-              >
-                {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-                Tema {theme === 'light' ? 'Escuro' : 'Claro'}
-              </button>
-              <button 
-                onClick={logout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors text-sm font-medium"
-              >
-                <LogOut className="w-5 h-5" />
-                Sair
-              </button>
-            </div>
           </div>
         )}
 
