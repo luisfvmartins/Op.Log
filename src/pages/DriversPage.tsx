@@ -476,7 +476,7 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
                          <th className="px-4 py-3 text-left">TIPO</th>
                          <th className="px-4 py-3 text-left">JORNADA</th>
                          <th className="px-4 py-3 text-left">STATUS</th>
-                         <th className="px-4 py-3 text-right">AÇÕES</th>
+                         <th className="px-5 py-3 text-right">AÇÕES</th>
                       </tr>
                    </thead>
                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -500,7 +500,7 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
                             <td className="px-4 py-3">
                                <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider rounded border ${getStatusColor(d.status)}`}>{d.status}</span>
                             </td>
-                            <td className="px-4 py-3 text-right">
+                            <td className="px-5 py-3 text-right">
                                <button 
                                  onClick={(e) => { e.stopPropagation(); handleOpenModal(d); }}
                                  className="p-1.5 text-slate-400 hover:text-blue-600 transition"

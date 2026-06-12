@@ -453,7 +453,7 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
                          <th className="px-4 py-3 text-left">TIPO</th>
                          <th className="px-4 py-3 text-left">MOTORISTA(S)</th>
                          <th className="px-4 py-3 text-left">STATUS</th>
-                         <th className="px-4 py-3 text-right">AÇÕES</th>
+                         <th className="px-5 py-3 text-right">AÇÕES</th>
                       </tr>
                    </thead>
                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -479,7 +479,7 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
                             <td className="px-4 py-3">
                                <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider rounded border ${getStatusColor(v.status)}`}>{v.status}</span>
                             </td>
-                            <td className="px-4 py-3 text-right">
+                            <td className="px-5 py-3 text-right">
                                <button 
                                  onClick={(e) => { e.stopPropagation(); handleOpenModal(v); }}
                                  className="p-1.5 text-slate-400 hover:text-blue-600 transition"

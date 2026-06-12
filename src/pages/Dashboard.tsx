@@ -318,7 +318,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
                   <th className="px-4 py-3">NOME FANTASIA</th>
                   <th className="px-4 py-3">CIDADE</th>
                   <th className="px-4 py-3">RAZÃO SOCIAL</th>
-                  <th className="px-4 py-3 w-28 text-right">AÇÕES</th>
+                  <th className="px-5 py-3 w-28 text-right">AÇÕES</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -616,7 +616,7 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
         </div>
       </td>
       <td className="px-4 py-3 text-slate-400 dark:text-slate-500 truncate max-w-[200px]">{place.nomeRazaoSocial}</td>
-      <td className="px-4 py-3 text-right">
+      <td className="px-5 py-3 text-right">
         <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           {place.linkGoogleMaps && (
             <button 
