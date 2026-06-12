@@ -8,10 +8,12 @@ import { ToastContainer } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-import { BookOpen, Calendar, CheckCircle, Clock, Edit2, Plus, Search, Trash2, Pin, Tag, Flag, AlertTriangle, UserX, PenTool, CheckCircle2, Truck } from 'lucide-react';
+import { BookOpen, Calendar, CheckCircle, Clock, Edit2, Plus, Search, Trash2, Pin, Tag, Flag, AlertTriangle, UserX, PenTool, CheckCircle2, Truck, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut } from 'lucide-react';
+import { UnifiedHeader } from '../components/UnifiedHeader';
+import { useViewPrefs } from '../hooks/useViewPrefs';
 
-export function OperationalNotesPage() {
-  const { user } = useAuth();
+export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
+  const { user, logout } = useAuth();
   const { toasts, addToast, removeToast } = useToast();
   
   const [operations, setOperations] = useState<OperationLog[]>([]);
@@ -19,8 +21,10 @@ export function OperationalNotesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState('');
+  const { viewMode, setViewMode, sortBy, setSortBy } = useViewPrefs('notes', 'grid', 'recentes');
   const [activeTab, setActiveTab] = useState<'Anotações' | 'Tarefas' | 'Planejamento'>('Anotações');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -193,28 +197,31 @@ export function OperationalNotesPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] pb-24">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
-      <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Anotações Operacionais</h1>
-            <p className="text-slate-500 text-sm">Diário logístico, tarefas e planejamento do próximo dia.</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-               className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition"
-            >
-               Gerar Relatório
-            </button>
-            <button
-               onClick={() => handleOpenModal()}
-               className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-               <Plus className="w-4 h-4" />
-               <span className="font-medium text-sm">Novo Registro</span>
-            </button>
-          </div>
-        </div>
+      <UnifiedHeader
+        title="Anotações Operacionais"
+        subtitle="Diário logístico, tarefas e planejamento do próximo dia."
+        totalCount={operations.length}
+        filteredCount={filteredOps.length}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        viewMode={viewMode as 'grid'|'list'}
+        setViewMode={(m) => setViewMode(m as 'grid'|'list')}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        sortOptions={[
+          {value: 'recentes', label: 'Mais recentes'},
+          {value: 'antigos', label: 'Mais antigos'}
+        ]}
+        onOpenModal={() => handleOpenModal()}
+        buttonText="Novo Registro"
+        theme={theme}
+        toggleTheme={toggleTheme}
+        logout={logout}
+        setAboutModalOpen={setIsAboutModalOpen}
+        searchPlaceholder="Buscar registros..."
+      />
 
+      <main className="p-6 max-w-[1600px] mx-auto space-y-6">
         {/* Tabs */}
         <div className="flex space-x-1 bg-slate-200/50 dark:bg-white/5 p-1 rounded-xl w-fit">
           {(['Anotações', 'Tarefas', 'Planejamento'] as const).map(tab => (
@@ -232,36 +239,22 @@ export function OperationalNotesPage() {
           ))}
         </div>
 
-        {/* Search & Filters */}
-        {activeTab !== 'Planejamento' && (
-          <div className="relative max-w-md">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-               type="text"
-               placeholder="Buscar registros..."
-               value={searchQuery}
-               onChange={(e) => setSearchQuery(e.target.value)}
-               className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 pl-10 pr-4 py-2 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition focus:outline-none"
-            />
-          </div>
-        )}
-
         {/* Content based on Tab */}
         {activeTab === 'Anotações' && (
            <div className="space-y-6">
              {pinnedNotes.length > 0 && (
                 <div>
                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Fixadas</h3>
-                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                      {pinnedNotes.map(note => <NoteCard key={note.id} note={note} onEdit={() => handleOpenModal(note)} onDelete={() => setDeletingId(note.id!)} onTogglePin={() => handleTogglePin(note)} />)}
+                   <div className={viewMode === 'list' ? "flex flex-col gap-3" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"}>
+                      {pinnedNotes.map(note => <NoteCard key={note.id} note={note} onEdit={() => handleOpenModal(note)} onDelete={() => setDeletingId(note.id!)} onTogglePin={() => handleTogglePin(note)} viewMode={viewMode} />)}
                    </div>
                 </div>
              )}
              <div>
                 {pinnedNotes.length > 0 && <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 mt-8">Outras</h3>}
                 {otherNotes.length > 0 ? (
-                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                      {otherNotes.map(note => <NoteCard key={note.id} note={note} onEdit={() => handleOpenModal(note)} onDelete={() => setDeletingId(note.id!)} onTogglePin={() => handleTogglePin(note)} />)}
+                   <div className={viewMode === 'list' ? "flex flex-col gap-3" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"}>
+                      {otherNotes.map(note => <NoteCard key={note.id} note={note} onEdit={() => handleOpenModal(note)} onDelete={() => setDeletingId(note.id!)} onTogglePin={() => handleTogglePin(note)} viewMode={viewMode} />)}
                    </div>
                 ) : (
                    !pinnedNotes.length && (
@@ -434,8 +427,9 @@ ${operations.filter(o => o.type === 'note' && o.isPinned).map(o => `• [FIXADA]
            </div>
         )}
 
-      </div>
+      </main>
 
+      {/* Modals and Forms */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingOp ? "Editar Registro" : "Novo Registro"}>
         <form onSubmit={handleSave} className="space-y-4">
           
@@ -592,6 +586,22 @@ ${operations.filter(o => o.type === 'note' && o.isPinned).map(o => `• [FIXADA]
         </form>
       </Modal>
 
+      <Modal
+        isOpen={isAboutModalOpen}
+        onClose={() => setIsAboutModalOpen(false)}
+        title="Sobre"
+      >
+        <div className="p-2 sm:p-4 text-slate-600 dark:text-slate-300">
+          <p className="text-sm sm:text-base leading-relaxed mb-6">
+            O <strong>Op.Log</strong> é um aplicativo desenhado para gerenciar de forma simples e eficiente suas operações logísticas e viagens.
+          </p>
+          <div className="bg-slate-100 dark:bg-black/40 p-5 rounded-xl border border-slate-200 dark:border-white/10">
+            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Criador</h4>
+            <p className="text-base text-slate-900 dark:text-white font-medium mb-4">Desenvolvido por Luis Martins</p>
+          </div>
+        </div>
+      </Modal>
+
       <ConfirmDialog
         isOpen={deletingId !== null}
         title="Excluir Registro"
@@ -606,9 +616,9 @@ ${operations.filter(o => o.type === 'note' && o.isPinned).map(o => `• [FIXADA]
 }
 
 // Subcomponent: NoteCard
-function NoteCard({ note, onEdit, onDelete, onTogglePin }: { note: OperationLog, onEdit: () => void, onDelete: () => void, onTogglePin: () => void }) {
+function NoteCard({ note, onEdit, onDelete, onTogglePin, viewMode }: { note: OperationLog, onEdit: () => void, onDelete: () => void, onTogglePin: () => void, viewMode?: string }) {
    return (
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-5 hover:shadow-md transition group flex flex-col min-h-[140px] relative">
+      <div className={`bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-5 hover:shadow-md transition group relative ${viewMode === 'list' ? 'flex flex-row items-center gap-4' : 'flex flex-col min-h-[140px]'}`}>
          <button onClick={onTogglePin} className={`absolute top-4 right-4 p-1.5 transition rounded-full ${note.isPinned ? 'text-blue-500 bg-blue-50 dark:bg-blue-500/10' : 'text-slate-300 hover:text-slate-500 opacity-0 group-hover:opacity-100'}`}>
             <Pin className="w-4 h-4" />
          </button>

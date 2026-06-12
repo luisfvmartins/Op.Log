@@ -11,6 +11,8 @@ import { ToastContainer } from '../components/ui/Toast';
 import { formatRouteMessage, formatPlaceInfoText, ensureAbsoluteUrl } from '../lib/formatter';
 import { useAuth } from '../contexts/AuthContext';
 import { getCidadesBrasileiras } from '../services/ibge';
+import { useViewPrefs } from '../hooks/useViewPrefs';
+import { UnifiedHeader } from '../components/UnifiedHeader';
 
 export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
   const [cidadesReais, setCidadesReais] = useState<string[]>([]);
@@ -36,11 +38,9 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   const { toasts, addToast, removeToast } = useToast();
   const { user, logout } = useAuth();
   
-  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+  const { viewMode, setViewMode, sortBy, setSortBy } = useViewPrefs('dashboard', 'grid', 'created');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  
-  const [sortBy, setSortBy] = useState<'alpha' | 'created' | 'updated'>('created');
   
   // Modals state
   const [isPlaceModalOpen, setIsPlaceModalOpen] = useState(false);
@@ -222,96 +222,38 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       {/* HEADER */}
-      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#09090B]/50 backdrop-blur-md border-b border-slate-200 dark:border-white/10 px-8 py-4 flex flex-col gap-4">
-        {/* PRIMEIRA LINHA */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="select-none">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">Locais e Roteiros</h1>
-            <p className="text-sm text-slate-500 font-medium">{places.length} locais registrados</p>
-          </div>
-          
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
-            <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={handleImport} />
-            <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              <Upload className="w-4 h-4" /> Importar
-            </button>
-            <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              <Download className="w-4 h-4" /> Exportar
-            </button>
-            <button onClick={toggleTheme} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} Tema
-            </button>
-            <button onClick={() => setIsAboutModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              <Info className="w-4 h-4" /> Sobre
-            </button>
-            <button onClick={logout} className="flex items-center gap-1.5 px-3 py-1.5 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
-              <LogOut className="w-4 h-4" /> Sair
-            </button>
-          </div>
-        </div>
-
-        {/* SEGUNDA LINHA */}
-        <div className="flex items-center justify-end">
-          <div className="flex items-center bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1">
-            <button
-              onClick={handleSelectAllToggle}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors border-r border-slate-200 dark:border-white/10 mr-1 ${selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-            >
-              Todos
-            </button>
-            <div className="relative border-r border-slate-200 dark:border-white/10 mr-1">
-              <select
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value as 'alpha' | 'created' | 'updated')}
-                className="appearance-none bg-transparent pl-3 pr-8 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 cursor-pointer focus:outline-none dark:bg-[#09090B]"
-              >
-                <option value="created">Mais Recentes</option>
-                <option value="updated">Editados</option>
-                <option value="alpha">A-Z</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-              </div>
-            </div>
-            <button
-              onClick={() => setViewMode('cards')}
-              className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1.5 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-            >
-              <LayoutGrid className="w-4 h-4" /> Cards
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-            >
-              <List className="w-4 h-4" /> Lista
-            </button>
-          </div>
-        </div>
-
-        {/* TERCEIRA LINHA */}
-        <div className="flex gap-4">
-          <div className="relative flex-1 group">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-            <input
-              type="text"
-              placeholder="Pesquisar por nome, cidade ou razão social..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-sm"
-            />
-          </div>
-          <button
-            onClick={() => {
-              setEditingPlace(undefined);
-              setIsPlaceModalOpen(true);
-            }}
-            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm shrink-0"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">Novo Local</span>
-          </button>
-        </div>
-      </header>
+      <UnifiedHeader
+        title="Locais e Roteiros"
+        subtitle={`${places.length} locais registrados`}
+        totalCount={places.length}
+        filteredCount={filteredPlaces.length}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        viewMode={viewMode as 'grid'|'list'}
+        setViewMode={(m) => setViewMode(m as any)}
+        sortBy={sortBy}
+        setSortBy={(v) => setSortBy(v as any)}
+        sortOptions={[
+          {value: 'created', label: 'Mais Recentes'},
+          {value: 'updated', label: 'Editados'},
+          {value: 'alpha', label: 'A-Z'}
+        ]}
+        onOpenModal={() => {
+          setEditingPlace(undefined);
+          setIsPlaceModalOpen(true);
+        }}
+        buttonText="Novo Local"
+        theme={theme}
+        toggleTheme={toggleTheme}
+        logout={logout}
+        setAboutModalOpen={setIsAboutModalOpen}
+        onImport={handleImport}
+        onExport={handleExport}
+        selectedIds={selectedIds}
+        toggleSelectAll={handleSelectAllToggle}
+        onDeleteSelected={() => setDeleteAllConfirmStep(1)}
+        searchPlaceholder="Pesquisar por nome, cidade ou razão social..."
+      />
 
       {/* MAIN CONTENT */}
       <main className="p-6 max-w-[1600px] mx-auto pb-32">
@@ -337,7 +279,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
               Novo Local
             </button>
           </div>
-        ) : viewMode === 'cards' ? (
+        ) : viewMode === 'grid' || viewMode === 'cards' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredPlaces.map(place => (
               <PlaceCard
@@ -356,13 +298,22 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         ) : (
           <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-slate-50 dark:bg-[#09090B]/50 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 font-medium">
+              <thead className="bg-slate-50 dark:bg-[#09090B]/50 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs">
                 <tr>
-                  <th className="px-4 py-3 w-10"></th>
-                  <th className="px-4 py-3">Nome Fantasia</th>
-                  <th className="px-4 py-3">Cidade</th>
-                  <th className="px-4 py-3">Razão Social</th>
-                  <th className="px-4 py-3 w-28 text-right">Ações</th>
+                  <th className="px-4 py-3 w-10">
+                    <button
+                      onClick={handleSelectAllToggle}
+                      className="cursor-pointer flex items-center justify-center w-full h-full"
+                    >
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 dark:border-white/20 hover:border-blue-500'}`}>
+                        {selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 && <Check className="w-3 h-3" />}
+                      </div>
+                    </button>
+                  </th>
+                  <th className="px-4 py-3">NOME FANTASIA</th>
+                  <th className="px-4 py-3">CIDADE</th>
+                  <th className="px-4 py-3">RAZÃO SOCIAL</th>
+                  <th className="px-4 py-3 w-28 text-right">AÇÕES</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-white/5">
