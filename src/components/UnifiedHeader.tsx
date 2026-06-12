@@ -57,18 +57,18 @@ export function UnifiedHeader({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#09090B]/50 backdrop-blur-md border-b border-slate-200 dark:border-white/10 flex flex-col">
-      <div className="px-6 sm:px-8 py-6 flex flex-col gap-5">
+    <header className="sticky top-0 z-30 bg-slate-50/90 dark:bg-[#09090B]/90 backdrop-blur-md border-b border-slate-200 dark:border-white/5 flex flex-col">
+      <div className="px-4 sm:px-6 lg:px-8 py-5 flex flex-col gap-4 max-w-screen-2xl mx-auto w-full">
         {/* PRIMEIRA LINHA */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="select-none">
-          <h1 className="text-3xl font-display font-semibold tracking-tight text-slate-900 dark:text-white leading-tight">{title}</h1>
-          <p className="text-base text-slate-500 font-normal mt-1">{subtitle}</p>
+          <h1 className="text-2xl font-display font-semibold tracking-tight text-slate-900 dark:text-white leading-tight">{title}</h1>
+          {subtitle && <p className="text-sm text-slate-500 font-medium mt-0.5">{subtitle}</p>}
         </div>
         
         <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
           {setAboutModalOpen && (
-            <button onClick={() => setAboutModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap border border-transparent">
+            <button onClick={() => setAboutModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
               <Info className="w-4 h-4 shrink-0" /> Sobre
             </button>
           )}
