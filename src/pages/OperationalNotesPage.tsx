@@ -27,7 +27,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
   
   const [searchQuery, setSearchQuery] = useState('');
   const { viewMode, setViewMode, sortBy, setSortBy } = useViewPrefs('notes', 'grid', 'recentes');
-  const [activeTab, setActiveTab] = useState<'Anotações' | 'Tarefas' | 'Planejamento'>('Anotações');
+  const [activeTab, setActiveTab] = useState<'Anotações' | 'Tarefas'>('Anotações');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOp, setEditingOp] = useState<OperationLog | undefined>();
@@ -242,7 +242,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       <main className="p-6 max-w-[1600px] mx-auto space-y-6">
         {/* Tabs */}
         <div className="flex space-x-1 bg-slate-200/50 dark:bg-white/5 p-1 rounded-xl w-fit">
-          {(['Anotações', 'Tarefas', 'Planejamento'] as const).map(tab => (
+          {(['Anotações', 'Tarefas'] as const).map(tab => (
             <button
                key={tab}
                onClick={() => setActiveTab(tab)}
@@ -334,116 +334,6 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
            </div>
         )}
 
-        {activeTab === 'Planejamento' && (
-           <div className="space-y-6 flex flex-col md:flex-row gap-6">
-              
-              {/* Painel de Análise */}
-              <div className="flex-1 space-y-6">
-                 {/* Inteligência Operacional */}
-                 <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-500/20 rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                       <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-500" />
-                       <h3 className="font-bold text-amber-900 dark:text-amber-500">Alertas Operacionais</h3>
-                    </div>
-                    <div className="space-y-3">
-                       {(() => {
-                           const today = new Date();
-                           // We simplify by looking forward generically for demo purposes or exact date tomorrow.
-                           const tmrw = new Date();
-                           tmrw.setDate(today.getDate() + 1);
-                           const tomorrowStr = tmrw.toISOString().split('T')[0];
-
-                           const tmrwSchedules = schedules.filter(s => s.date === tomorrowStr);
-                           const assignedDriverIds = new Set(schedules.map(s => s.driverId).filter(Boolean));
-                           const unassignedDrivers = drivers.filter(d => d.status !== 'Férias' && d.status !== 'Afastado' && !assignedDriverIds.has(d.id!));
-                           const assignedVehicleIds = new Set(schedules.map(s => s.vehicleId).filter(Boolean));
-                           const unassignedVehicles = vehicles.filter(v => v.status === 'Disponível' && !assignedVehicleIds.has(v.id!));
-
-                           return (
-                              <>
-                                 <div className="bg-white/60 dark:bg-black/20 p-3 rounded-lg flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                       <UserX className="w-5 h-5 text-amber-600" />
-                                       <span className="font-medium text-amber-900 dark:text-amber-400">{unassignedDrivers.length} Motoristas sem programação</span>
-                                    </div>
-                                    <button className="text-xs font-bold text-amber-700 bg-amber-200/50 hover:bg-amber-200 px-3 py-1.5 rounded transition">Ver lista</button>
-                                 </div>
-                                 <div className="bg-white/60 dark:bg-black/20 p-3 rounded-lg flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                       <Truck className="w-5 h-5 text-amber-600" />
-                                       <span className="font-medium text-amber-900 dark:text-amber-400">{unassignedVehicles.length} Veículos parados</span>
-                                    </div>
-                                    <button className="text-xs font-bold text-amber-700 bg-amber-200/50 hover:bg-amber-200 px-3 py-1.5 rounded transition">Ver lista</button>
-                                 </div>
-                              </>
-                           );
-                       })()}
-                    </div>
-                 </div>
-
-                 <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6">
-                    <div className="flex items-center justify-between mb-6">
-                       <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                          <CheckCircle2 className="w-5 h-5 text-blue-500" /> Relatório Diário
-                       </h3>
-                       <div className="flex gap-2">
-                          <button 
-                             onClick={() => {
-                                 const report = `📋 RELATÓRIO OPERACIONAL - ${new Date().toLocaleDateString('pt-BR')}\n\n✅ TAREFAS CONCLUÍDAS\n${operations.filter(o => o.type === 'task' && o.status === 'Concluída').map(o => `• ${o.title}`).join('\n') || '• Nenhuma tarefa concluída hoje'}\n\n⏳ PENDÊNCIAS CRÍTICAS\n${operations.filter(o => o.type === 'task' && o.status !== 'Concluída' && (o.priority === 'Alta' || o.priority === 'Crítica')).map(o => `• ${o.title}`).join('\n') || '• Nenhuma pendência crítica'}\n\n📝 OBSERVAÇÕES\n${operations.filter(o => o.type === 'note' && o.isPinned).map(o => `• [FIXADA] ${o.title}`).join('\n') || '• Nenhuma nota de destaque'}\n\n➡️ PROGRAMAÇÃO DE AMANHÃ\n(Total de ${schedules.filter(s => s.date === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]).length} programações agendadas)`;
-                                 navigator.clipboard.writeText(report);
-                                 addToast('Copiado para a área de transferência', 'success');
-                             }}
-                             className="text-sm font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 px-4 py-2 rounded-lg transition text-slate-700 dark:text-slate-300"
-                          >
-                             Copiar WhatsApp
-                          </button>
-                       </div>
-                    </div>
-                    <p className="text-slate-500 text-sm mb-4">Resumo das tarefas e anotações para exportação rápida (WhatsApp / Email).</p>
-                    <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-xl border border-slate-100 dark:border-white/5 h-[300px] overflow-y-auto">
-                        <p className="font-mono text-xs text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
-{`📋 RELATÓRIO OPERACIONAL - ${new Date().toLocaleDateString('pt-BR')}
-
-✅ TAREFAS CONCLUÍDAS
-${operations.filter(o => o.type === 'task' && o.status === 'Concluída').map(o => `• ${o.title}`).join('\n') || '• Nenhuma tarefa concluída hoje'}
-
-⏳ PENDÊNCIAS CRÍTICAS
-${operations.filter(o => o.type === 'task' && o.status !== 'Concluída' && (o.priority === 'Alta' || o.priority === 'Crítica')).map(o => `• ${o.title}`).join('\n') || '• Nenhuma pendência crítica'}
-
-📝 OBSERVAÇÕES
-${operations.filter(o => o.type === 'note' && o.isPinned).map(o => `• [FIXADA] ${o.title}`).join('\n') || '• Nenhuma nota de destaque'}
-
-➡️ PROGRAMAÇÃO DE AMANHÃ
-(Total de ${schedules.filter(s => s.date === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]).length} programações agendadas)
-`}
-                        </p>
-                    </div>
-                 </div>
-              </div>
-
-              {/* Checklist de Fechamento */}
-              <div className="w-full md:w-80 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-5 h-fit">
-                 <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                    <PenTool className="w-5 h-5 text-slate-500" /> Checkout Diário
-                 </h3>
-                 <div className="space-y-3">
-                    {[
-                       'Verificar pendências vencidas',
-                       'Emitir CT-es do dia',
-                       'Avisar motoristas da programação de amanhã',
-                       'Revisar veículos inoperantes',
-                       'Atualizar controle de combustível'
-                    ].map((item, idx) => (
-                       <label key={idx} className="flex items-start gap-3 p-3 bg-white dark:bg-black/20 border border-slate-100 dark:border-white/5 rounded-xl cursor-pointer hover:border-blue-200 transition">
-                          <input type="checkbox" className="mt-1 flex-shrink-0 w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" />
-                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-snug">{item}</span>
-                       </label>
-                    ))}
-                 </div>
-              </div>
-              
-           </div>
-        )}
 
       </main>
 

@@ -342,88 +342,112 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
 
   const generateReport = () => {
     const today = new Date().toLocaleDateString('pt-BR');
-    let rpt = `📊 RELATÓRIO OPERACIONAL | ${today}\n\n`;
+    let rpt = `📊 *RELATÓRIO OPERACIONAL | ${today}*\n\n`;
 
     const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nome || '(Sem motorista)';
-    const getVehiclePlate = (vehicleId: string) => vehicles.find(v => v.id === vehicleId)?.placa || '(Sem veículo)';
+    const getVehiclePlate = (vehicleId: string) => vehicles.find(v => v.id === vehicleId)?.placa || 'SEM CAVALO';
+    const getDriverJornada = (driverId: string) => {
+        const d = drivers.find(d => d.id === driverId);
+        if (!d) return '[08:00 às 18:00]';
+        return `[${d.inicioJornada || '08:00'} às ${d.fimJornada || '18:00'}]`;
+    };
 
-    // Pendências
-    rpt += `──────────────────\n⚠️ PENDÊNCIAS OPERACIONAIS\n──────────────────\n\n`;
-    const pended = activeSchedules.filter(s => s.observations && s.observations.trim().length > 0);
-    if (pended.length === 0) rpt += `Nenhuma pendência.\n\n`;
-    pended.forEach(s => {
-      rpt += `🟡 [${getVehiclePlate(s.vehicleId)}] [${getDriverName(s.driverId)}] - ${s.observations}\n`;
-    });
-    rpt += `\n`;
-
-    // Grouping schedules by location
-    // Find unique locations
-    const opsWithLocation = activeSchedules.filter(s => s.locationName && s.locationName.trim() !== '');
-    const locations = Array.from(new Set(opsWithLocation.map(s => s.locationName)));
+    const sortSchedules = (list: Schedule[]) => {
+      return [...list].sort((a, b) => getDriverName(a.driverId).localeCompare(getDriverName(b.driverId)));
+    };
     
-    // We can show specifically "Operação [Cliente]" for big ops? Or Coletas/Entregas? 
-    // The prompt says "Operação [Cliente]" and "Coletas/Entregas" generally.
-    // Let's list by location
-    const othersColEnt = activeSchedules.filter(s => {
-       const opArr = s.operations || [s.operation];
-       return opArr.includes('Coleta') || opArr.includes('Entrega');
+    const sortDriversList = (list: Driver[]) => {
+      return [...list].sort((a, b) => a.nome.localeCompare(b.nome));
+    };
+
+    // 1. PENDÊNCIAS OPERACIONAIS
+    const pended = sortSchedules(activeSchedules.filter(s => s.observations && s.observations.trim().length > 0));
+    if (pended.length > 0) {
+      rpt += `──────────────────\n⚠️ PENDÊNCIAS OPERACIONAIS\n──────────────────\n\n`;
+      pended.forEach(s => {
+        rpt += `🟡 \`${getVehiclePlate(s.vehicleId)}\` ${getDriverName(s.driverId).toUpperCase()} - ${getDriverJornada(s.driverId)} | *${s.observations}*\n\n`;
+      });
+    }
+
+    // Categorization
+    const opsByCli: Record<string, Schedule[]> = {};
+    const colEntArr: Schedule[] = [];
+    const tripsByReg: Record<string, Schedule[]> = {};
+
+    activeSchedules.forEach(s => {
+        const opArr = s.operations || [s.operation];
+        
+        if (opArr.includes('Viagem')) {
+            const loc = (s.locationName || 'Diversas Regiões').toUpperCase();
+            if (!tripsByReg[loc]) tripsByReg[loc] = [];
+            tripsByReg[loc].push(s);
+        } else if (opArr.includes('Coleta') || opArr.includes('Entrega') || opArr.includes('Transferência')) {
+            colEntArr.push(s);
+        } else {
+            const loc = (s.locationName || 'OUTRAS OPERAÇÕES').toUpperCase();
+            if (!opsByCli[loc]) opsByCli[loc] = [];
+            opsByCli[loc].push(s);
+        }
     });
 
-    if (locations.length > 0) {
-      locations.forEach(loc => {
-        rpt += `──────────────────\n🚛 OPERAÇÃO ${loc?.toUpperCase()}\n──────────────────\n\n`;
-        const locOps = activeSchedules.filter(s => s.locationName === loc);
-        locOps.forEach(s => {
-          const opsStr = (s.operations || [s.operation]).join(', ');
-          rpt += `🟢 [${getVehiclePlate(s.vehicleId)}] [${getDriverName(s.driverId)}] - ${opsStr} ${s.locationName}\n`;
+    // 2. OPERAÇÃO CLIENTE
+    const cliKeys = Object.keys(opsByCli).sort();
+    cliKeys.forEach(cli => {
+        if (opsByCli[cli].length > 0) {
+            rpt += `──────────────────\n🚛 OPERAÇÃO ${cli}\n──────────────────\n\n`;
+            sortSchedules(opsByCli[cli]).forEach(s => {
+                const opsStr = (s.operations || [s.operation]).join(', ');
+                rpt += `🟢 \`${getVehiclePlate(s.vehicleId)}\` ${getDriverName(s.driverId).toUpperCase()} - ${opsStr} ${s.locationName ? s.locationName : ''}`.trim() + `\n\n`;
+            });
+        }
+    });
+
+    // 3. COLETAS / ENTREGAS
+    if (colEntArr.length > 0) {
+        rpt += `──────────────────\n🚚 COLETAS / ENTREGAS\n──────────────────\n\n`;
+        sortSchedules(colEntArr).forEach(s => {
+            const opsStr = (s.operations || [s.operation]).join(', ');
+            rpt += `🟢 \`${getVehiclePlate(s.vehicleId)}\` ${getDriverName(s.driverId).toUpperCase()} - ${opsStr} ${s.locationName ? s.locationName : ''}`.trim() + `\n\n`;
         });
-        rpt += `\n`;
-      });
-    } else if (othersColEnt.length > 0) {
-      rpt += `──────────────────\n🚚 COLETAS / ENTREGAS\n──────────────────\n\n`;
-      othersColEnt.forEach(s => {
-        const opsStr = (s.operations || [s.operation]).join(', ');
-        rpt += `🟢 [${getVehiclePlate(s.vehicleId)}] [${getDriverName(s.driverId)}] - ${opsStr} ${s.locationName || ''}\n`;
-      });
-      rpt += `\n`;
     }
 
-    // Viagens
-    const viagens = activeSchedules.filter(s => (s.operations || [s.operation]).includes('Viagem'));
-    if (viagens.length > 0) {
-      // Group by location? The prompt says "🌎 [REGIÃO] 🔵 [PLACA] [MOT] - Em viagem"
-      rpt += `──────────────────\n🌎 VIAGENS\n──────────────────\n\n`;
-      viagens.forEach(s => {
-         rpt += `🔵 [${getVehiclePlate(s.vehicleId)}] [${getDriverName(s.driverId)}] - Em viagem ${s.locationName ? `(${s.locationName})` : ''}\n`;
-      });
-      rpt += `\n`;
+    // 4. REGIÕES (Viagens)
+    const tripKeys = Object.keys(tripsByReg).sort();
+    tripKeys.forEach(reg => {
+       if (tripsByReg[reg].length > 0) {
+           rpt += `──────────────────\n🌎 ${reg}\n──────────────────\n\n`;
+           sortSchedules(tripsByReg[reg]).forEach(s => {
+               rpt += `🔵 \`${getVehiclePlate(s.vehicleId)}\` ${getDriverName(s.driverId).toUpperCase()} - ${s.locationName ? s.locationName : 'EM VIAGEM'}\n\n`;
+           });
+       }
+    });
+
+    // 5. FOLGA / FÉRIAS / AFASTAMENTOS
+    const folgas = sortDriversList(drivers.filter(d => ['Folga', 'Férias', 'Afastado'].includes(d.status)));
+    if (folgas.length > 0) {
+        rpt += `──────────────────\n🟡 FOLGA / FÉRIAS / AFASTAMENTOS\n──────────────────\n\n`;
+        folgas.forEach(d => {
+            const placa = getVehiclePlate(d.veiculoPadraoId || '');
+            const jorna = `[${d.inicioJornada || '08:00'} às ${d.fimJornada || '18:00'}]`;
+            rpt += `🟡 \`${placa}\` ${d.nome.toUpperCase()} - ${jorna} | *${d.status.toUpperCase()}*\n\n`;
+        });
     }
 
-    // Folga / Férias / Afastamentos
-    rpt += `──────────────────\n🟡 FOLGA / FÉRIAS / AFASTAMENTOS\n──────────────────\n\n`;
-    const folgas = drivers.filter(d => ['Folga', 'Férias', 'Afastado'].includes(d.status));
-    if (folgas.length === 0) rpt += `Nenhum.\n\n`;
-    folgas.forEach(d => {
-      const v = vehicles.find(vh => vh.id === d.veiculoPadraoId);
-      const placa = v?.placa || 'SEM CAVALO';
-      rpt += `🟡 [${placa}] [${d.nome}] - ${d.status}\n`;
-    });
-    rpt += `\n`;
+    // 6. SEM PROGRAMAÇÃO
+    const semProg = sortDriversList(drivers.filter(d => 
+        !['Folga', 'Férias', 'Afastado'].includes(d.status) &&
+        !activeSchedules.some(s => s.driverId === d.id)
+    ));
+    if (semProg.length > 0) {
+        rpt += `──────────────────\n⚪ SEM PROGRAMAÇÃO\n──────────────────\n\n`;
+        semProg.forEach(d => {
+            const placa = getVehiclePlate(d.veiculoPadraoId || '');
+            const jorna = `[${d.inicioJornada || '08:00'} às ${d.fimJornada || '18:00'}]`;
+            rpt += `⚪ \`${placa}\` ${d.nome.toUpperCase()} - ${jorna}\n\n`;
+        });
+    }
 
-    // Sem programação
-    rpt += `──────────────────\n⚪ SEM PROGRAMAÇÃO\n──────────────────\n\n`;
-    const semProg = drivers.filter(d => 
-      !['Folga', 'Férias', 'Afastado'].includes(d.status) &&
-      !activeSchedules.some(s => s.driverId === d.id)
-    );
-    if (semProg.length === 0) rpt += `Nenhum.\n\n`;
-    semProg.forEach(d => {
-      const v = vehicles.find(vh => vh.id === d.veiculoPadraoId);
-      const placa = v?.placa || 'SEM CAVALO';
-      rpt += `⚪ [${placa}] [${d.nome}] - ${d.inicioJornada || '08:00'} às ${d.fimJornada || '18:00'}\n`;
-    });
-
-    return rpt;
+    return rpt.trim() + '\n';
   };
 
   const itemsToDisplay = filteredItems().sort((a, b) => {
@@ -958,24 +982,53 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
           <textarea
             readOnly
             value={reportText}
-            className="w-full h-96 p-4 text-xs font-mono bg-slate-900 border border-slate-700 text-slate-100 rounded-lg resize-none outline-none hide-scrollbar"
+            className="w-full h-96 p-4 text-xs font-mono bg-slate-900 border border-slate-700 text-slate-100 rounded-lg resize-none outline-none hide-scrollbar leading-relaxed"
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-between items-center w-full pt-2">
             <button
               onClick={() => setReportModalOpen(false)}
               className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition"
             >
               Fechar
             </button>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(reportText);
-                addToast('Relatório copiado para a área de transferência', 'success');
-              }}
-              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              Copiar Texto
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  const newWin = window.open('', '_blank');
+                  if (!newWin) {
+                     addToast('Permita popups para exportar o PDF', 'error');
+                     return;
+                  }
+                  newWin.document.write(`
+                    <html>
+                      <head>
+                        <title>Relatório Operacional</title>
+                        <style>
+                          body { font-family: monospace; white-space: pre-wrap; padding: 40px; font-size: 14px; max-width: 800px; margin: 0 auto; line-height: 1.5; color: #000; }
+                          @media print { body { padding: 0; } }
+                        </style>
+                      </head>
+                      <body>${reportText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</body>
+                    </html>
+                  `);
+                  newWin.document.close();
+                  newWin.focus();
+                  setTimeout(() => newWin.print(), 100);
+                }}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-lg hover:bg-slate-200 dark:hover:bg-white/20 transition"
+              >
+                📄 Exportar PDF
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(reportText);
+                  addToast('Copiado para a área de transferência', 'success');
+                }}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#25D366] text-white rounded-lg hover:bg-[#128C7E] shadow-sm transition"
+              >
+                📋 Copiar para WhatsApp
+              </button>
+            </div>
           </div>
         </div>
       </Modal>
