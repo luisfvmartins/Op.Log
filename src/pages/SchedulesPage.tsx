@@ -567,7 +567,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                           <th className="px-4 py-3 text-left">MOTORISTA</th>
                           <th className="px-4 py-3 text-left">VEÍCULO</th>
                           <th className="px-4 py-3 text-left">STATUS</th>
-                          <th className="px-5 py-3 text-right">AÇÕES</th>
+                          <th className="px-5 py-3 pr-6 w-32 text-right">AÇÕES</th>
                        </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -600,8 +600,9 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                                       {s.status}
                                    </span>
                                 </td>
-                                <td className="px-5 py-3 text-right">
-                                   <button onClick={() => handleOpenModal(s)} className="p-1.5 text-slate-400 hover:text-blue-600 transition" title="Editar">
+                                <td className="px-5 py-3 pr-6 text-right">
+       <div className="flex items-center justify-end gap-1">
+         <button onClick={() => handleOpenModal(s)} className="p-1.5 text-slate-400 hover:text-blue-600 transition" title="Editar">
                                       <Edit2 className="w-4 h-4"/>
                                    </button>
                                    {!isEncerrado && (
@@ -612,7 +613,9 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                                    <button onClick={() => setDeletingId(s.id!)} className="p-1.5 text-slate-400 hover:text-red-600 transition" title="Excluir">
                                       <Trash2 className="w-4 h-4" />
                                    </button>
-                                </td>
+                                
+       </div>
+     </td>
                              </tr>
                           );
                        })}

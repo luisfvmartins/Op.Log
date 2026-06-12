@@ -11,13 +11,12 @@ import { SchedulesPage } from './pages/SchedulesPage';
 import { OperationalNotesPage } from './pages/OperationalNotesPage';
 import { Login } from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Map, Users, Truck, Calendar, Menu, X, LogOut, Sun, Moon, BookOpen, Bell } from 'lucide-react';
+import { Map, Users, Truck, Calendar, Menu, X, LogOut, Sun, Moon, BookOpen } from 'lucide-react';
 
 function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'locais' | 'programacoes' | 'anotacoes' | 'motoristas' | 'veiculos'>('locais');
 
   const navItems = [
@@ -46,27 +45,6 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
               <Truck className="w-5 h-5" />
             </div>
           )}
-          {!isDesktopSidebarCollapsed && (
-            <button 
-              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-              className="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition"
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-[#09090B]"></span>
-            </button>
-          )}
-          
-          {isNotificationsOpen && !isDesktopSidebarCollapsed && (
-            <div className="absolute top-full right-4 mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg z-50 overflow-hidden">
-              <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                <span className="font-semibold text-sm">Notificações</span>
-                <button onClick={() => setIsNotificationsOpen(false)} className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-300">Marcar como lidas</button>
-              </div>
-              <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                Nenhuma nova notificação
-              </div>
-            </div>
-          )}
         </div>
         
         <nav className="flex-1 p-4 flex flex-col gap-2 overflow-y-auto overflow-x-hidden">
@@ -93,24 +71,6 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
         </nav>
 
         <div className="p-4 border-t border-slate-200 dark:border-white/10 space-y-2">
-          {!isDesktopSidebarCollapsed && (
-            <div className="flex items-center gap-3 mb-4 px-3">
-               <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold text-sm shrink-0">
-                 {user?.email?.charAt(0).toUpperCase() || 'U'}
-               </div>
-               <div className="text-sm truncate">
-                 <p className="font-semibold text-slate-900 dark:text-white truncate">{user?.email}</p>
-               </div>
-            </div>
-          )}
-          {isDesktopSidebarCollapsed && (
-             <div className="flex justify-center mb-4">
-                <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold text-sm shrink-0 title={user?.email}">
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
-                </div>
-             </div>
-          )}
-          
           <button
             onClick={toggleTheme}
             className={`flex items-center gap-3 w-full p-3 rounded-xl transition text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 ${isDesktopSidebarCollapsed ? 'justify-center' : ''}`}
@@ -155,26 +115,10 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
              <span className="font-semibold text-slate-900 dark:text-white">Op.Log</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} className="relative p-2 text-slate-500 dark:text-slate-300">
-              <Bell className="w-6 h-6" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-[#09090B]"></span>
-            </button>
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600 dark:text-slate-300">
                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
-          
-          {isNotificationsOpen && (
-            <div className="absolute top-full right-4 mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg z-50 overflow-hidden">
-              <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                <span className="font-semibold text-sm text-slate-900 dark:text-white">Notificações</span>
-                <button onClick={() => setIsNotificationsOpen(false)} className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-300">Marcar como lidas</button>
-              </div>
-              <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                Nenhuma nova notificação
-              </div>
-            </div>
-          )}
         </header>
 
         {/* Mobile Menu */}
