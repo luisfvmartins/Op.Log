@@ -114,20 +114,23 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
 
     setIsBusy(true);
     try {
-      const data: Omit<OperationLog, 'id' | 'createdAt' | 'updatedAt'> = {
+      const data: any = {
         userId: user.uid,
         type,
         title: title.trim(),
         description: description.trim(),
         category,
         priority,
-        status: type === 'task' ? status : undefined,
+        status: type === 'task' ? status : '',
         date: dueDate,
         time: dueTime,
         driverId,
         vehicleId,
         isPinned
       };
+      
+      // Remove any remaining undefined values just in case
+      Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
 
       if (editingOp?.id) {
         await updateOperation(editingOp.id, data);
@@ -335,11 +338,11 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                            tmrw.setDate(today.getDate() + 1);
                            const tomorrowStr = tmrw.toISOString().split('T')[0];
 
-                           const tmrwSchedules = schedules.filter(s => s.data === tomorrowStr);
-                           const assignedDriverIds = new Set(schedules.flatMap(s => s.motoristas || []));
-                           const unassignedDrivers = drivers.filter(d => !assignedDriverIds.has(d.id!));
-                           const assignedVehicleIds = new Set(schedules.flatMap(s => s.veiculos || []));
-                           const unassignedVehicles = vehicles.filter(v => !assignedVehicleIds.has(v.id!));
+                           const tmrwSchedules = schedules.filter(s => s.date === tomorrowStr);
+                           const assignedDriverIds = new Set(schedules.map(s => s.driverId).filter(Boolean));
+                           const unassignedDrivers = drivers.filter(d => d.status !== 'Férias' && d.status !== 'Afastado' && !assignedDriverIds.has(d.id!));
+                           const assignedVehicleIds = new Set(schedules.map(s => s.vehicleId).filter(Boolean));
+                           const unassignedVehicles = vehicles.filter(v => v.status === 'Disponível' && !assignedVehicleIds.has(v.id!));
 
                            return (
                               <>
@@ -371,7 +374,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                        <div className="flex gap-2">
                           <button 
                              onClick={() => {
-                                 const report = `📋 RELATÓRIO OPERACIONAL - ${new Date().toLocaleDateString('pt-BR')}\n\n✅ TAREFAS CONCLUÍDAS\n${operations.filter(o => o.type === 'task' && o.status === 'Concluída').map(o => `• ${o.title}`).join('\n') || '• Nenhuma tarefa concluída hoje'}\n\n⏳ PENDÊNCIAS CRÍTICAS\n${operations.filter(o => o.type === 'task' && o.status !== 'Concluída' && (o.priority === 'Alta' || o.priority === 'Crítica')).map(o => `• ${o.title}`).join('\n') || '• Nenhuma pendência crítica'}\n\n📝 OBSERVAÇÕES\n${operations.filter(o => o.type === 'note' && o.isPinned).map(o => `• [FIXADA] ${o.title}`).join('\n') || '• Nenhuma nota de destaque'}\n\n➡️ PROGRAMAÇÃO DE AMANHÃ\n(Total de ${schedules.filter(s => s.data === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]).length} programações agendadas)`;
+                                 const report = `📋 RELATÓRIO OPERACIONAL - ${new Date().toLocaleDateString('pt-BR')}\n\n✅ TAREFAS CONCLUÍDAS\n${operations.filter(o => o.type === 'task' && o.status === 'Concluída').map(o => `• ${o.title}`).join('\n') || '• Nenhuma tarefa concluída hoje'}\n\n⏳ PENDÊNCIAS CRÍTICAS\n${operations.filter(o => o.type === 'task' && o.status !== 'Concluída' && (o.priority === 'Alta' || o.priority === 'Crítica')).map(o => `• ${o.title}`).join('\n') || '• Nenhuma pendência crítica'}\n\n📝 OBSERVAÇÕES\n${operations.filter(o => o.type === 'note' && o.isPinned).map(o => `• [FIXADA] ${o.title}`).join('\n') || '• Nenhuma nota de destaque'}\n\n➡️ PROGRAMAÇÃO DE AMANHÃ\n(Total de ${schedules.filter(s => s.date === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]).length} programações agendadas)`;
                                  navigator.clipboard.writeText(report);
                                  addToast('Copiado para a área de transferência', 'success');
                              }}
@@ -396,7 +399,7 @@ ${operations.filter(o => o.type === 'task' && o.status !== 'Concluída' && (o.pr
 ${operations.filter(o => o.type === 'note' && o.isPinned).map(o => `• [FIXADA] ${o.title}`).join('\n') || '• Nenhuma nota de destaque'}
 
 ➡️ PROGRAMAÇÃO DE AMANHÃ
-(Total de ${schedules.filter(s => s.data === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]).length} programações agendadas)
+(Total de ${schedules.filter(s => s.date === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]).length} programações agendadas)
 `}
                         </p>
                     </div>

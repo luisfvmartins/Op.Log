@@ -38,6 +38,8 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
   const [fim, setFim] = useState('18:00');
   const [status, setStatus] = useState('Disponível');
   const [veiculoPadraoId, setVeiculoPadraoId] = useState<string>('');
+  const [vehicleSearchDisplay, setVehicleSearchDisplay] = useState('');
+  const [vehicleDropdownOpen, setVehicleDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (user?.uid) {
@@ -54,6 +56,28 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleQuickCreateVehicle = async (placa: string) => {
+    if (!user) return;
+    setIsBusy(true);
+    try {
+      const vid = await createVehicle({
+        userId: user.uid,
+        placa: placa.toUpperCase(),
+        tipo: 'Trucado',
+        status: 'Disponível'
+      });
+      addToast('Veículo criado e vinculado com sucesso.', 'success');
+      await loadVehicles();
+      setVeiculoPadraoId(vid);
+      setVehicleSearchDisplay(placa.toUpperCase());
+      setVehicleDropdownOpen(false);
+    } catch(err) {
+      addToast('Erro ao criar veículo', 'error');
+    } finally {
+      setIsBusy(false);
     }
   };
 
@@ -80,6 +104,12 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
       setFim(driver.fimJornada);
       setStatus(driver.status);
       setVeiculoPadraoId(driver.veiculoPadraoId || '');
+      if (driver.veiculoPadraoId) {
+         const v = vehicles.find(v => v.id === driver.veiculoPadraoId);
+         setVehicleSearchDisplay(v ? v.placa : '');
+      } else {
+         setVehicleSearchDisplay('');
+      }
     } else {
       setEditingDriver(undefined);
       setNome('');
@@ -88,7 +118,9 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
       setFim('18:00');
       setStatus('Disponível');
       setVeiculoPadraoId('');
+      setVehicleSearchDisplay('');
     }
+    setVehicleDropdownOpen(false);
     setIsModalOpen(true);
   };
 
@@ -543,18 +575,62 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
             </select>
           </div>
 
-          <div>
+          <div className="relative border-b-0">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Veículo Padrão (Opcional)</label>
-            <select
-              value={veiculoPadraoId}
-              onChange={e => setVeiculoPadraoId(e.target.value)}
-              className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white"
-            >
-              <option value="">Nenhum Veículo Vinculado</option>
-              {vehicles.map(v => (
-                <option key={v.id} value={v.id}>{v.placa} ({v.tipo})</option>
-              ))}
-            </select>
+            <div className="relative">
+               <input
+                 type="text"
+                 value={vehicleSearchDisplay}
+                 placeholder="Digite a placa..."
+                 className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-lg px-3 py-2 text-slate-900 dark:text-white uppercase focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 onChange={(e) => {
+                    const val = e.target.value.toUpperCase();
+                    setVehicleSearchDisplay(val);
+                    setVehicleDropdownOpen(true);
+                    if (!val) setVeiculoPadraoId('');
+                 }}
+                 onFocus={() => setVehicleDropdownOpen(true)}
+               />
+               {vehicleDropdownOpen && vehicleSearchDisplay && (
+                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-[#1E1E24] border border-slate-200 dark:border-white/10 rounded-lg shadow-lg overflow-hidden flex flex-col">
+                     {vehicles
+                        .filter(v => v.placa.includes(vehicleSearchDisplay))
+                        .slice(0, 2)
+                        .map(v => (
+                           <button
+                              key={v.id}
+                              type="button"
+                              onClick={() => {
+                                 setVeiculoPadraoId(v.id!);
+                                 setVehicleSearchDisplay(v.placa);
+                                 setVehicleDropdownOpen(false);
+                              }}
+                              className="text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-white/5 border-b border-slate-50 dark:border-white/5 last:border-0 text-slate-900 dark:text-white font-mono"
+                           >
+                              {v.placa} <span className="text-slate-500 text-sm font-sans mx-2">({v.tipo})</span>
+                           </button>
+                        ))
+                     }
+                     {vehicles.filter(v => v.placa === vehicleSearchDisplay).length === 0 && vehicleSearchDisplay.length > 5 && (
+                        <div className="px-4 py-3 bg-slate-50 dark:bg-white/5">
+                           <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Placa não encontrada.</p>
+                           <button
+                              type="button"
+                              onClick={() => {
+                                handleQuickCreateVehicle(vehicleSearchDisplay);
+                              }}
+                              className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:underline"
+                           >
+                              Cadastrar placa {vehicleSearchDisplay}?
+                           </button>
+                        </div>
+                     )}
+                     <div className="px-4 py-2 bg-slate-100 dark:bg-white/5 text-xs text-slate-500 flex justify-end">
+                       <button type="button" onClick={() => setVehicleDropdownOpen(false)}>Fechar lista</button>
+                     </div>
+                  </div>
+               )}
+            </div>
           </div>
 
           <div className="pt-4 flex justify-end gap-2">

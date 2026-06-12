@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Truck, Plus, Search, Edit2, Trash2, Upload, Download, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getVehicles, createVehicle, updateVehicle, deleteVehicle, Vehicle } from '../services/vehicles';
-import { getDrivers, createDriver } from '../services/drivers';
+import { getDrivers, Driver, createDriver } from '../services/drivers';
 import { Modal } from '../components/ui/Modal';
 import { ToastContainer } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
@@ -33,12 +33,26 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
   const [placa, setPlaca] = useState('');
   const [tipo, setTipo] = useState('Trucado');
   const [status, setStatus] = useState('Disponível');
+  
+  const [drivers, setDrivers] = useState<Driver[]>([]);
 
   useEffect(() => {
     if (user?.uid) {
       loadVehicles();
+      loadDrivers();
     }
   }, [user]);
+
+  const loadDrivers = async () => {
+    try {
+      if (user) {
+        const data = await getDrivers(user.uid);
+        setDrivers(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const loadVehicles = async () => {
     setLoading(true);
@@ -345,7 +359,9 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredVehicles.map(v => (
+            {filteredVehicles.map(v => {
+              const vincDrivers = drivers.filter(d => d.veiculoPadraoId === v.id);
+              return (
               <div key={v.id} 
                 className={`bg-white dark:bg-white/5 border rounded-xl p-5 hover:border-blue-500 dark:hover:border-blue-500/50 transition flex flex-col relative group cursor-pointer ${
                   selectedIds.has(v.id!) ? 'border-blue-500 ring-1 ring-blue-500 dark:border-blue-500/50' : 'border-slate-200 dark:border-white/10'
@@ -373,7 +389,16 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
                   </span>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/10">
+                {vincDrivers.length > 0 && (
+                  <div className="mt-2 text-sm text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-white/10 pt-3">
+                    <span className="font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider text-[10px] block mb-1">Motorista(s) Vinculado(s):</span>
+                    <span className="truncate block" title={vincDrivers.map(d => d.nome).join(', ')}>
+                      {vincDrivers.map(d => d.nome).join(', ')}
+                    </span>
+                  </div>
+                )}
+
+                <div className={`${vincDrivers.length > 0 ? 'mt-4 pt-4' : 'mt-auto pt-4'} flex items-center justify-between border-t border-slate-100 dark:border-white/10`}>
                   <div className="flex gap-2">
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleOpenModal(v); }} 
@@ -395,7 +420,8 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
                    </button>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         ) : (
           <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
@@ -411,12 +437,15 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
                          <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left"></th>
                          <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">PLACA</th>
                          <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">TIPO</th>
+                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">MOTORISTA(S)</th>
                          <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">STATUS</th>
                          <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">AÇÕES</th>
                       </tr>
                    </thead>
                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                      {filteredVehicles.map(v => (
+                      {filteredVehicles.map(v => {
+                         const vincDrivers = drivers.filter(d => d.veiculoPadraoId === v.id);
+                         return (
                          <tr key={v.id} className={`hover:bg-slate-50 dark:hover:bg-white/5 transition cursor-pointer ${selectedIds.has(v.id!) ? 'bg-blue-50/50 dark:bg-blue-500/10' : ''}`} onClick={() => toggleSelection(v.id!)}>
                             <td className="p-4 text-center">
                                <button onClick={(e) => toggleSelection(v.id!, e)} className={`text-slate-300 hover:text-blue-500 transition ${selectedIds.has(v.id!) ? 'text-blue-600 dark:text-blue-400' : ''}`}>
@@ -430,6 +459,9 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
                             </td>
                             <td className="p-4 font-bold text-slate-900 dark:text-white font-mono">{v.placa}</td>
                             <td className="p-4 text-slate-500 text-sm">{v.tipo}</td>
+                            <td className="p-4 text-slate-500 text-sm max-w-[200px] truncate" title={vincDrivers.map(d => d.nome).join(', ')}>
+                               {vincDrivers.length > 0 ? vincDrivers.map(d => d.nome).join(', ') : '-'}
+                            </td>
                             <td className="p-4">
                                <span className={`px-2 py-1 text-[10px] uppercase font-bold tracking-wider rounded border ${getStatusColor(v.status)}`}>{v.status}</span>
                             </td>
@@ -448,7 +480,8 @@ export function VehiclesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', 
                                </button>
                             </td>
                          </tr>
-                      ))}
+                         );
+                      })}
                    </tbody>
                 </table>
              </div>
