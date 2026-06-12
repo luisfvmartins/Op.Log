@@ -222,123 +222,94 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       {/* HEADER */}
-      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#09090B]/50 backdrop-blur-md border-b border-slate-200 dark:border-white/10 px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 flex items-center justify-center bg-blue-600 rounded text-white">
-            <Map className="w-5 h-5" />
-          </div>
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#09090B]/50 backdrop-blur-md border-b border-slate-200 dark:border-white/10 px-8 py-4 flex flex-col gap-4">
+        {/* PRIMEIRA LINHA */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="select-none">
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white leading-tight">Locais e Roteiros</h1>
-            <p className="text-xs text-slate-500 font-medium">{places.length} locais registrados</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">Locais e Roteiros</h1>
+            <p className="text-sm text-slate-500 font-medium">{places.length} locais registrados</p>
+          </div>
+          
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
+            <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={handleImport} />
+            <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+              <Upload className="w-4 h-4" /> Importar
+            </button>
+            <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+              <Download className="w-4 h-4" /> Exportar
+            </button>
+            <button onClick={toggleTheme} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} Tema
+            </button>
+            <button onClick={() => setIsAboutModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+              <Info className="w-4 h-4" /> Sobre
+            </button>
+            <button onClick={logout} className="flex items-center gap-1.5 px-3 py-1.5 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+              <LogOut className="w-4 h-4" /> Sair
+            </button>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-80 group order-last flex-basis-full sm:order-none sm:flex-basis-auto">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
-            <input
-              type="text"
-              placeholder="Pesquisar por nome, cidade ou razão social..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all dark:placeholder:text-slate-500"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 max-w-full">
-            <div className="flex overflow-x-auto sm:overflow-visible bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1 shrink-0 mr-2 max-w-full">
-              <button
-                onClick={handleSelectAllToggle}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors border-r border-slate-200 dark:border-white/10 mr-1 ${selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-                title="Selecionar Tudo"
-              >
-                Todos
-              </button>
+        {/* SEGUNDA LINHA */}
+        <div className="flex items-center justify-end">
+          <div className="flex items-center bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1">
+            <button
+              onClick={handleSelectAllToggle}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors border-r border-slate-200 dark:border-white/10 mr-1 ${selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+            >
+              Todos
+            </button>
+            <div className="relative border-r border-slate-200 dark:border-white/10 mr-1">
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as 'alpha' | 'created' | 'updated')}
-                className="bg-transparent text-xs font-medium text-slate-500 dark:text-slate-400 focus:outline-none dark:bg-[#09090B] px-2 py-1 mr-2 border-r border-slate-200 dark:border-white/10"
+                className="appearance-none bg-transparent pl-3 pr-8 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 cursor-pointer focus:outline-none dark:bg-[#09090B]"
               >
                 <option value="created">Mais Recentes</option>
                 <option value="updated">Editados</option>
                 <option value="alpha">A-Z</option>
               </select>
-              <button
-                onClick={() => setViewMode('cards')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'cards' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-                title="Visualização em Cards"
-              >
-                Cards
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-                title="Visualização em Lista"
-              >
-                Lista
-              </button>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
             </div>
-
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept=".json" 
-              onChange={handleImport} 
-            />
             <button
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
-              title="Importar locais de arquivo"
+              onClick={() => setViewMode('cards')}
+              className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1.5 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
             >
-              <Upload className="w-4 h-4" />
+              <LayoutGrid className="w-4 h-4" /> Cards
             </button>
-
             <button
-              onClick={handleExport}
-              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
-              title="Exportar locais para arquivo"
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
             >
-              <Download className="w-4 h-4" />
-            </button>
-
-            <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block"></div>
-
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
-              title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-
-            <button
-              onClick={() => setIsAboutModalOpen(true)}
-              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
-              title="Sobre o aplicativo"
-            >
-              <Info className="w-4 h-4" />
-            </button>
-            
-            <button
-              onClick={logout}
-              className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-400/10 rounded-lg transition-colors border border-transparent dark:border-white/10 bg-slate-100 dark:bg-white/5 shrink-0"
-              title="Sair"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={() => {
-                setEditingPlace(undefined);
-                setIsPlaceModalOpen(true);
-              }}
-              className="flex items-center gap-2 bg-blue-600 xl:bg-slate-900 hover:bg-blue-500 xl:hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 ml-2"
-            >
-              <span className="hidden sm:inline">+ Novo Local</span>
-              <Plus className="w-4 h-4 sm:hidden" />
+              <List className="w-4 h-4" /> Lista
             </button>
           </div>
+        </div>
+
+        {/* TERCEIRA LINHA */}
+        <div className="flex gap-4">
+          <div className="relative flex-1 group">
+            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+            <input
+              type="text"
+              placeholder="Pesquisar por nome, cidade ou razão social..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-sm"
+            />
+          </div>
+          <button
+            onClick={() => {
+              setEditingPlace(undefined);
+              setIsPlaceModalOpen(true);
+            }}
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm shrink-0"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Novo Local</span>
+          </button>
         </div>
       </header>
 

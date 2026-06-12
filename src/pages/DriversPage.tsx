@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Users, Plus, Search, MapPin, Map, Calendar, Edit2, Trash2, Upload, Download, LayoutGrid, List as ListIcon, CheckSquare } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Users, Plus, Search, MapPin, Map, Calendar, Edit2, Trash2, Upload, Download, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getDrivers, createDriver, updateDriver, deleteDriver, Driver } from '../services/drivers';
 import { getVehicles, createVehicle } from '../services/vehicles';
@@ -8,9 +8,13 @@ import { ToastContainer } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
-export function DriversPage() {
-  const { user } = useAuth();
+export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
+  const { user, logout } = useAuth();
   const { toasts, addToast, removeToast } = useToast();
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
@@ -199,36 +203,47 @@ export function DriversPage() {
     reader.onload = async (event) => {
       try {
         const content = event.target?.result as string;
-        const json = JSON.parse(content);
+        if (!content) throw new Error("Arquivo vazio");
+        
+        let json;
+        try {
+          json = JSON.parse(content);
+        } catch (e) {
+          throw new Error("Formato JSON inválido. Verifique se o arquivo está correto.");
+        }
+
         let importedM = 0;
         let importedV = 0;
         
         setIsBusy(true);
 
-        const listM = json.motoristas || (Array.isArray(json) ? json : []);
+        const listM = json.motoristas || json.Motoristas || (Array.isArray(json) ? json : []);
         for (const item of listM) {
-          if (item.nome && !drivers.find(d => d.nome === item.nome)) {
+          const nomeStr = item.nome || item.Nome;
+          if (nomeStr && !drivers.find(d => d.nome.toLowerCase() === String(nomeStr).toLowerCase())) {
             await createDriver({
               userId: user.uid,
-              nome: item.nome,
-              tipo: item.tipo || 'Regional',
-              inicioJornada: item.inicio || item.inicioJornada || '08:00',
-              fimJornada: item.fim || item.fimJornada || '18:00',
-              status: item.status || 'Disponível'
+              nome: String(nomeStr).trim(),
+              tipo: item.tipo || item.Tipo || 'Regional',
+              inicioJornada: item.inicio || item.inicioJornada || item.Inicio || '08:00',
+              fimJornada: item.fim || item.fimJornada || item.Fim || '18:00',
+              status: item.status || item.Status || 'Disponível'
             });
             importedM++;
           }
         }
 
-        if (json.veiculos && Array.isArray(json.veiculos)) {
+        const listV = json.veiculos || json.Veiculos || json.Veículos || [];
+        if (Array.isArray(listV) && listV.length > 0) {
           const existingV = await getVehicles(user.uid);
-          for (const item of json.veiculos) {
-            if (item.placa && !existingV.find(v => v.placa === item.placa)) {
+          for (const item of listV) {
+            const placaStr = item.placa || item.Placa;
+            if (placaStr && !existingV.find(v => v.placa === String(placaStr).replace(/[^A-Za-z0-9]/g, '').toUpperCase())) {
               await createVehicle({
                 userId: user.uid,
-                placa: item.placa,
-                tipo: item.tipo || 'Trucado',
-                status: item.status || 'Disponível'
+                placa: String(placaStr).replace(/[^A-Za-z0-9]/g, '').toUpperCase().substring(0, 7),
+                tipo: item.tipo || item.Tipo || 'Trucado',
+                status: item.status || item.Status || 'Disponível'
               });
               importedV++;
             }
@@ -236,13 +251,13 @@ export function DriversPage() {
         }
 
         if (importedM > 0 || importedV > 0) {
-          addToast(`Importado: ${importedM} motoristas, ${importedV} veículos`, 'success');
+          addToast(`Importado: ${importedM} motoristas, ${importedV} veículos.`, 'success');
           loadDrivers();
         } else {
-          addToast('Nenhum registro novo encontrado', 'info');
+          addToast('Nenhum registro válido ou novo encontrado no arquivo.', 'info');
         }
       } catch (err: any) {
-        addToast('Erro ao importar arquivo: ' + err.message, 'error');
+        addToast(err.message, 'error');
         console.error("Import error:", err);
       } finally {
         setIsBusy(false);
@@ -256,40 +271,99 @@ export function DriversPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] pb-24">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
-      <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+      {/* HEADER */}
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#09090B]/50 backdrop-blur-md border-b border-slate-200 dark:border-white/10 px-8 py-4 flex flex-col gap-4">
+        {/* PRIMEIRA LINHA */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Motoristas</h1>
-            <p className="text-slate-500 text-sm">Gerencie a equipe de motoristas da operação.</p>
+          <div className="select-none">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">Motoristas</h1>
+            <p className="text-sm text-slate-500 font-medium">{drivers.length} motoristas registrados</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => document.getElementById('import-file-drivers')?.click()}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 transition"
-              title="Importar de JSON"
-            >
-              <Upload className="w-4 h-4" />
+          
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
+            <input type="file" ref={fileInputRef} accept=".json" onChange={handleImport} className="hidden" />
+            <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+              <Upload className="w-4 h-4" /> Importar
             </button>
-            <button
-              onClick={handleExport}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 transition"
-              title="Exportar para JSON"
-            >
-              <Download className="w-4 h-4" />
+            <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+              <Download className="w-4 h-4" /> Exportar
             </button>
-            <button
-              onClick={() => handleOpenModal()}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="font-medium text-sm">Novo Motorista</span>
+            <button onClick={toggleTheme} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} Tema
+            </button>
+            <button onClick={() => setIsAboutModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+              <Info className="w-4 h-4" /> Sobre
+            </button>
+            <button onClick={logout} className="flex items-center gap-1.5 px-3 py-1.5 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg transition-colors text-sm font-medium whitespace-nowrap">
+              <LogOut className="w-4 h-4" /> Sair
             </button>
           </div>
-          <input type="file" id="import-file-drivers" accept=".json" onChange={handleImport} className="hidden" />
         </div>
 
+        {/* SEGUNDA LINHA */}
+        <div className="flex items-center justify-end">
+          <div className="flex items-center bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1">
+            <button
+              onClick={toggleSelectAll}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors border-r border-slate-200 dark:border-white/10 mr-1 ${selectedIds.size === filteredDrivers.length && filteredDrivers.length > 0 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+            >
+              Todos
+            </button>
+            <div className="relative border-r border-slate-200 dark:border-white/10 mr-1">
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="appearance-none bg-transparent pl-3 pr-8 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 cursor-pointer focus:outline-none dark:bg-[#09090B]"
+              >
+                <option value="recentes">Mais recentes</option>
+                <option value="antigos">Mais antigos</option>
+                <option value="nome-az">Nome (A-Z)</option>
+                <option value="nome-za">Nome (Z-A)</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+            >
+              <LayoutGrid className="w-4 h-4" /> Cards
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+            >
+              <ListIcon className="w-4 h-4" /> Lista
+            </button>
+          </div>
+        </div>
+
+        {/* TERCEIRA LINHA */}
+        <div className="flex gap-4">
+          <div className="relative flex-1 group">
+            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+            <input
+              type="text"
+              placeholder="Pesquisar motorista..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-sm"
+            />
+          </div>
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm shrink-0"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Novo Motorista</span>
+          </button>
+        </div>
+      </header>
+
+      <main className="p-6 max-w-[1600px] mx-auto pb-32">
         {/* Dashboard Indicators */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
             <p className="text-xs text-slate-500 font-medium uppercase">Total</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{drivers.length}</p>
@@ -311,72 +385,6 @@ export function DriversPage() {
             <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{drivers.filter(d => ['Férias', 'Afastado'].includes(d.status)).length}</p>
           </div>
         </div>
-
-        {/* Actions Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Buscar motorista..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 pl-10 pr-4 py-2 rounded-lg text-slate-900 dark:text-white"
-            />
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value)}
-              className="bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="recentes">Mais recentes</option>
-              <option value="antigos">Mais antigos</option>
-              <option value="nome-az">Nome (A-Z)</option>
-              <option value="nome-za">Nome (Z-A)</option>
-            </select>
-            
-            <div className="flex bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-md transition ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-1.5 rounded-md transition ${viewMode === 'list' ? 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-              >
-                <ListIcon className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mass Actions */}
-        {selectedIds.size > 0 && (
-          <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl p-3 flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                {selectedIds.size} selecionado(s)
-              </span>
-              <button
-                onClick={toggleSelectAll}
-                className="text-xs font-bold text-blue-600 dark:text-blue-500 uppercase hover:underline"
-              >
-                Selecionar Todos
-              </button>
-            </div>
-            <button
-              onClick={() => setIsDeleteSelectedModalOpen(true)}
-              className="flex items-center gap-1 text-sm font-medium text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-500/10 px-3 py-1.5 rounded-lg hover:bg-red-200 dark:hover:bg-red-500/20 transition"
-            >
-              <Trash2 className="w-4 h-4" />
-              Excluir Selecionados
-            </button>
-          </div>
-        )}
 
         {/* List / Cards */}
         {loading ? (
@@ -497,7 +505,7 @@ export function DriversPage() {
              </div>
           </div>
         )}
-      </div>
+      </main>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingDriver ? "Editar Motorista" : "Novo Motorista"}>
         <form onSubmit={handleSave} className="space-y-4">
@@ -599,6 +607,87 @@ export function DriversPage() {
         confirmText="Excluir"
         type="danger"
       />
+
+      {/* CONTEXTUAL ACTION BAR */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-slate-900 dark:bg-white px-6 py-3 rounded-full flex items-center gap-6 shadow-2xl animate-in slide-in-from-bottom-5">
+          <div className="flex items-center gap-2 pr-6 border-r border-slate-700 dark:border-slate-300">
+            <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+              {selectedIds.size}
+            </span>
+            <span className="text-sm font-medium text-white dark:text-slate-900 hidden sm:inline">Selecionados</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsDeleteSelectedModalOpen(true)}
+              className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors ml-2"
+              title="Excluir selecionados"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="text-sm font-medium text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-slate-900 transition-colors ml-2"
+            >
+              Limpar
+            </button>
+          </div>
+        </div>
+      )}
+
+      <Modal
+        isOpen={isAboutModalOpen}
+        onClose={() => setIsAboutModalOpen(false)}
+        title="Sobre"
+      >
+        <div className="p-2 sm:p-4 text-slate-600 dark:text-slate-300">
+          <p className="text-sm sm:text-base leading-relaxed mb-6">
+            O <strong>Op.Log</strong> é um aplicativo desenhado para gerenciar de forma simples e eficiente suas operações logísticas, locais, motoristas e veículos.
+          </p>
+          
+          <div className="bg-slate-100 dark:bg-black/40 p-5 rounded-xl border border-slate-200 dark:border-white/10">
+            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Criador</h4>
+            <p className="text-base text-slate-900 dark:text-white font-medium mb-4">
+              Desenvolvido por Luis Martins
+            </p>
+            
+            <div className="flex flex-col gap-3">
+              <a 
+                href="https://instagram.com/luisfvmartins" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
+              >
+                <div className="p-2 bg-white dark:bg-white/5 shadow-sm rounded-md border border-slate-200 dark:border-white/10 group-hover:border-blue-200 dark:group-hover:border-blue-500/30">
+                  <span className="w-4 h-4 text-center leading-4 font-bold text-xs">ig</span>
+                </div>
+                <span className="text-sm font-medium">@luisfvmartins</span>
+              </a>
+              <a 
+                href="https://linkedin.com/in/luisfvmartins" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
+              >
+                <div className="p-2 bg-white dark:bg-white/5 shadow-sm rounded-md border border-slate-200 dark:border-white/10 group-hover:border-blue-200 dark:group-hover:border-blue-500/30">
+                  <span className="w-4 h-4 text-center leading-4 font-bold text-xs">in</span>
+                </div>
+                <span className="text-sm font-medium">/in/luisfvmartins</span>
+              </a>
+            </div>
+          </div>
+          
+          <div className="mt-8 flex justify-end">
+            <button
+              onClick={() => setIsAboutModalOpen(false)}
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-900 dark:text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
     </div>
   );
 }

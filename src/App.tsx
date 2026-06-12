@@ -35,7 +35,7 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
             <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white shrink-0">
               <Truck className="w-5 h-5" />
             </div>
-            <span className="font-semibold text-lg text-slate-900 dark:text-white truncate">Op. Logística</span>
+            <span className="font-semibold text-lg text-slate-900 dark:text-white truncate">Op.Log</span>
           </div>
           <button className="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition">
             <Bell className="w-5 h-5" />
@@ -85,7 +85,7 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white">
                 <Truck className="w-5 h-5" />
              </div>
-             <span className="font-semibold text-slate-900 dark:text-white">Op. Logística</span>
+             <span className="font-semibold text-slate-900 dark:text-white">Op.Log</span>
           </div>
           <div className="flex items-center gap-2">
             <button className="relative p-2 text-slate-500 dark:text-slate-300">
@@ -138,10 +138,10 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
 
         <main className="flex-1 overflow-auto relative">
           {activeTab === 'locais' && <Dashboard theme={theme} toggleTheme={toggleTheme} />}
-          {activeTab === 'programacoes' && <SchedulesPage />}
-          {activeTab === 'anotacoes' && <OperationalNotesPage />}
-          {activeTab === 'motoristas' && <DriversPage />}
-          {activeTab === 'veiculos' && <VehiclesPage />}
+          {activeTab === 'programacoes' && <SchedulesPage theme={theme} toggleTheme={toggleTheme} />}
+          {activeTab === 'anotacoes' && <OperationalNotesPage theme={theme} toggleTheme={toggleTheme} />}
+          {activeTab === 'motoristas' && <DriversPage theme={theme} toggleTheme={toggleTheme} />}
+          {activeTab === 'veiculos' && <VehiclesPage theme={theme} toggleTheme={toggleTheme} />}
         </main>
       </div>
     </div>

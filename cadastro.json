@@ -1,0 +1,82 @@
+{
+  "locais": [
+    {
+      "nomeRazaoSocial": "Centro de Distribuição Norte",
+      "nomeFantasia": "CD Norte Logística",
+      "cnpjCpf": "12.345.678/0001-90",
+      "ie": "ISENTO",
+      "cidade": "São Paulo, SP",
+      "bairro": "Vila Maria",
+      "endereco": "Rodovia Presidente Dutra, s/n",
+      "cep": "02122-000",
+      "latitude": "-23.5186",
+      "longitude": "-46.5828",
+      "linkGoogleMaps": "https://maps.google.com/?q=-23.5186,-46.5828",
+      "tags": ["CD", "Hub", "24h"],
+      "observacoes": [
+        "Acesso pela pista marginal, portão 2"
+      ],
+      "contatos": [
+        {
+          "nome": "João Silva",
+          "funcao": "Gerente de Logística",
+          "telefone": "(11) 98765-4321",
+          "email": "joao.silva@cdnorte.com.br"
+        }
+      ]
+    },
+    {
+      "nomeRazaoSocial": "Armazéns Gerais Sul",
+      "nomeFantasia": "Sul Storage",
+      "cnpjCpf": "98.765.432/0001-10",
+      "cidade": "Curitiba, PR",
+      "bairro": "CIC",
+      "endereco": "Rua das Indústrias, 1000",
+      "cep": "81310-000",
+      "tags": ["Armazém", "Seco", "Refrigerado"],
+      "observacoes": [
+        "Horário limite para descarga: 16h00"
+      ]
+    }
+  ],
+  "motoristas": [
+    {
+      "nome": "Carlos Mendes Alves",
+      "tipo": "Regional",
+      "inicioJornada": "07:00",
+      "fimJornada": "17:00",
+      "status": "Disponível"
+    },
+    {
+      "nome": "Fernando Souza",
+      "tipo": "Manobra",
+      "inicioJornada": "06:00",
+      "fimJornada": "16:00",
+      "status": "Programado"
+    },
+    {
+      "nome": "Renata Lima Gonçalves",
+      "tipo": "Regional",
+      "inicioJornada": "08:00",
+      "fimJornada": "18:00",
+      "status": "Disponível"
+    }
+  ],
+  "veiculos": [
+    {
+      "placa": "ABC1234",
+      "tipo": "Trucado",
+      "status": "Disponível"
+    },
+    {
+      "placa": "XYZ9A87",
+      "tipo": "Traçado",
+      "status": "Manutenção"
+    },
+    {
+      "placa": "LOG5555",
+      "tipo": "Simples",
+      "status": "Programado"
+    }
+  ]
+}
