@@ -406,21 +406,21 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
                 onClick={() => toggleSelection(d.id!)}
               >
                 <div className="p-5 flex-1 flex flex-col relative">
-                  <div className="absolute top-4 right-4 z-10 flex gap-2">
-                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono border ${getStatusColor(d.status)}`}>
-                       {d.status}
-                     </span>
-                     <button 
-                       onClick={(e) => toggleSelection(d.id!, e)} 
-                       className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedIds.has(d.id!) ? 'bg-[var(--accent)] border-[var(--accent)] text-[#0C0D0F]' : 'border-[var(--border)] opacity-0 group-hover:opacity-100'}`}
-                     >
-                        {selectedIds.has(d.id!) && <CheckSquare className="w-3.5 h-3.5" />}
-                     </button>
-                  </div>
-                  <div className="flex items-start gap-3 mb-2 pr-16">
-                    <div>
-                      <h3 className="font-semibold text-base text-[var(--text-primary)] tracking-tight">{d.nome}</h3>
+                  <div className="flex items-start justify-between gap-2 mb-2 w-full">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-base text-[var(--text-primary)] leading-snug break-words min-w-0">{d.nome}</h3>
                       <p className="text-xs font-mono text-[var(--text-secondary)] uppercase">{d.tipo}</p>
+                    </div>
+                    <div className="flex items-start gap-2 shrink-0 z-10">
+                       <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-mono border ${getStatusColor(d.status)}`}>
+                         {d.status}
+                       </span>
+                       <button 
+                         onClick={(e) => toggleSelection(d.id!, e)} 
+                         className={`shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedIds.has(d.id!) ? 'bg-[var(--accent)] border-[var(--accent)] text-[#0C0D0F]' : 'border-[var(--border)] opacity-0 group-hover:opacity-100'}`}
+                       >
+                          {selectedIds.has(d.id!) && <CheckSquare className="w-3.5 h-3.5" />}
+                       </button>
                     </div>
                   </div>
                   
