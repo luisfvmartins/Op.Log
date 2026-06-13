@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Plus, Search, Edit2, Trash2, CheckCircle, Clock, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut, FileText, MapPin } from 'lucide-react';
+import { Calendar, Plus, Search, Edit2, Trash2, CheckCircle, Clock, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut, FileText, MapPin, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { useAuth } from '../contexts/AuthContext';
 import { getSchedules, createSchedule, updateSchedule, deleteSchedule, Schedule } from '../services/schedules';
 import { getDrivers, updateDriver, createDriver, Driver } from '../services/drivers';
@@ -14,6 +15,155 @@ import { useViewPrefs } from '../hooks/useViewPrefs';
 import { usePlaces } from '../hooks/usePlaces';
 
 import { AboutModal } from '../components/ui/AboutModal';
+
+function exportReportToPDF(
+  dateLabel: string,        // ex: "12/06/2026"
+  groups: {
+    status: string;         // ex: "DISPONÍVEL"
+    emoji: string;          // ex: "⚪"
+    items: {
+      placa: string;
+      motorista: string;
+      horario: string;
+      observacao?: string;
+    }[];
+  }[],
+  notes: {
+    placa: string;
+    motorista: string;
+    categoria: string;
+    descricao?: string;
+  }[]
+) {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const marginLeft = 15;
+  const marginRight = 15;
+  const pageWidth = 210;
+  const contentWidth = pageWidth - marginLeft - marginRight;
+  let y = 20;
+  const lineHeight = 6;
+
+  const checkPageBreak = (needed = 10) => {
+    if (y + needed > 280) {
+      doc.addPage();
+      y = 20;
+    }
+  };
+
+  // ── CABEÇALHO ──────────────────────────────────────────
+  doc.setFillColor(15, 15, 20);
+  doc.rect(0, 0, 210, 28, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(255, 255, 255);
+  doc.text('RELATÓRIO OPERACIONAL', marginLeft, 12);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(160, 160, 160);
+  doc.text(`Data: ${dateLabel}`, marginLeft, 20);
+  doc.text(
+    `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
+    pageWidth - marginRight,
+    20,
+    { align: 'right' }
+  );
+
+  y = 38;
+
+  // ── ANOTAÇÕES OPERACIONAIS (primeiro, se houver) ────────
+  if (notes.length > 0) {
+    checkPageBreak(14);
+
+    doc.setFillColor(240, 244, 255);
+    doc.rect(marginLeft, y - 4, contentWidth, 8, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(40, 60, 120);
+    doc.text('ANOTAÇÕES OPERACIONAIS', marginLeft + 2, y + 1);
+    y += 8;
+
+    notes.forEach(note => {
+      checkPageBreak(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(30, 30, 30);
+      doc.text(`${note.placa}  ${note.motorista}`, marginLeft + 2, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+      doc.text(`[${note.categoria}]${note.descricao ? '  ' + note.descricao : ''}`, marginLeft + 2, y + 4);
+      y += lineHeight + 4;
+    });
+
+    y += 4;
+  }
+
+  // ── GRUPOS DE STATUS ────────────────────────────────────
+  const getColorsForStatus = (status: string) => {
+    if (status.startsWith('DISPONÍVEL')) return { bg: [240, 240, 240] as [number, number, number], tx: [80, 80, 80] as [number, number, number] };
+    if (status.startsWith('PROGRAMADO')) return { bg: [255, 251, 220] as [number, number, number], tx: [120, 90, 0] as [number, number, number] };
+    if (status.startsWith('EM OPERAÇÃO')) return { bg: [220, 235, 255] as [number, number, number], tx: [20, 60, 140] as [number, number, number] };
+    if (status.startsWith('CONCLUÍDO')) return { bg: [220, 250, 235] as [number, number, number], tx: [20, 110, 60] as [number, number, number] };
+    if (status.startsWith('INDISPONÍVEL')) return { bg: [255, 225, 225] as [number, number, number], tx: [140, 20, 20] as [number, number, number] };
+    return { bg: [245, 245, 245] as [number, number, number], tx: [50, 50, 50] as [number, number, number] };
+  };
+
+  groups.forEach(group => {
+    if (group.items.length === 0) return;
+
+    checkPageBreak(14);
+
+    const colors = getColorsForStatus(group.status);
+
+    doc.setFillColor(...colors.bg);
+    doc.rect(marginLeft, y - 4, contentWidth, 8, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(...colors.tx);
+    doc.text(`${group.emoji}  ${group.status}  (${group.items.length})`, marginLeft + 2, y + 1);
+    y += 9;
+
+    group.items.forEach(item => {
+      checkPageBreak(8);
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(30, 30, 30);
+      doc.text(item.placa.padEnd(10), marginLeft + 4, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${item.motorista}`, marginLeft + 28, y);
+      doc.setTextColor(100, 100, 100);
+      doc.text(item.horario, pageWidth - marginRight, y, { align: 'right' });
+      if (item.observacao) {
+        y += 4;
+        checkPageBreak(6);
+        doc.setFontSize(7);
+        doc.setTextColor(130, 130, 130);
+        doc.text(`  ${item.observacao}`, marginLeft + 4, y);
+      }
+      y += lineHeight;
+    });
+
+    y += 4;
+  });
+
+  // ── RODAPÉ ──────────────────────────────────────────────
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(160, 160, 160);
+    doc.text(
+      `Página ${i} de ${pageCount}  •  Transmagna  •  Gerado por Op.Log`,
+      pageWidth / 2,
+      292,
+      { align: 'center' }
+    );
+  }
+
+  doc.save(`relatorio-operacional-${dateLabel.replace(/\//g, '-')}.pdf`);
+}
 
 export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
   const { user, logout } = useAuth();
@@ -31,6 +181,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
   const [dashboardFilter, setDashboardFilter] = useState<string | null>(null);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportText, setReportText] = useState('');
+  const [reportPdfData, setReportPdfData] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | undefined>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -344,6 +495,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
   const generateReport = async () => {
     const today = new Date().toLocaleDateString('pt-BR');
     let rpt = `📊 *RELATÓRIO OPERACIONAL | ${today}*\n\n`;
+    const pdfData: any = { dateLabel: today, groups: [], notes: [] };
 
     const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nome || '(Sem motorista)';
     const getVehiclePlate = (vehicleId: string) => vehicles.find(v => v.id === vehicleId)?.placa || 'SEM CAVALO';
@@ -384,6 +536,12 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
             const descricao = o.description ? ` — ${o.description}` : '';
 
             rpt += `${emoji} ${placa} ${motorista} - ${categoria}${descricao}\n\n`;
+            pdfData.notes.push({
+               placa: placaVal ? placaVal.toUpperCase() : 'SEM PLACA',
+               motorista: motoristaVal ? motoristaVal.toUpperCase() : 'SEM MOTORISTA',
+               categoria: o.category || '',
+               descricao: o.description || ''
+            });
          });
        }
     }
@@ -391,10 +549,16 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     // 1. PENDÊNCIAS OPERACIONAIS
     const pended = sortSchedules(activeSchedules.filter(s => s.observations && s.observations.trim().length > 0));
     if (pended.length > 0) {
-      rpt += `──────────────────\n⚠️ PENDÊNCIAS OPERACIONAIS\n──────────────────\n\n`;
+      rpt += `──────────────────\n🟡 PROGRAMADO\n──────────────────\n\n`;
+      const items: any[] = [];
       pended.forEach(s => {
-        rpt += `🟡 \`${getVehiclePlate(s.vehicleId)}\` ${getDriverName(s.driverId).toUpperCase()} - ${getDriverJornada(s.driverId)} | *${s.observations}*\n\n`;
+        const placa = getVehiclePlate(s.vehicleId);
+        const motorista = getDriverName(s.driverId).toUpperCase();
+        const horario = getDriverJornada(s.driverId);
+        rpt += `🟡 \`${placa}\` ${motorista} - ${horario} | *${s.observations}*\n\n`;
+        items.push({ placa, motorista, horario, observacao: s.observations });
       });
+      pdfData.groups.push({ status: 'PROGRAMADO', emoji: '🟡', items });
     }
 
     // Categorization
@@ -422,43 +586,66 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     const cliKeys = Object.keys(opsByCli).sort();
     cliKeys.forEach(cli => {
         if (opsByCli[cli].length > 0) {
-            rpt += `──────────────────\n🚛 OPERAÇÃO ${cli}\n──────────────────\n\n`;
+            rpt += `──────────────────\n🔵 EM OPERAÇÃO - ${cli}\n──────────────────\n\n`;
+            const items: any[] = [];
             sortSchedules(opsByCli[cli]).forEach(s => {
                 const opsStr = (s.operations || [s.operation]).join(', ');
-                rpt += `🟢 \`${getVehiclePlate(s.vehicleId)}\` ${getDriverName(s.driverId).toUpperCase()} - ${opsStr} ${s.locationName ? s.locationName : ''}`.trim() + `\n\n`;
+                const local = s.locationName ? s.locationName : '';
+                const placa = getVehiclePlate(s.vehicleId);
+                const motorista = getDriverName(s.driverId).toUpperCase();
+                const obs = opsStr + (local ? ` ${local}` : '');
+                rpt += `🔵 \`${placa}\` ${motorista} - ${obs}`.trim() + `\n\n`;
+                items.push({ placa, motorista, horario: '', observacao: obs });
             });
+            pdfData.groups.push({ status: `EM OPERAÇÃO - ${cli}`, emoji: '🔵', items });
         }
     });
 
     // 3. COLETAS / ENTREGAS
     if (colEntArr.length > 0) {
-        rpt += `──────────────────\n🚚 COLETAS / ENTREGAS\n──────────────────\n\n`;
+        rpt += `──────────────────\n🔵 EM OPERAÇÃO - COLETAS / ENTREGAS\n──────────────────\n\n`;
+        const items: any[] = [];
         sortSchedules(colEntArr).forEach(s => {
             const opsStr = (s.operations || [s.operation]).join(', ');
-            rpt += `🟢 \`${getVehiclePlate(s.vehicleId)}\` ${getDriverName(s.driverId).toUpperCase()} - ${opsStr} ${s.locationName ? s.locationName : ''}`.trim() + `\n\n`;
+            const local = s.locationName ? s.locationName : '';
+            const placa = getVehiclePlate(s.vehicleId);
+            const motorista = getDriverName(s.driverId).toUpperCase();
+            const obs = opsStr + (local ? ` ${local}` : '');
+            rpt += `🔵 \`${placa}\` ${motorista} - ${obs}`.trim() + `\n\n`;
+            items.push({ placa, motorista, horario: '', observacao: obs });
         });
+        pdfData.groups.push({ status: 'EM OPERAÇÃO', emoji: '🔵', items });
     }
 
     // 4. REGIÕES (Viagens)
     const tripKeys = Object.keys(tripsByReg).sort();
     tripKeys.forEach(reg => {
        if (tripsByReg[reg].length > 0) {
-           rpt += `──────────────────\n🌎 ${reg}\n──────────────────\n\n`;
+           rpt += `──────────────────\n🔵 EM OPERAÇÃO - ${reg}\n──────────────────\n\n`;
+           const items: any[] = [];
            sortSchedules(tripsByReg[reg]).forEach(s => {
-               rpt += `🔵 \`${getVehiclePlate(s.vehicleId)}\` ${getDriverName(s.driverId).toUpperCase()} - ${s.locationName ? s.locationName : 'EM VIAGEM'}\n\n`;
+               const placa = getVehiclePlate(s.vehicleId);
+               const motorista = getDriverName(s.driverId).toUpperCase();
+               const obs = s.locationName ? s.locationName : 'EM VIAGEM';
+               rpt += `🔵 \`${placa}\` ${motorista} - ${obs}\n\n`;
+               items.push({ placa, motorista, horario: '', observacao: obs });
            });
+           pdfData.groups.push({ status: `EM OPERAÇÃO - ${reg}`, emoji: '🔵', items });
        }
     });
 
     // 5. FOLGA / FÉRIAS / AFASTAMENTOS
     const folgas = sortDriversList(drivers.filter(d => ['Folga', 'Férias', 'Afastado'].includes(d.status)));
     if (folgas.length > 0) {
-        rpt += `──────────────────\n🟡 FOLGA / FÉRIAS / AFASTAMENTOS\n──────────────────\n\n`;
+        rpt += `──────────────────\n🔴 INDISPONÍVEL\n──────────────────\n\n`;
+        const items: any[] = [];
         folgas.forEach(d => {
             const placa = getVehiclePlate(d.veiculoPadraoId || '');
             const jorna = `[${d.inicioJornada || '08:00'} às ${d.fimJornada || '18:00'}]`;
-            rpt += `🟡 \`${placa}\` ${d.nome.toUpperCase()} - ${jorna} | *${d.status.toUpperCase()}*\n\n`;
+            rpt += `🔴 \`${placa}\` ${d.nome.toUpperCase()} - ${jorna} | *${d.status.toUpperCase()}*\n\n`;
+            items.push({ placa, motorista: d.nome.toUpperCase(), horario: jorna, observacao: d.status.toUpperCase() });
         });
+        pdfData.groups.push({ status: 'INDISPONÍVEL', emoji: '🔴', items });
     }
 
     // 6. SEM PROGRAMAÇÃO
@@ -467,15 +654,18 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         !activeSchedules.some(s => s.driverId === d.id)
     ));
     if (semProg.length > 0) {
-        rpt += `──────────────────\n⚪ SEM PROGRAMAÇÃO\n──────────────────\n\n`;
+        rpt += `──────────────────\n⚪ DISPONÍVEL\n──────────────────\n\n`;
+        const items: any[] = [];
         semProg.forEach(d => {
             const placa = getVehiclePlate(d.veiculoPadraoId || '');
             const jorna = `[${d.inicioJornada || '08:00'} às ${d.fimJornada || '18:00'}]`;
             rpt += `⚪ \`${placa}\` ${d.nome.toUpperCase()} - ${jorna}\n\n`;
+            items.push({ placa, motorista: d.nome.toUpperCase(), horario: jorna });
         });
+        pdfData.groups.push({ status: 'DISPONÍVEL', emoji: '⚪', items });
     }
 
-    return rpt.trim() + '\n';
+    return { rpt: rpt.trim() + '\n', pdfData };
   };
 
   const itemsToDisplay = filteredItems().sort((a, b) => {
@@ -544,8 +734,9 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
           <button
             onClick={async () => {
               setIsBusy(true);
-              const rpt = await generateReport();
+              const { rpt, pdfData } = await generateReport();
               setReportText(rpt);
+              setReportPdfData(pdfData);
               setReportModalOpen(true);
               setIsBusy(false);
             }}
@@ -1036,31 +1227,11 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
             </button>
             <div className="flex gap-2">
               <button
-                onClick={() => {
-                  const newWin = window.open('', '_blank');
-                  if (!newWin) {
-                     addToast('Permita popups para exportar o PDF', 'error');
-                     return;
-                  }
-                  newWin.document.write(`
-                    <html>
-                      <head>
-                        <title>Relatório Operacional</title>
-                        <style>
-                          body { font-family: monospace; white-space: pre-wrap; padding: 40px; font-size: 14px; max-width: 800px; margin: 0 auto; line-height: 1.5; color: #000; }
-                          @media print { body { padding: 0; } }
-                        </style>
-                      </head>
-                      <body>${reportText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</body>
-                    </html>
-                  `);
-                  newWin.document.close();
-                  newWin.focus();
-                  setTimeout(() => newWin.print(), 100);
-                }}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text-primary)] rounded-md hover:border-[var(--border-hover)] transition"
+                onClick={() => exportReportToPDF(reportPdfData.dateLabel, reportPdfData.groups, reportPdfData.notes)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-700 transition"
               >
-                📄 Exportar PDF
+                <Download className="w-4 h-4" />
+                Exportar PDF
               </button>
               <button
                 onClick={() => {
