@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getSchedules, createSchedule, updateSchedule, deleteSchedule, Schedule } from '../services/schedules';
 import { getDrivers, updateDriver, createDriver, Driver } from '../services/drivers';
 import { getVehicles, updateVehicle, createVehicle, Vehicle } from '../services/vehicles';
+import { getOperations } from '../services/operations';
 import { Modal } from '../components/ui/Modal';
 import { ToastContainer } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
@@ -340,7 +341,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     });
   };
 
-  const generateReport = () => {
+  const generateReport = async () => {
     const today = new Date().toLocaleDateString('pt-BR');
     let rpt = `📊 *RELATÓRIO OPERACIONAL | ${today}*\n\n`;
 
@@ -447,6 +448,28 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         });
     }
 
+    // 7. ANOTAÇÕES DO DIA
+    if (user) {
+       const dt = new Date();
+       const yyyy = dt.getFullYear();
+       const mm = String(dt.getMonth() + 1).padStart(2, '0');
+       const dd = String(dt.getDate()).padStart(2, '0');
+       const isoToday = `${yyyy}-${mm}-${dd}`;
+
+       const ops = await getOperations(user.uid);
+       const todayNotes = ops.filter(o => o.type === 'note' && o.date === isoToday);
+       
+       if (todayNotes.length > 0) {
+         rpt += `──────────────────\n📋 ANOTAÇÕES DO DIA\n──────────────────\n\n`;
+         todayNotes.forEach(o => {
+            const vehPart = o.vehicleRef || o.vehicleId ? o.vehicleRef || o.vehicleId : 'S/ PLACA';
+            const catPart = o.category || 'Operacional';
+            const driverPart = o.driverRef || o.driverId ? `\n  Motorista: ${o.driverRef || o.driverId}` : '';
+            rpt += `- ${vehPart} — [${catPart}]\n  ${o.description || ''}${driverPart}\n\n`;
+         });
+       }
+    }
+
     return rpt.trim() + '\n';
   };
 
@@ -514,14 +537,17 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         <div className="flex justify-between items-center">
           <h2 className="text-base font-semibold text-[var(--text-primary)] tracking-tight">Dashboard Operacional</h2>
           <button
-            onClick={() => {
-              const rpt = generateReport();
+            onClick={async () => {
+              setIsBusy(true);
+              const rpt = await generateReport();
               setReportText(rpt);
               setReportModalOpen(true);
+              setIsBusy(false);
             }}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] text-[#0C0D0F] text-sm font-medium rounded-md hover:bg-[var(--accent-hover)] transition-colors shadow-sm"
+            disabled={isBusy}
+            className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] text-[#0C0D0F] text-sm font-medium rounded-md hover:bg-[var(--accent-hover)] transition-colors shadow-sm disabled:opacity-50"
           >
-            <FileText className="w-4 h-4" /> Gerar Relatório
+            <FileText className="w-4 h-4" /> {isBusy ? 'Gerando...' : 'Gerar Relatório'}
           </button>
         </div>
 

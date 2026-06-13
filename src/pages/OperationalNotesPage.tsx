@@ -36,15 +36,15 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
 
   // Form
   const [type, setType] = useState<'note' | 'task'>('note');
-  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Operacional');
   const [priority, setPriority] = useState('Baixa');
   const [status, setStatus] = useState('Pendente');
   const [dueDate, setDueDate] = useState('');
-  const [dueTime, setDueTime] = useState('');
-  const [driverId, setDriverId] = useState('');
-  const [vehicleId, setVehicleId] = useState('');
+  const [driverText, setDriverText] = useState('');
+  const [vehicleText, setVehicleText] = useState('');
+  const [driverDropdownOpen, setDriverDropdownOpen] = useState(false);
+  const [vehicleDropdownOpen, setVehicleDropdownOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
 
   useEffect(() => {
@@ -79,28 +79,30 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
     if (op) {
       setEditingOp(op);
       setType(op.type as 'note' | 'task');
-      setTitle(op.title);
       setDescription(op.description || '');
       setCategory(op.category || 'Operacional');
       setPriority(op.priority || 'Baixa');
       setStatus(op.status || 'Pendente');
       setDueDate(op.date || '');
-      setDueTime(op.time || '');
-      setDriverId(op.driverId || '');
-      setVehicleId(op.vehicleId || '');
+      setDriverText(
+        op.driverRef ||
+        (op.driverId ? drivers.find(d => d.id === op.driverId)?.nome || op.driverId : '')
+      );
+      setVehicleText(
+        op.vehicleRef ||
+        (op.vehicleId ? vehicles.find(v => v.id === op.vehicleId)?.placa || op.vehicleId : '')
+      );
       setIsPinned(op.isPinned || false);
     } else {
       setEditingOp(undefined);
       setType(activeTab === 'Tarefas' ? 'task' : 'note');
-      setTitle('');
       setDescription('');
       setCategory('Operacional');
       setPriority('Baixa');
       setStatus('Pendente');
       setDueDate('');
-      setDueTime('');
-      setDriverId('');
-      setVehicleId('');
+      setDriverText('');
+      setVehicleText('');
       setIsPinned(false);
     }
     setIsModalOpen(true);
@@ -109,8 +111,9 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!title.trim()) {
-      addToast('Preencha o título', 'error');
+
+    if (!dueDate) {
+      addToast('A data é obrigatória', 'error');
       return;
     }
 
@@ -119,15 +122,13 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       const data: any = {
         userId: user.uid,
         type,
-        title: title.trim(),
         description: description.trim(),
         category,
         priority,
         status: type === 'task' ? status : '',
         date: dueDate,
-        time: dueTime,
-        driverId,
-        vehicleId,
+        driverRef: driverText.trim(),
+        vehicleRef: vehicleText.trim(),
         isPinned
       };
       
@@ -183,15 +184,26 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
     }
   };
 
+  const getOpDisplayTitle = (op: OperationLog) => {
+     const joined = [op.vehicleRef || op.vehicleId, op.driverRef || op.driverId].filter(Boolean).join(' · ');
+     if (joined) return joined;
+     if (op.category) return op.category;
+     if (op.date) {
+        const [y, m, d] = op.date.split('-');
+        return `${d}/${m}/${y}`;
+     }
+     return 'Anotação';
+  };
+
   const filteredOps = operations.filter(op => {
-    const filterText = `${op.title} ${op.description} ${op.category}`.toLowerCase();
+    const filterText = `${getOpDisplayTitle(op)} ${op.description || ''} ${op.category || ''}`.toLowerCase();
     const typeMatch = (activeTab === 'Anotações' && op.type === 'note') || (activeTab === 'Tarefas' && op.type === 'task');
     return filterText.includes(searchQuery.toLowerCase()) && typeMatch;
   }).sort((a, b) => {
     if (sortBy === 'az') {
-      return a.title.localeCompare(b.title);
+      return getOpDisplayTitle(a).localeCompare(getOpDisplayTitle(b));
     } else if (sortBy === 'za') {
-      return b.title.localeCompare(a.title);
+      return getOpDisplayTitle(b).localeCompare(getOpDisplayTitle(a));
     } else if (sortBy === 'antigos') {
       const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
       const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
@@ -329,7 +341,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                      <div className="flex-1">
                        <div className="flex items-start justify-between">
                          <h4 className={`text-base font-semibold text-[var(--text-primary)] tracking-tight ${task.status === 'Concluída' ? 'line-through' : ''}`}>
-                            {task.title}
+                            {getOpDisplayTitle(task)}
                          </h4>
                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
                             <button onClick={() => handleOpenModal(task)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"><Edit2 className="w-[14px] h-[14px]"/></button>
@@ -342,7 +354,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                        <div className="flex flex-wrap items-center gap-2 mt-3">
                          {task.date && (
                            <span className="flex items-center gap-1 text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-base)] border border-[var(--border)] px-1.5 py-0.5 rounded">
-                             <Calendar className="w-3 h-3"/> {task.date} {task.time}
+                             <Calendar className="w-3 h-3"/> {task.date.split('-').reverse().join('/')}
                            </span>
                          )}
                          <span className={`flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded border ${
@@ -379,18 +391,6 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
           <div className="flex space-x-1 bg-[var(--bg-base)] p-1 rounded-md w-full mb-4">
              <button type="button" onClick={() => setType('note')} className={`flex-1 py-1.5 text-sm font-medium rounded transition-colors ${type === 'note' ? 'bg-[var(--bg-surface)] border border-[var(--border)] shadow-sm text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>Anotação</button>
              <button type="button" onClick={() => setType('task')} className={`flex-1 py-1.5 text-sm font-medium rounded transition-colors ${type === 'task' ? 'bg-[var(--bg-surface)] border border-[var(--border)] shadow-sm text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>Tarefa</button>
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Título</label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="Ex: Conferir documento da carga 123"
-              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
-            />
           </div>
 
           <div>
@@ -451,22 +451,14 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
              <div>
-                <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">{type === 'task' ? 'Prazo (Data)' : 'Data do Evento'}</label>
+                <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">{type === 'task' ? 'Prazo (Data)' : 'Data do Evento'} *</label>
                 <input
                   type="date"
+                  required
                   value={dueDate}
                   onChange={e => setDueDate(e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
-                />
-             </div>
-             <div>
-                <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Hora</label>
-                <input
-                  type="time"
-                  value={dueTime}
-                  onChange={e => setDueTime(e.target.value)}
                   className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
                 />
              </div>
@@ -476,22 +468,66 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
           <div className="border border-[var(--border)] rounded-xl p-4 bg-[var(--bg-base)] space-y-3">
              <p className="text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">Vincular a (Opcional)</p>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                 <select
-                    value={driverId}
-                    onChange={e => setDriverId(e.target.value)}
+                {/* Motorista */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={driverText}
+                    onChange={e => { setDriverText(e.target.value); setDriverDropdownOpen(true); }}
+                    onBlur={() => setTimeout(() => setDriverDropdownOpen(false), 150)}
+                    placeholder="Motorista (nome ou texto livre)"
                     className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-3 py-1.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
-                 >
-                    <option value="">Motorista...</option>
-                    {drivers.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
-                 </select>
-                 <select
-                    value={vehicleId}
-                    onChange={e => setVehicleId(e.target.value)}
-                    className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-3 py-1.5 text-sm text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
-                 >
-                    <option value="">Veículo...</option>
-                    {vehicles.map(v => <option key={v.id} value={v.id}>{v.placa}</option>)}
-                 </select>
+                  />
+                  {driverDropdownOpen && driverText.trim().length > 0 && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.15)] overflow-hidden">
+                      {drivers
+                        .filter(d => d.nome.toLowerCase().includes(driverText.toLowerCase()))
+                        .slice(0, 2)
+                        .map(d => (
+                          <button
+                            key={d.id}
+                            type="button"
+                            onMouseDown={() => { setDriverText(d.nome); setDriverDropdownOpen(false); }}
+                            className="w-full text-left px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-base)]"
+                          >
+                            {d.nome}
+                          </button>
+                        ))
+                      }
+                    </div>
+                  )}
+                </div>
+
+                {/* Veículo */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={vehicleText}
+                    onChange={e => { setVehicleText(e.target.value); setVehicleDropdownOpen(true); }}
+                    onBlur={() => setTimeout(() => setVehicleDropdownOpen(false), 150)}
+                    placeholder="Placa (cadastrada ou nova)"
+                    className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-3 py-1.5 text-sm text-[var(--text-primary)] font-mono uppercase focus:outline-none focus:border-[var(--accent)]"
+                    style={{ textTransform: 'uppercase' }}
+                  />
+                  {vehicleDropdownOpen && vehicleText.trim().length > 0 && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.15)] overflow-hidden">
+                      {vehicles
+                        .filter(v => v.placa.toLowerCase().includes(vehicleText.toLowerCase()))
+                        .slice(0, 2)
+                        .map(v => (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onMouseDown={() => { setVehicleText(v.placa); setVehicleDropdownOpen(false); }}
+                            className="w-full text-left px-3 py-2 text-sm font-mono text-[var(--text-primary)] hover:bg-[var(--bg-base)]"
+                          >
+                            {v.placa}
+                          </button>
+                        ))
+                      }
+                    </div>
+                  )}
+                </div>
              </div>
           </div>
 
@@ -553,7 +589,9 @@ function NoteCard({ note, onEdit, onDelete, onTogglePin, viewMode }: { note: Ope
          </button>
          
          <div className="flex-1 pr-8">
-            <h4 className="text-base font-semibold text-[var(--text-primary)] tracking-tight mb-2 line-clamp-2 pr-4">{note.title}</h4>
+            <h4 className="font-semibold text-[var(--text-primary)] leading-tight mb-2 pr-4">
+              {[note.vehicleRef || note.vehicleId, note.driverRef || note.driverId].filter(Boolean).join(' · ') || note.category || 'Anotação'}
+            </h4>
             <div className="flex flex-wrap gap-1.5 mb-2 relative z-10">
                {note.category && (
                   <span className="text-[10px] uppercase font-mono tracking-widest text-[var(--text-secondary)] bg-[var(--bg-base)] border border-[var(--border)] px-1.5 py-0.5 rounded">
@@ -568,7 +606,7 @@ function NoteCard({ note, onEdit, onDelete, onTogglePin, viewMode }: { note: Ope
 
          <div className="mt-auto pt-3 border-t border-[var(--border)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-               {note.date && <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1"><Calendar className="w-3 h-3"/> {note.date}</span>}
+               {note.date && <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1"><Calendar className="w-3 h-3"/> {new Date(note.date + 'T12:00:00').toLocaleDateString('pt-BR')}</span>}
             </div>
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
                <button onClick={onEdit} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"><Edit2 className="w-[14px] h-[14px]"/></button>

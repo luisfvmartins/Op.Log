@@ -5,7 +5,7 @@ export interface OperationLog {
   id?: string;
   userId: string;
   type: 'note' | 'task' | 'planning';
-  title: string;
+  title?: string;
   description?: string;
   date?: string; // YYYY-MM-DD
   time?: string; // HH:MM
@@ -15,6 +15,8 @@ export interface OperationLog {
   tags?: string[];
   driverId?: string;
   vehicleId?: string;
+  driverRef?: string;
+  vehicleRef?: string;
   placeId?: string;
   color?: string;
   isPinned?: boolean;
