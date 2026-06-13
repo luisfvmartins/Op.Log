@@ -361,6 +361,33 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       return [...list].sort((a, b) => a.nome.localeCompare(b.nome));
     };
 
+    // 0. ANOTAÇÕES OPERACIONAIS
+    if (user) {
+       const dt = new Date();
+       const yyyy = dt.getFullYear();
+       const mm = String(dt.getMonth() + 1).padStart(2, '0');
+       const dd = String(dt.getDate()).padStart(2, '0');
+       const isoToday = `${yyyy}-${mm}-${dd}`;
+
+       const ops = await getOperations(user.uid);
+       const todayNotes = ops.filter(o => o.type === 'note' && o.date === isoToday);
+       
+       if (todayNotes.length > 0) {
+         rpt += `──────────────────\n📌 ANOTAÇÕES OPERACIONAIS\n──────────────────\n\n`;
+         todayNotes.forEach(o => {
+            const emoji = '📌';
+            const placaVal = o.vehicleRef || o.vehicleId;
+            const motoristaVal = o.driverRef || o.driverId;
+            const placa = placaVal ? `\`${placaVal.toUpperCase()}\`` : '`SEM PLACA`';
+            const motorista = motoristaVal ? motoristaVal.toUpperCase() : 'SEM MOTORISTA';
+            const categoria = o.category ? `[${o.category}]` : '';
+            const descricao = o.description ? ` — ${o.description}` : '';
+
+            rpt += `${emoji} ${placa} ${motorista} - ${categoria}${descricao}\n\n`;
+         });
+       }
+    }
+
     // 1. PENDÊNCIAS OPERACIONAIS
     const pended = sortSchedules(activeSchedules.filter(s => s.observations && s.observations.trim().length > 0));
     if (pended.length > 0) {
@@ -446,28 +473,6 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
             const jorna = `[${d.inicioJornada || '08:00'} às ${d.fimJornada || '18:00'}]`;
             rpt += `⚪ \`${placa}\` ${d.nome.toUpperCase()} - ${jorna}\n\n`;
         });
-    }
-
-    // 7. ANOTAÇÕES DO DIA
-    if (user) {
-       const dt = new Date();
-       const yyyy = dt.getFullYear();
-       const mm = String(dt.getMonth() + 1).padStart(2, '0');
-       const dd = String(dt.getDate()).padStart(2, '0');
-       const isoToday = `${yyyy}-${mm}-${dd}`;
-
-       const ops = await getOperations(user.uid);
-       const todayNotes = ops.filter(o => o.type === 'note' && o.date === isoToday);
-       
-       if (todayNotes.length > 0) {
-         rpt += `──────────────────\n📋 ANOTAÇÕES DO DIA\n──────────────────\n\n`;
-         todayNotes.forEach(o => {
-            const vehPart = o.vehicleRef || o.vehicleId ? o.vehicleRef || o.vehicleId : 'S/ PLACA';
-            const catPart = o.category || 'Operacional';
-            const driverPart = o.driverRef || o.driverId ? `\n  Motorista: ${o.driverRef || o.driverId}` : '';
-            rpt += `- ${vehPart} — [${catPart}]\n  ${o.description || ''}${driverPart}\n\n`;
-         });
-       }
     }
 
     return rpt.trim() + '\n';
