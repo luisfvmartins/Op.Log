@@ -53,7 +53,8 @@ export function formatRouteMessage(
   placa2?: string,
   observacaoGeral?: string,
   operacaoGeral?: string,
-  agendamentoGeral?: string
+  agendamentoGeral?: string,
+  aguardaCarretaVazia?: boolean
 ) {
   const hour = new Date().getHours();
   let greeting = 'Boa noite';
@@ -68,8 +69,15 @@ export function formatRouteMessage(
   if (placa2) {
     plateString += ` / ${formatPlateForMessage(placa2)}`;
   }
+  
+  if (aguardaCarretaVazia) {
+    plateString = `Sem carreta (Aguardar avisar qual carreta engatar)\n\n*OBSERVAÇÃO OPERACIONAL:* Aguardar até passar a informação da carreta vazia para seguir para o carregamento.`;
+  }
 
-  let message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 Carreta: ${plateString}\n\n`;
+  let message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 Carreta: ${aguardaCarretaVazia ? "" : plateString}\n\n`;
+  if (aguardaCarretaVazia) {
+     message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${plateString}\n\n`;
+  }
 
   const numberIcons = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 

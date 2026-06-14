@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Reorder, useDragControls } from 'motion/react';
 import { GripVertical, Trash2, Copy, MapPin, Truck, Box, ArrowRightLeft, CornerUpLeft, Wrench, PackageSearch, ArrowLeft, ArrowRight, Send } from 'lucide-react';
 import { Place } from '../../../services/places';
-import { RouteStop, RouteData } from '../../../services/routes';
+import { RouteStop, RouteData, createRoute } from '../../../services/routes';
 import { formatRouteMessage, formatDateToBR } from '../../../lib/formatter';
-import { createRoute } from '../../../services/routes';
+import { getDrivers, updateDriver, Driver } from '../../../services/drivers';
+import { getVehicles, updateVehicle, Vehicle } from '../../../services/vehicles';
+import { createSchedule } from '../../../services/schedules';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getCidadesBrasileiras } from '../../../services/ibge';
 
@@ -103,6 +105,11 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   const [placa, setPlaca] = useState('');
   const [placa2, setPlaca2] = useState('');
   const [observacaoGeral, setObservacaoGeral] = useState('');
+  const [driverId, setDriverId] = useState('');
+  const [aguardaCarretaVazia, setAguardaCarretaVazia] = useState(false);
+
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   
   const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
@@ -110,6 +117,13 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   useEffect(() => {
     getCidadesBrasileiras().then(setCidadesReais);
   }, []);
+
+  useEffect(() => {
+    if (user?.uid) {
+      getDrivers(user.uid).then(setDrivers);
+      getVehicles(user.uid).then(setVehicles);
+    }
+  }, [user]);
 
   const renderCity = (city?: string) => {
     if (!city) return '';
@@ -131,14 +145,14 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   }, [selectedPlaces]);
 
   const handleCopy = async () => {
-    const message = formatRouteMessage(places, placa, placa2, observacaoGeral, operacaoGeral, agendamentoGeral);
+    const message = formatRouteMessage(places, placa, placa2, observacaoGeral, operacaoGeral, agendamentoGeral, aguardaCarretaVazia);
     await navigator.clipboard.writeText(message);
     onSuccess('Resumo copiado com sucesso.');
     saveRouteLog(message);
   };
 
   const handleShare = async () => {
-    const message = formatRouteMessage(places, placa, placa2, observacaoGeral, operacaoGeral, agendamentoGeral);
+    const message = formatRouteMessage(places, placa, placa2, observacaoGeral, operacaoGeral, agendamentoGeral, aguardaCarretaVazia);
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
     onSuccess('Redirecionado para o WhatsApp.');
@@ -182,6 +196,32 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
         destinos: places,
         mensagemGerada: message
       } as RouteData, user.uid);
+
+      if (driverId) {
+        const veh = vehicles.find(v => v.placa.toUpperCase() === placa.toUpperCase());
+        const vId = veh ? veh.id : null;
+        
+        const scheduledDateRaw = places[0]?.agendamento || agendamentoGeral || new Date().toISOString();
+        const initialDate = scheduledDateRaw.split('T')[0];
+        const initialTime = scheduledDateRaw.split('T')[1] || '08:00';
+        
+        await createSchedule({
+          userId: user.uid,
+          driverId,
+          vehicleId: vId || '',
+          date: initialDate,
+          time: initialTime,
+          operation: operacaoGeral,
+          operations: [operacaoGeral],
+          locationName: 'Roteiro ' + operacaoGeral + ' (' + places.length + ' locais)',
+          observations: observacaoGeral || 'Origem RouteBuilder',
+          status: 'Ativo'
+        });
+
+        await updateDriver(driverId, { status: 'Programado' });
+        if (vId) await updateVehicle(vId, { status: 'Programado' });
+      }
+
       onClearSelection();
       onClose();
     } catch (err) {
@@ -193,8 +233,9 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
 
   const canGoToStep2 = operacaoGeral !== '';
   const isPlateValid = (p: string) => /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(p);
-  const canGoToStep4 = isPlateValid(placa) && (!placa2 || isPlateValid(placa2));
-  const canFinish = operacaoGeral !== '' && places.length > 0 && isPlateValid(placa) && (!placa2 || isPlateValid(placa2)) && (placa !== placa2);
+  const canGoToStep4 = aguardaCarretaVazia || (isPlateValid(placa) && (!placa2 || isPlateValid(placa2)));
+  const canFinish = operacaoGeral !== '' && places.length > 0 && 
+    (aguardaCarretaVazia || (isPlateValid(placa) && (!placa2 || isPlateValid(placa2)) && (placa !== placa2)));
 
   return (
     <div className="flex flex-col h-full max-h-[75vh]">
@@ -274,35 +315,69 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
 
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <h2 className="text-xl font-semibold text-[var(--text-primary)]">Qual(is) carreta(s) será(ão) utilizada(s)?</h2>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">Motorista e Veículo(s)</h2>
             
             <div className="space-y-4">
               <div className="bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border)] space-y-4">
                 <div>
-                  <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 1 *</label>
-                  <input
-                    required
-                    value={placa}
-                    onChange={handlePlacaChange}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] font-mono tracking-widest transition-all uppercase"
-                    placeholder="ABC1B34"
-                    maxLength={7}
-                  />
-                  {placa.length > 0 && !isPlateValid(placa) && <span className="text-xs text-[#E05252] mt-1 block">Placa inválida</span>}
+                  <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Motorista (Opcional - Cria Programação)</label>
+                  <select
+                    value={driverId}
+                    onChange={(e) => setDriverId(e.target.value)}
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] font-mono transition-all"
+                  >
+                    <option value="">Selecione um motorista...</option>
+                    {drivers.map(d => (
+                       <option key={d.id} value={d.id}>{d.nome}</option>
+                    ))}
+                  </select>
                 </div>
-                
-                <div>
-                  <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 2 (Opcional)</label>
+
+                <div className="flex items-center gap-2 pt-2 pb-1">
                   <input
-                    value={placa2}
-                    onChange={handlePlaca2Change}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] font-mono tracking-widest transition-all uppercase"
-                    placeholder="XYZ9W87"
-                    maxLength={7}
+                    type="checkbox"
+                    id="aguardaCarreta"
+                    checked={aguardaCarretaVazia}
+                    onChange={(e) => {
+                       setAguardaCarretaVazia(e.target.checked);
+                       if (e.target.checked) setPlaca('');
+                    }}
+                    className="w-4 h-4 rounded-sm border-[var(--border)] bg-[var(--bg-base)] text-[var(--accent)] focus:ring-[var(--accent)]"
                   />
-                   {placa2.length > 0 && !isPlateValid(placa2) && <span className="text-xs text-[#E05252] mt-1 block">Placa inválida</span>}
-                   {placa2.length > 0 && placa2 === placa && <span className="text-xs text-[#E05252] mt-1 block">As placas devem ser diferentes</span>}
+                  <label htmlFor="aguardaCarreta" className="text-sm font-medium text-[var(--text-primary)]">
+                    Aguardar motorista avisar carreta
+                  </label>
                 </div>
+
+                {!aguardaCarretaVazia && (
+                  <>
+                    <div>
+                      <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 1 {aguardaCarretaVazia ? '' : '*'}</label>
+                      <input
+                        required={!aguardaCarretaVazia}
+                        value={placa}
+                        onChange={handlePlacaChange}
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] font-mono tracking-widest transition-all uppercase"
+                        placeholder="ABC1B34"
+                        maxLength={7}
+                      />
+                      {placa.length > 0 && !isPlateValid(placa) && <span className="text-xs text-[#E05252] mt-1 block">Placa inválida</span>}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 2 (Opcional)</label>
+                      <input
+                        value={placa2}
+                        onChange={handlePlaca2Change}
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] font-mono tracking-widest transition-all uppercase"
+                        placeholder="XYZ9W87"
+                        maxLength={7}
+                      />
+                       {placa2.length > 0 && !isPlateValid(placa2) && <span className="text-xs text-[#E05252] mt-1 block">Placa inválida</span>}
+                       {placa2.length > 0 && placa2 === placa && <span className="text-xs text-[#E05252] mt-1 block">As placas devem ser diferentes</span>}
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border)] space-y-2">
@@ -351,10 +426,17 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                
                <div className="p-4 border-b border-[var(--border)] flex justify-between items-start bg-[var(--bg-surface)]">
                  <div>
-                   <span className="text-[10px] uppercase font-mono text-[var(--text-tertiary)] tracking-wider block mb-2">Implementos</span>
+                   <span className="text-[10px] uppercase font-mono text-[var(--text-tertiary)] tracking-wider block mb-2">Motorista e Implementos</span>
                    <div className="space-y-1 text-sm font-mono">
-                     <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 1:</span> {placa}</p>
-                     {placa2 && <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 2:</span> {placa2}</p>}
+                     {driverId && <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Motorista:</span> {drivers.find(d => d.id === driverId)?.nome}</p>}
+                     {aguardaCarretaVazia ? (
+                       <p className="text-[var(--accent)] font-medium">Aguardar motorista avisar carreta</p>
+                     ) : (
+                       <>
+                         <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 1:</span> {placa}</p>
+                         {placa2 && <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 2:</span> {placa2}</p>}
+                       </>
+                     )}
                    </div>
                  </div>
                  <button onClick={() => setStep(3)} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] font-medium hover:underline">Editar</button>

@@ -16,6 +16,8 @@ import { usePlaces } from '../hooks/usePlaces';
 import { useRoutes } from '../hooks/useRoutes';
 
 import { AboutModal } from '../components/ui/AboutModal';
+import { formatRouteMessage } from '../lib/formatter';
+import { RouteStop } from '../services/routes';
 
 function exportReportToPDF(
   dateLabel: string,        // ex: "12/06/2026"
@@ -211,6 +213,8 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
 
   const [vehicleSearchDisplay, setVehicleSearchDisplay] = useState('');
   const [vehicleDropdownOpen, setVehicleDropdownOpen] = useState(false);
+  const [aguardaCarretaVazia, setAguardaCarretaVazia] = useState(false);
+  const [vehicle2SearchDisplay, setVehicle2SearchDisplay] = useState('');
 
   const [isFixed, setIsFixed] = useState(false);
   const [fixedUntil, setFixedUntil] = useState('');
@@ -361,6 +365,8 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       setDriverSearchDisplay(d?.nome || '');
       const v = vehicles.find(v => v.id === sched.vehicleId);
       setVehicleSearchDisplay(v?.placa || '');
+      setAguardaCarretaVazia(false);
+      setVehicle2SearchDisplay('');
     } else {
       const today = new Date();
       const nextDay = new Date(today);
@@ -378,6 +384,8 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       
       setDriverSearchDisplay('');
       setVehicleSearchDisplay('');
+      setAguardaCarretaVazia(false);
+      setVehicle2SearchDisplay('');
     }
     setDriverDropdownOpen(false);
     setVehicleDropdownOpen(false);
@@ -387,11 +395,30 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     setIsModalOpen(true);
   };
 
+  const handleCopyResumo = async () => {
+     let placaObj = vehicles.find(v => v.id === vehicleId);
+     const placaStr = placaObj?.placa || vehicleSearchDisplay;
+     const placa2Str = vehicle2SearchDisplay;
+
+     const stop: RouteStop = {
+        nomeFantasia: locationSearchDisplay || 'N/A',
+        cidade: '',
+        nomeRazaoSocial: '',
+        linkGoogleMaps: '',
+        agendamento: date + 'T' + time,
+        operacao: operations.join(', ')
+     };
+
+     const message = formatRouteMessage([stop], placaStr, placa2Str, observations, operations.join(', '), undefined, aguardaCarretaVazia);
+     await navigator.clipboard.writeText(message);
+     addToast('Resumo copiado com sucesso!', 'success');
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     const isAdministrative = operations.length > 0 && operations.every(op => ['Folga', 'Férias', 'Afastado', 'Sem Programação', 'Administrativo'].includes(op));
-    if (!driverId || (!vehicleId && !isAdministrative) || !date || !time || operations.length === 0 || !status) {
+    if (!driverId || (!vehicleId && !isAdministrative && !aguardaCarretaVazia) || !date || !time || operations.length === 0 || !status) {
       addToast('Preencha todos os campos obrigatórios', 'error');
       return;
     }
@@ -650,7 +677,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     const pdfData: any = { dateLabel: formattedDate, groups: [], notes: [] };
 
     const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nome || '(Sem motorista)';
-    const getVehiclePlate = (vehicleId: string) => vehicles.find(v => v.id === vehicleId)?.placa || 'SEM CAVALO';
+    const getVehiclePlate = (vehicleId: string) => vehicles.find(v => v.id === vehicleId)?.placa || 'A AVISAR';
     const getDriverJornada = (driverId: string) => {
         const d = drivers.find(d => d.id === driverId);
         if (!d) return '[08:00 às 18:00]';
@@ -1191,10 +1218,10 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
             </div>
             <div>
               <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Veículo (Placa)</label>
-              <div className="relative">
+              <div className="relative mb-2">
                  <input
                     type="text"
-                    required={!(operations.length > 0 && operations.every(op => ['Folga', 'Férias', 'Afastado', 'Sem Programação', 'Administrativo'].includes(op)))}
+                    required={!aguardaCarretaVazia && !(operations.length > 0 && operations.every(op => ['Folga', 'Férias', 'Afastado', 'Sem Programação', 'Administrativo'].includes(op)))}
                     value={vehicleSearchDisplay}
                     onChange={(e) => {
                        const val = e.target.value.toUpperCase();
@@ -1212,8 +1239,9 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                     onFocus={() => setVehicleDropdownOpen(true)}
                     placeholder="Digite a placa..."
                     className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono uppercase focus:outline-none focus:border-[var(--accent)] tracking-widest"
+                    disabled={aguardaCarretaVazia}
                  />
-                 {vehicleDropdownOpen && vehicleSearchDisplay.trim() !== '' && (
+                 {vehicleDropdownOpen && vehicleSearchDisplay.trim() !== '' && !aguardaCarretaVazia && (
                     <div className="absolute z-10 w-full mt-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md shadow-[0_4px_24px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col">
                        {vehicles
                           .filter(v => v.placa.toUpperCase().includes(vehicleSearchDisplay))
@@ -1253,6 +1281,39 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                     </div>
                  )}
               </div>
+              
+              <div className="flex items-center gap-2 mb-3">
+                 <input
+                   type="checkbox"
+                   id="aguardaCarretaProg"
+                   checked={aguardaCarretaVazia}
+                   onChange={e => {
+                     setAguardaCarretaVazia(e.target.checked);
+                     if (e.target.checked) {
+                        setVehicleSearchDisplay('');
+                        setVehicleId('');
+                     }
+                   }}
+                   className="w-4 h-4 rounded-sm border-[var(--border)] bg-[var(--bg-base)] text-[var(--accent)] focus:ring-[var(--accent)]"
+                 />
+                 <label htmlFor="aguardaCarretaProg" className="text-sm font-medium text-[var(--text-primary)] cursor-pointer">
+                   Aguardar avisar carreta
+                 </label>
+              </div>
+
+              {!aguardaCarretaVazia && (
+                <div>
+                  <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Carreta 2 (Opcional - Apenas resumo)</label>
+                  <input
+                    type="text"
+                    value={vehicle2SearchDisplay}
+                    onChange={(e) => setVehicle2SearchDisplay(e.target.value.toUpperCase())}
+                    placeholder="XYZ9W87"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono uppercase focus:outline-none focus:border-[var(--accent)] tracking-widest"
+                    maxLength={7}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -1444,7 +1505,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                      />
                    </div>
                    <p className="text-xs text-[var(--text-secondary)] italic">
-                     ℹ️ Serão criadas programações individuais para cada dia do período selecionado (máximo 90 dias).
+                     ℹ️ Serão criadas programações individuais apenas para dias úteis (desconsiderando finais de semana) até a data selecionada (máximo 90 tentativas).
                    </p>
                    {fixedUntil && new Date(fixedUntil + 'T12:00:00') >= new Date(date + 'T12:00:00') && (
                      <div className="text-xs bg-[#D4A843]/10 text-[#D4A843] px-3 py-2 rounded border border-[#D4A843]/30">
@@ -1457,6 +1518,13 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
           )}
 
           <div className="pt-4 flex justify-end gap-2">
+            <button
+               type="button"
+               onClick={handleCopyResumo}
+               className="px-4 py-2 text-sm font-medium border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-base)] rounded-md transition"
+            >
+               Copiar Resumo
+            </button>
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
