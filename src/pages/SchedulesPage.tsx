@@ -13,6 +13,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { UnifiedHeader } from '../components/UnifiedHeader';
 import { useViewPrefs } from '../hooks/useViewPrefs';
 import { usePlaces } from '../hooks/usePlaces';
+import { useRoutes } from '../hooks/useRoutes';
 
 import { AboutModal } from '../components/ui/AboutModal';
 
@@ -210,6 +211,34 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
   const [vehicleSearchDisplay, setVehicleSearchDisplay] = useState('');
   const [vehicleDropdownOpen, setVehicleDropdownOpen] = useState(false);
 
+  const { routes } = useRoutes(user?.uid);
+  const [suggestedRoute, setSuggestedRoute] = useState<any | null>(null);
+  const [routeBannerVisible, setRouteBannerVisible] = useState(false);
+
+  const checkForSuggestedRoute = (placaToCheck: string) => {
+      if (!placaToCheck) {
+          setSuggestedRoute(null);
+          setRouteBannerVisible(false);
+          return;
+      }
+      const matches = routes.filter(r => 
+          (r.placa && r.placa.toUpperCase() === placaToCheck.toUpperCase()) || 
+          (r.placa2 && r.placa2.toUpperCase() === placaToCheck.toUpperCase())
+      );
+      if (matches.length > 0) {
+          const sorted = [...matches].sort((a, b) => {
+              const timeA = a.createdAt?.seconds || 0;
+              const timeB = b.createdAt?.seconds || 0;
+              return timeB - timeA;
+          });
+          setSuggestedRoute(sorted[0]);
+          setRouteBannerVisible(true);
+      } else {
+          setSuggestedRoute(null);
+          setRouteBannerVisible(false);
+      }
+  };
+
   useEffect(() => {
     if (user?.uid) {
       loadData();
@@ -348,6 +377,8 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     setDriverDropdownOpen(false);
     setVehicleDropdownOpen(false);
     setLocationDropdownOpen(false);
+    setSuggestedRoute(null);
+    setRouteBannerVisible(false);
     setIsModalOpen(true);
   };
 
@@ -1005,10 +1036,18 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                           if (exactMatch.veiculoPadraoId) {
                              setVehicleId(exactMatch.veiculoPadraoId);
                              const v = vehicles.find(vh => vh.id === exactMatch.veiculoPadraoId);
-                             if (v) setVehicleSearchDisplay(v.placa);
+                             if (v) {
+                                setVehicleSearchDisplay(v.placa);
+                                checkForSuggestedRoute(v.placa);
+                             } else {
+                                checkForSuggestedRoute('');
+                             }
+                          } else {
+                             checkForSuggestedRoute('');
                           }
                        } else {
                           setDriverId('');
+                          checkForSuggestedRoute('');
                        }
                     }}
                     onFocus={() => setDriverDropdownOpen(true)}
@@ -1031,7 +1070,14 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                                    if (d.veiculoPadraoId) {
                                       setVehicleId(d.veiculoPadraoId);
                                       const v = vehicles.find(vh => vh.id === d.veiculoPadraoId);
-                                      if (v) setVehicleSearchDisplay(v.placa);
+                                      if (v) {
+                                         setVehicleSearchDisplay(v.placa);
+                                         checkForSuggestedRoute(v.placa);
+                                      } else {
+                                         checkForSuggestedRoute('');
+                                      }
+                                   } else {
+                                      checkForSuggestedRoute('');
                                    }
                                 }}
                                 className="px-4 py-2 text-left text-sm hover:bg-[var(--bg-base)] text-[var(--text-primary)] flex justify-between items-center border-b border-[var(--border)] last:border-0"
@@ -1074,8 +1120,10 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                        const exactMatch = vehicles.find(v => v.placa.toUpperCase() === val);
                        if (exactMatch) {
                           setVehicleId(exactMatch.id!);
+                          checkForSuggestedRoute(exactMatch.placa);
                        } else {
                           setVehicleId('');
+                          checkForSuggestedRoute('');
                        }
                     }}
                     onFocus={() => setVehicleDropdownOpen(true)}
@@ -1095,6 +1143,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                                    setVehicleSearchDisplay(v.placa);
                                    setVehicleId(v.id!);
                                    setVehicleDropdownOpen(false);
+                                   checkForSuggestedRoute(v.placa);
                                 }}
                                 className="px-4 py-2 text-left text-sm hover:bg-[var(--bg-base)] text-[var(--text-primary)] font-mono flex justify-between items-center border-b border-[var(--border)] last:border-0"
                              >
@@ -1123,6 +1172,48 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
               </div>
             </div>
           </div>
+
+          {routeBannerVisible && suggestedRoute && (
+            <div className="mt-2 bg-blue-50 border border-blue-200 text-blue-900 px-4 py-3 rounded-md text-sm md:col-span-2">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="font-semibold flex items-center gap-1">
+                    <span>📍 Roteiro encontrado para esta placa</span>
+                  </div>
+                  <div className="mt-1 text-blue-800/80">
+                    Destinos: {suggestedRoute.destinos?.map((d: any) => d.nomeFantasia || d.cidade || 'Endereço').join(' → ')}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                      const firstStop = suggestedRoute.destinos?.[0];
+                      if (firstStop) {
+                          setLocationSearchDisplay(firstStop.nomeFantasia || firstStop.cidade || '');
+                          if (firstStop.operacao) {
+                              if (!operations.includes(firstStop.operacao)) {
+                                  setOperations([...operations, firstStop.operacao]);
+                              }
+                          }
+                      }
+                      setRouteBannerVisible(false);
+                  }}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium transition"
+                >
+                  Usar este roteiro
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRouteBannerVisible(false)}
+                  className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded text-xs font-medium transition"
+                >
+                  Ignorar
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
