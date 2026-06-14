@@ -349,7 +349,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       setTime(isDummy ? (sched.time.split(' ')[0] || '08:00') : sched.time);
       
       const opArr = sched.operations || (sched.operation ? (Array.isArray(sched.operation) ? sched.operation : [sched.operation]) : []);
-      setOperations(opArr.length === 1 && (opArr[0] === 'Folga' || opArr[0] === 'Férias' || opArr[0] === 'Afastado' || opArr[0] === 'Sem Programação') ? [] : opArr);
+      setOperations(opArr);
       
       setLocationSearchDisplay(sched.locationName || '');
       
@@ -389,21 +389,31 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!driverId || !vehicleId || !date || !time || operations.length === 0 || !status) {
+    const isAdministrative = operations.length > 0 && operations.every(op => ['Folga', 'Férias', 'Afastado', 'Sem Programação', 'Administrativo'].includes(op));
+    if (!driverId || (!vehicleId && !isAdministrative) || !date || !time || operations.length === 0 || !status) {
       addToast('Preencha todos os campos obrigatórios', 'error');
       return;
     }
 
+    const newTimeMinutes = parseInt(time.split(':')[0] || '0') * 60 + parseInt(time.split(':')[1] || '0');
+
     // Validação: Conflito
-    const hasConflict = schedules.some(s => 
-      s.id !== editingSchedule?.id && 
-      s.status === 'Ativo' && 
-      s.date === date && 
-      (s.driverId === driverId || s.vehicleId === vehicleId)
-    );
+    const hasConflict = schedules.some(s => {
+      if (
+        s.id !== editingSchedule?.id && 
+        s.status === 'Ativo' && 
+        s.date === date && 
+        (s.driverId === driverId || (vehicleId && s.vehicleId === vehicleId))
+      ) {
+        const existingTimeMinutes = parseInt((s.time || '00:00').split(':')[0] || '0') * 60 + parseInt((s.time || '00:00').split(':')[1] || '0');
+        const diffInMinutes = Math.abs(existingTimeMinutes - newTimeMinutes);
+        return diffInMinutes <= 360; // 6 hours
+      }
+      return false;
+    });
 
     if (hasConflict) {
-      addToast('Conflito: Motorista ou veículo já tem programação neste dia.', 'error');
+      addToast('Conflito: Motorista ou veículo já tem programação neste dia (intervalo menor ou igual a 6h).', 'error');
       return;
     }
 
@@ -438,7 +448,11 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         const dates: string[] = [];
         const cursor = new Date(startDt);
         while (cursor <= endDt) {
-          dates.push(cursor.toISOString().split('T')[0]);
+          const dayOfWeek = cursor.getDay();
+          // 0 is Sunday, 6 is Saturday
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            dates.push(cursor.toISOString().split('T')[0]);
+          }
           cursor.setDate(cursor.getDate() + 1);
         }
 
@@ -450,13 +464,17 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
 
         // Verificar conflitos para TODOS os dias antes de criar
         for (const d of dates) {
-          const conflict = schedules.some(s =>
-            s.status === 'Ativo' && s.date === d &&
-            (s.driverId === driverId || s.vehicleId === vehicleId)
-          );
+          const conflict = schedules.some(s => {
+            if (s.status === 'Ativo' && s.date === d && (s.driverId === driverId || (vehicleId && s.vehicleId === vehicleId))) {
+                const existingTimeMinutes = parseInt((s.time || '00:00').split(':')[0] || '0') * 60 + parseInt((s.time || '00:00').split(':')[1] || '0');
+                const diffInMinutes = Math.abs(existingTimeMinutes - newTimeMinutes);
+                return diffInMinutes <= 360; // 6 hours
+            }
+            return false;
+          });
           if (conflict) {
             const formattedDate = new Date(d + 'T12:00:00').toLocaleDateString('pt-BR');
-            addToast(`Conflito na data ${formattedDate}. Nenhuma programação foi criada.`, 'error');
+            addToast(`Conflito na data ${formattedDate} (intervalo <= 6h). Nenhuma programação foi criada.`, 'error');
             setIsBusy(false);
             return;
           }
@@ -1217,7 +1235,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
               <div className="relative">
                  <input
                     type="text"
-                    required
+                    required={!(operations.length > 0 && operations.every(op => ['Folga', 'Férias', 'Afastado', 'Sem Programação', 'Administrativo'].includes(op)))}
                     value={vehicleSearchDisplay}
                     onChange={(e) => {
                        const val = e.target.value.toUpperCase();
@@ -1348,7 +1366,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
              <div>
               <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Tipo de Operação *</label>
               <div className="flex flex-wrap gap-3">
-                {['Coleta', 'Entrega', 'Transferência', 'Viagem', 'Manobra', 'Manutenção'].map(op => (
+                {['Coleta', 'Entrega', 'Transferência', 'Viagem', 'Manobra', 'Manutenção', 'Folga', 'Férias', 'Afastado', 'Sem Programação'].map(op => (
                   <label key={op} className="flex items-center gap-2 cursor-pointer group">
                     <input
                       type="checkbox"
