@@ -178,6 +178,10 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
   const [searchQuery, setSearchQuery] = useState('');
   const { viewMode, setViewMode, sortBy, setSortBy } = useViewPrefs('schedules', 'grid', 'recentes');
   
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [pendingAction, setPendingAction] = useState<{ type: 'edit' | 'delete'; schedule: Schedule } | null>(null);
+
   const [dashboardFilter, setDashboardFilter] = useState<string | null>(null);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportText, setReportText] = useState('');
@@ -299,8 +303,12 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     // We'll just check if any "Ativos" don't have schedules. (Omitted for brevity, but could just compute "noScheduleTomorrow").
   };
 
-  const handleOpenModal = (sched?: Schedule) => {
+  const handleOpenModal = (sched?: Schedule, force: boolean = false) => {
     if (sched) {
+      if (!force && isPastDate(sched.date)) {
+        setPendingAction({ type: 'edit', schedule: sched });
+        return;
+      }
       setEditingSchedule(sched);
       setDriverId(sched.driverId);
       setVehicleId(sched.vehicleId);
@@ -439,7 +447,19 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     }
   };
 
-  const activeSchedules = schedules.filter(s => s.status === 'Ativo');
+  const handleRequestDelete = (sched: Schedule, force: boolean = false) => {
+    if (!force && isPastDate(sched.date)) {
+      setPendingAction({ type: 'delete', schedule: sched });
+      return;
+    }
+    setDeletingId(sched.id!);
+  };
+
+  const isPastDate = (dateStr: string) => {
+     return dateStr < todayStr;
+  };
+
+  const activeSchedules = schedules.filter(s => s.status === 'Ativo' && s.date === selectedDate);
   
   const metrics = {
     emOperacao: activeSchedules.length,
@@ -483,7 +503,8 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     }
     
     // Default search filter
-    return schedules.filter(s => {
+    let baseItems = schedules.filter(s => s.date === selectedDate);
+    return baseItems.filter(s => {
       const drv = drivers.find(d => d.id === s.driverId);
       const veh = vehicles.find(v => v.id === s.vehicleId);
       const opArr = s.operations || (s.operation ? (Array.isArray(s.operation) ? s.operation : [s.operation]) : []);
@@ -492,10 +513,11 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     });
   };
 
-  const generateReport = async () => {
-    const today = new Date().toLocaleDateString('pt-BR');
-    let rpt = `📊 *RELATÓRIO OPERACIONAL | ${today}*\n\n`;
-    const pdfData: any = { dateLabel: today, groups: [], notes: [] };
+  const generateReport = async (targetDate: string) => {
+    const splitDate = targetDate.split('-');
+    const formattedDate = `${splitDate[2]}/${splitDate[1]}/${splitDate[0]}`;
+    let rpt = `📊 *RELATÓRIO OPERACIONAL | ${formattedDate}*\n\n`;
+    const pdfData: any = { dateLabel: formattedDate, groups: [], notes: [] };
 
     const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nome || '(Sem motorista)';
     const getVehiclePlate = (vehicleId: string) => vehicles.find(v => v.id === vehicleId)?.placa || 'SEM CAVALO';
@@ -515,11 +537,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
 
     // 0. ANOTAÇÕES OPERACIONAIS
     if (user) {
-       const dt = new Date();
-       const yyyy = dt.getFullYear();
-       const mm = String(dt.getMonth() + 1).padStart(2, '0');
-       const dd = String(dt.getDate()).padStart(2, '0');
-       const isoToday = `${yyyy}-${mm}-${dd}`;
+       const isoToday = targetDate;
 
        const ops = await getOperations(user.uid);
        const todayNotes = ops.filter(o => o.type === 'note' && o.date === isoToday);
@@ -729,12 +747,51 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       />
       
       <main className="p-6 max-w-[1600px] mx-auto space-y-6">
+        <div className="flex justify-center mb-6">
+          <div className="flex items-center gap-4 bg-[var(--bg-card)] border border-[var(--border)] rounded-full px-4 py-2 shadow-sm">
+            <button
+              onClick={() => {
+                const d = new Date(`${selectedDate}T12:00:00`);
+                d.setDate(d.getDate() - 1);
+                setSelectedDate(d.toISOString().split('T')[0]);
+              }}
+              className="p-1 px-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-base)] rounded-full transition font-bold"
+            >
+              &lt;
+            </button>
+            <div className="flex items-center gap-3">
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
+                className="bg-transparent text-[var(--text-primary)] font-medium outline-none cursor-pointer"
+              />
+              <button
+                onClick={() => setSelectedDate(todayStr)}
+                className="text-xs px-3 py-1 font-medium bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--border-hover)] rounded-full transition"
+              >
+                Hoje
+              </button>
+            </div>
+            <button
+              onClick={() => {
+                const d = new Date(`${selectedDate}T12:00:00`);
+                d.setDate(d.getDate() + 1);
+                setSelectedDate(d.toISOString().split('T')[0]);
+              }}
+              className="p-1 px-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-base)] rounded-full transition font-bold"
+            >
+              &gt;
+            </button>
+          </div>
+        </div>
+
         <div className="flex justify-between items-center">
           <h2 className="text-base font-semibold text-[var(--text-primary)] tracking-tight">Dashboard Operacional</h2>
           <button
             onClick={async () => {
               setIsBusy(true);
-              const { rpt, pdfData } = await generateReport();
+              const { rpt, pdfData } = await generateReport(selectedDate);
               setReportText(rpt);
               setReportPdfData(pdfData);
               setReportModalOpen(true);
@@ -832,7 +889,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                                          <CheckCircle className="w-[14px] h-[14px]" />
                                       </button>
                                    )}
-                                   <button onClick={() => setDeletingId(s.id!)} className="text-[var(--text-tertiary)] hover:text-[#E05252] transition" title="Excluir">
+                                   <button onClick={() => handleRequestDelete(s)} className="text-[var(--text-tertiary)] hover:text-[#E05252] transition" title="Excluir">
                                       <Trash2 className="w-[14px] h-[14px]" />
                                    </button>
                                 
@@ -915,7 +972,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                       </button>
                     )}
                     <button 
-                      onClick={() => setDeletingId(s.id!)} 
+                      onClick={() => handleRequestDelete(s)} 
                       className="text-[var(--text-tertiary)] hover:text-[#E05252] transition"
                       title="Excluir"
                     >
@@ -1208,6 +1265,24 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         onConfirm={handleDelete}
         onClose={() => setDeletingId(null)}
         confirmText="Excluir"
+        isDestructive={true}
+      />
+
+      <ConfirmDialog
+        isOpen={pendingAction !== null}
+        title={pendingAction?.type === 'edit' ? "Editar programação passada" : "Excluir programação passada"}
+        description={`Esta programação é de uma data anterior (${pendingAction?.schedule?.date}). ${pendingAction?.type === 'edit' ? 'Editar' : 'Excluir'} pode afetar relatórios já gerados. Deseja continuar?`}
+        onConfirm={() => {
+          if (!pendingAction) return;
+          if (pendingAction.type === 'edit') {
+            handleOpenModal(pendingAction.schedule, true);
+          } else {
+            handleRequestDelete(pendingAction.schedule, true);
+          }
+          setPendingAction(null);
+        }}
+        onClose={() => setPendingAction(null)}
+        confirmText={pendingAction?.type === 'edit' ? "Editar mesmo assim" : "Excluir mesmo assim"}
         isDestructive={true}
       />
 
