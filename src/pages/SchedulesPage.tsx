@@ -722,13 +722,14 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                 if (d) motoristaVal = d.nome;
             }
 
-            const placaStr = placaVal ? `\`[${placaVal.toUpperCase()}]\`` : '';
-            const motoristaStr = motoristaVal ? `[${motoristaVal.toUpperCase()}]` : '';
+            const placaStr = placaVal ? `\`${placaVal.toUpperCase()}\`` : '';
+            const motoristaStr = motoristaVal ? `${motoristaVal.toUpperCase()}` : '';
+            const categoriaStr = o.category ? `${o.category} - ` : '';
             const descricaoStr = o.description || '';
 
             const parts = [emoji, placaStr, motoristaStr].filter(Boolean).join(' ');
 
-            rpt += `${parts} — ${descricaoStr}\n\n`;
+            rpt += `${parts} — ${categoriaStr}${descricaoStr}\n\n`;
             pdfData.notes.push({
                placa: placaVal ? placaVal.toUpperCase() : '',
                motorista: motoristaVal ? motoristaVal.toUpperCase() : '',

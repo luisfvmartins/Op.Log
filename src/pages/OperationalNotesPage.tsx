@@ -18,7 +18,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
   const { user, logout } = useAuth();
   const { toasts, addToast, removeToast } = useToast();
   
-  const [operations, setOperations] = useState<OperationLog[]>([]);
+  const [dbOperations, setDbOperations] = useState<OperationLog[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -74,7 +74,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
             getVehicles(user.uid),
             getSchedules(user.uid)
          ]);
-         setOperations(ops);
+         setDbOperations(ops);
          setDrivers(drvs);
          setVehicles(vehs);
          setSchedules(scheds);
@@ -238,6 +238,30 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       }
   };
 
+  const scheduleNotes: OperationLog[] = schedules
+    .filter(s => s.observations && s.observations.trim().length > 0)
+    .map(s => {
+      const v = vehicles.find(vh => vh.id === s.vehicleId);
+      const d = drivers.find(dr => dr.id === s.driverId);
+      return {
+        id: `sched-${s.id}`,
+        userId: s.userId,
+        type: 'note',
+        date: s.date,
+        time: s.time,
+        category: 'Programação',
+        description: s.observations,
+        driverId: s.driverId,
+        vehicleId: s.vehicleId,
+        driverRef: d?.nome,
+        vehicleRef: v?.placa,
+        status: 'Aberta',
+        isPinned: false
+      } as OperationLog;
+    });
+
+  const operations = [...dbOperations, ...scheduleNotes];
+
   const generateReport = () => {
     const splitDate = selectedDate.split('-');
     const formattedDate = `${splitDate[2]}/${splitDate[1]}/${splitDate[0]}`;
@@ -265,11 +289,16 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
           pdfPrefix.push(`${dText.toUpperCase()}`);
         }
         
-        const whatsappPrefixStr = whatsappPrefix.length > 0 ? `${whatsappPrefix.join(' ')} ` : '';
-        const pdfPrefixStr = pdfPrefix.length > 0 ? `${pdfPrefix.join(' ')} ` : '';
+        let whatsappPrefixStr = whatsappPrefix.join(' ');
+        let pdfPrefixStr = pdfPrefix.join(' ');
         
-        whatsappText += `${emoji} ${whatsappPrefixStr}— ${note.description}\n`;
-        pdfText += `${pdfPrefixStr}- ${note.description}\n`;
+        if (whatsappPrefixStr) whatsappPrefixStr += ' ';
+        if (pdfPrefixStr) pdfPrefixStr += ' ';
+        
+        const categoryPart = note.category ? `${note.category} - ` : '';
+
+        whatsappText += `${emoji} ${whatsappPrefixStr}— ${categoryPart}${note.description}\n`;
+        pdfText += `${emoji} ${pdfPrefixStr}— ${categoryPart}${note.description}\n`;
       });
       whatsappText += `\n`;
       pdfText += `\n`;
@@ -922,11 +951,15 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
 
 // Subcomponent: NoteCard
 function NoteCard({ note, onEdit, onDelete, onTogglePin, viewMode }: { note: OperationLog, onEdit: () => void, onDelete: () => void, onTogglePin: () => void, viewMode?: string }) {
+   const isReadOnly = note.id?.startsWith('sched-');
+
    return (
       <div className={`bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-5 hover:border-[var(--border-hover)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all group relative ${viewMode === 'list' ? 'flex flex-row items-center gap-4' : 'flex flex-col min-h-[140px]'}`}>
-         <button onClick={onTogglePin} className={`absolute top-4 right-4 p-1.5 transition rounded-full ${note.isPinned ? 'text-[#D4A843] bg-[var(--accent-tint)]' : 'text-[var(--text-tertiary)] hover:text-[var(--accent)] opacity-0 group-hover:opacity-100'}`}>
-            <Pin className="w-3.5 h-3.5" />
-         </button>
+         {(!isReadOnly) && (
+            <button onClick={onTogglePin} className={`absolute top-4 right-4 p-1.5 transition rounded-full ${note.isPinned ? 'text-[#D4A843] bg-[var(--accent-tint)]' : 'text-[var(--text-tertiary)] hover:text-[var(--accent)] opacity-0 group-hover:opacity-100'}`}>
+               <Pin className="w-3.5 h-3.5" />
+            </button>
+         )}
          
          <div className="flex-1 pr-8">
             <h4 className="font-semibold text-[var(--text-primary)] leading-tight mb-2 pr-4">
@@ -936,6 +969,11 @@ function NoteCard({ note, onEdit, onDelete, onTogglePin, viewMode }: { note: Ope
                {note.category && (
                   <span className="text-[10px] uppercase font-mono tracking-widest text-[var(--text-secondary)] bg-[var(--bg-base)] border border-[var(--border)] px-1.5 py-0.5 rounded">
                      {note.category}
+                  </span>
+               )}
+               {isReadOnly && (
+                  <span className="text-[10px] uppercase font-mono tracking-widest text-[#5B8FDB] bg-[#5B8FDB]/10 border border-[#5B8FDB]/30 px-1.5 py-0.5 rounded flex items-center gap-1">
+                     <Calendar className="w-3 h-3" /> Programação
                   </span>
                )}
             </div>
@@ -949,10 +987,12 @@ function NoteCard({ note, onEdit, onDelete, onTogglePin, viewMode }: { note: Ope
                {note.date && <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1"><Calendar className="w-3 h-3"/> {new Date(note.date + 'T12:00:00').toLocaleDateString('pt-BR')}</span>}
                {note.time && <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1"><Clock className="w-3 h-3"/> {note.time}</span>}
             </div>
-            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
-               <button onClick={onEdit} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"><Edit2 className="w-[14px] h-[14px]"/></button>
-               <button onClick={onDelete} className="text-[var(--text-tertiary)] hover:text-[#E05252] transition"><Trash2 className="w-[14px] h-[14px]"/></button>
-            </div>
+            {(!isReadOnly) && (
+               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                  <button onClick={onEdit} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"><Edit2 className="w-[14px] h-[14px]"/></button>
+                  <button onClick={onDelete} className="text-[var(--text-tertiary)] hover:text-[#E05252] transition"><Trash2 className="w-[14px] h-[14px]"/></button>
+               </div>
+            )}
          </div>
       </div>
    )
