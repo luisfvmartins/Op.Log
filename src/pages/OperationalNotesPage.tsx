@@ -288,10 +288,12 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
         const motoristaStr = dText ? `${dText.toUpperCase()}` : '';
 
         const whatsappParts = [emoji, placaStr, motoristaStr].filter(Boolean).join(' ');
-        const pdfParts = [emoji, vText ? vText.toUpperCase() : '', dText ? dText.toUpperCase() : ''].filter(Boolean).join(' ');
+        const pdfParts = [vText ? vText.toUpperCase() : '', dText ? dText.toUpperCase() : ''].filter(Boolean).join(' ');
 
         whatsappText += `${whatsappParts} — ${note.description}\n`;
-        pdfText += `${pdfParts} — ${note.description}\n`;
+        // Remove known emojis from description just in case it breaks jsPDF
+        const safeDescription = (note.description || '').replace(/[\u1000-\uFFFF]+/g, '');
+        pdfText += `${pdfParts ? pdfParts + ' — ' : ''}${safeDescription}\n`;
       });
       whatsappText += `\n`;
       pdfText += `\n`;
@@ -304,7 +306,8 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       pdfText += `TAREFAS\n`;
       dateTasks.forEach(task => {
         whatsappText += `• *${task.priority}* ${task.category} — ${task.description} (${task.status})\n`;
-        pdfText += `- ${task.priority} | ${task.category} - ${task.description} (${task.status})\n`;
+        const safeTaskDesc = (task.description || '').replace(/[\u1000-\uFFFF]+/g, '');
+        pdfText += `- ${task.priority} | ${task.category} - ${safeTaskDesc} (${task.status})\n`;
       });
     }
     

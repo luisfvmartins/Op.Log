@@ -96,7 +96,8 @@ function exportReportToPDF(
       doc.text(`${note.placa}  ${note.motorista}`, marginLeft + 2, y);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(80, 80, 80);
-      doc.text(`[${note.categoria}]${note.descricao ? '  ' + note.descricao : ''}`, marginLeft + 2, y + 4);
+      const safeDesc = (note.descricao || '').replace(/[\u1000-\uFFFF]+/g, '');
+      doc.text(`[${note.categoria}]${safeDesc ? '  ' + safeDesc : ''}`, marginLeft + 2, y + 4);
       y += lineHeight + 4;
     });
 
@@ -125,7 +126,7 @@ function exportReportToPDF(
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(...colors.tx);
-    doc.text(`${group.emoji}  ${group.status}  (${group.items.length})`, marginLeft + 2, y + 1);
+    doc.text(`[${group.status}]  (${group.items.length})`, marginLeft + 2, y + 1);
     y += 9;
 
     group.items.forEach(item => {
@@ -143,7 +144,8 @@ function exportReportToPDF(
         checkPageBreak(6);
         doc.setFontSize(7);
         doc.setTextColor(130, 130, 130);
-        doc.text(`  ${item.observacao}`, marginLeft + 4, y);
+        const safeObs = item.observacao.replace(/[\u1000-\uFFFF]+/g, '');
+        doc.text(`  ${safeObs}`, marginLeft + 4, y);
       }
       y += lineHeight;
     });
