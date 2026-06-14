@@ -346,7 +346,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       setDriverId(sched.driverId);
       setVehicleId(sched.vehicleId);
       setDate(isDummy ? selectedDate : sched.date);
-      setTime(sched.time);
+      setTime(isDummy ? (sched.time.split(' ')[0] || '08:00') : sched.time);
       
       const opArr = sched.operations || (sched.operation ? (Array.isArray(sched.operation) ? sched.operation : [sched.operation]) : []);
       setOperations(opArr.length === 1 && (opArr[0] === 'Folga' || opArr[0] === 'Férias' || opArr[0] === 'Afastado' || opArr[0] === 'Sem Programação') ? [] : opArr);

@@ -16,7 +16,14 @@ import { Map, Users, Truck, Calendar, Menu, X, LogOut, Sun, Moon, BookOpen } fro
 function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'locais' | 'programacoes' | 'anotacoes' | 'motoristas' | 'veiculos'>('locais');
+  const [activeTab, setActiveTab] = useState<'locais' | 'programacoes' | 'anotacoes' | 'motoristas' | 'veiculos'>(() => {
+    const saved = localStorage.getItem('oplog_activeTab');
+    return (saved as any) || 'locais';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('oplog_activeTab', activeTab);
+  }, [activeTab]);
 
   const navItems = [
     { id: 'locais', label: 'Locais', icon: Map },

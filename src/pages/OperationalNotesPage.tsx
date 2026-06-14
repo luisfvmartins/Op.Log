@@ -41,6 +41,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
   const [pendingAction, setPendingAction] = useState<{ type: 'edit' | 'delete'; op: OperationLog } | null>(null);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportText, setReportText] = useState('');
+  const [pdfReportText, setPdfReportText] = useState('');
 
   // Form
   const [type, setType] = useState<'note' | 'task'>('note');
@@ -240,37 +241,53 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
   const generateReport = () => {
     const splitDate = selectedDate.split('-');
     const formattedDate = `${splitDate[2]}/${splitDate[1]}/${splitDate[0]}`;
-    let rpt = `📊 *RELATÓRIO OPERACIONAL | ${formattedDate}*\n\n`;
+    let whatsappText = `📊 *RELATÓRIO OPERACIONAL | ${formattedDate}*\n\n`;
+    let pdfText = `RELATÓRIO OPERACIONAL | ${formattedDate}\n\n`;
     
     // Anotações
     const dateNotes = operations.filter(o => o.type === 'note' && o.date === selectedDate);
     if (dateNotes.length > 0) {
-      rpt += `📌 *ANOTAÇÕES*\n`;
+      whatsappText += `📌 *ANOTAÇÕES*\n`;
+      pdfText += `ANOTAÇÕES\n`;
       dateNotes.forEach(note => {
         const vText = note.vehicleRef || (note.vehicleId ? vehicles.find(v => v.id === note.vehicleId)?.placa : '');
         const dText = note.driverRef || (note.driverId ? drivers.find(d => d.id === note.driverId)?.nome : '');
         const emoji = getCategoryEmoji(note.category);
         
-        let prefix = [];
-        if (vText) prefix.push(`\`[${vText.toUpperCase()}]\``);
-        if (dText) prefix.push(`[${dText.toUpperCase()}]`);
+        let whatsappPrefix = [];
+        let pdfPrefix = [];
+        if (vText) {
+          whatsappPrefix.push(`\`${vText.toUpperCase()}\``);
+          pdfPrefix.push(`${vText.toUpperCase()}`);
+        }
+        if (dText) {
+          whatsappPrefix.push(`${dText.toUpperCase()}`);
+          pdfPrefix.push(`${dText.toUpperCase()}`);
+        }
         
-        const prefixStr = prefix.length > 0 ? `${prefix.join(' ')} ` : '';
-        rpt += `${emoji} ${prefixStr}— ${note.description}\n`;
+        const whatsappPrefixStr = whatsappPrefix.length > 0 ? `${whatsappPrefix.join(' ')} ` : '';
+        const pdfPrefixStr = pdfPrefix.length > 0 ? `${pdfPrefix.join(' ')} ` : '';
+        
+        whatsappText += `${emoji} ${whatsappPrefixStr}— ${note.description}\n`;
+        pdfText += `${pdfPrefixStr}- ${note.description}\n`;
       });
-      rpt += `\n`;
+      whatsappText += `\n`;
+      pdfText += `\n`;
     }
 
     // Tarefas
     const dateTasks = operations.filter(o => o.type === 'task' && o.date === selectedDate);
     if (dateTasks.length > 0) {
-      rpt += `📋 *TAREFAS*\n`;
+      whatsappText += `📋 *TAREFAS*\n`;
+      pdfText += `TAREFAS\n`;
       dateTasks.forEach(task => {
-        rpt += `• [${task.priority}] ${task.category} — ${task.description} (${task.status})\n`;
+        whatsappText += `• *${task.priority}* ${task.category} — ${task.description} (${task.status})\n`;
+        pdfText += `- ${task.priority} | ${task.category} - ${task.description} (${task.status})\n`;
       });
     }
     
-    setReportText(rpt);
+    setReportText(whatsappText.trim());
+    setPdfReportText(pdfText.trim());
     setReportModalOpen(true);
   };
 
@@ -640,11 +657,10 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                   <input
                     type="text"
                     value={vehicleText}
-                    onChange={e => { setVehicleText(e.target.value); setVehicleDropdownOpen(true); }}
+                    onChange={e => { setVehicleText(e.target.value.toUpperCase()); setVehicleDropdownOpen(true); }}
                     onBlur={() => setTimeout(() => setVehicleDropdownOpen(false), 150)}
                     placeholder="Digite a placa..."
-                    className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-3 py-1.5 text-sm text-[var(--text-primary)] font-mono uppercase focus:outline-none focus:border-[var(--accent)]"
-                    style={{ textTransform: 'uppercase' }}
+                    className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-3 py-1.5 text-sm text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
                   />
                   {vehicleDropdownOpen && vehicleText.trim().length > 0 && (
                     <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.15)] overflow-hidden">
@@ -878,7 +894,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                    doc.setFont("helvetica", "normal");
                    doc.setFontSize(12);
                    
-                   const lines = doc.splitTextToSize(reportText, 180);
+                   const lines = doc.splitTextToSize(pdfReportText, 180);
                    doc.text(lines, 15, 20);
                    doc.save(`Anotacoes_${formattedDate.replace(/\//g, '-')}.pdf`);
                  });
