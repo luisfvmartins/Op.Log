@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Plus, Search, Edit2, Trash2, CheckCircle, Clock, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut, FileText, MapPin, Download } from 'lucide-react';
+import { Calendar, Plus, Search, Edit2, Trash2, CheckCircle, Clock, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut, FileText, MapPin, Download, RefreshCw } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { useAuth } from '../contexts/AuthContext';
 import { getSchedules, createSchedule, updateSchedule, deleteSchedule, Schedule } from '../services/schedules';
@@ -211,6 +211,9 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
   const [vehicleSearchDisplay, setVehicleSearchDisplay] = useState('');
   const [vehicleDropdownOpen, setVehicleDropdownOpen] = useState(false);
 
+  const [isFixed, setIsFixed] = useState(false);
+  const [fixedUntil, setFixedUntil] = useState('');
+
   const { routes } = useRoutes(user?.uid);
   const [suggestedRoute, setSuggestedRoute] = useState<any | null>(null);
   const [routeBannerVisible, setRouteBannerVisible] = useState(false);
@@ -421,6 +424,54 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         status,
       };
 
+      if (!editingSchedule && isFixed && fixedUntil) {
+        const startDt = new Date(date + 'T12:00:00');
+        const endDt = new Date(fixedUntil + 'T12:00:00');
+        
+        if (endDt <= startDt) {
+          addToast('Data final deve ser maior que a inicial', 'error');
+          setIsBusy(false);
+          return;
+        }
+
+        const dates: string[] = [];
+        const cursor = new Date(startDt);
+        while (cursor <= endDt) {
+          dates.push(cursor.toISOString().split('T')[0]);
+          cursor.setDate(cursor.getDate() + 1);
+        }
+
+        if (dates.length > 90) {
+          addToast('Limite de 90 dias excedido', 'error');
+          setIsBusy(false);
+          return;
+        }
+
+        // Verificar conflitos para TODOS os dias antes de criar
+        for (const d of dates) {
+          const conflict = schedules.some(s =>
+            s.status === 'Ativo' && s.date === d &&
+            (s.driverId === driverId || s.vehicleId === vehicleId)
+          );
+          if (conflict) {
+            const formattedDate = new Date(d + 'T12:00:00').toLocaleDateString('pt-BR');
+            addToast(`Conflito na data ${formattedDate}. Nenhuma programação foi criada.`, 'error');
+            setIsBusy(false);
+            return;
+          }
+        }
+
+        const fixedGroupId = window.crypto?.randomUUID ? window.crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
+        await Promise.all(dates.map(d =>
+          createSchedule({ ...data, date: d, isFixed: true, fixedGroupId })
+        ));
+        addToast(`${dates.length} programações fixas criadas.`, 'success');
+        setIsModalOpen(false);
+        loadData();
+        setIsBusy(false);
+        return;
+      }
+
       if (editingSchedule?.id) {
         await updateSchedule(editingSchedule.id, data);
         
@@ -458,6 +509,35 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
       loadData();
     } catch (err: any) {
       addToast(err.message, 'error');
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!deletingId) return;
+    const scheduleToDelete = schedules.find(s => s.id === deletingId);
+    if (!scheduleToDelete || !scheduleToDelete.isFixed || !scheduleToDelete.fixedGroupId) {
+       return handleDelete();
+    }
+
+    setIsBusy(true);
+    try {
+      const todayString = new Date().toISOString().split('T')[0];
+      const groupSchedules = schedules.filter(s => 
+        s.fixedGroupId === scheduleToDelete.fixedGroupId && 
+        new Date(s.date + 'T12:00:00') >= new Date(todayString + 'T12:00:00')
+      );
+      
+      await Promise.all(groupSchedules.map(async (s) => {
+        if (s.id) await deleteSchedule(s.id);
+      }));
+      
+      addToast(`Foram excluídas ${groupSchedules.length} programações do grupo.`, 'success');
+      setDeletingId(null);
+      loadData();
+    } catch(err) {
+      addToast('Erro ao excluir grupo', 'error');
     } finally {
       setIsBusy(false);
     }
@@ -889,7 +969,10 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                              <tr key={s.id} className="hover:bg-[var(--bg-base)] transition">
                                 <td className="px-4 py-3 font-semibold text-[var(--text-primary)] uppercase">
                                    <div className="flex flex-col gap-1">
-                                      <span>{getOperationsString(s)}</span>
+                                      <div className="flex items-center gap-2">
+                                         <span>{getOperationsString(s)}</span>
+                                         {s.isFixed && <span className="px-1 py-0.5 rounded text-[8px] tracking-widest bg-[#5B8FDB]/10 text-[#5B8FDB] border border-[#5B8FDB]/30 uppercase font-mono">FIXA</span>}
+                                      </div>
                                       {s.locationName && (
                                         <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1">
                                            {s.locationName}
@@ -949,9 +1032,12 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                       </span>
                     </div>
                     <div className="flex flex-col gap-1 pr-16 mb-4">
-                        <span className="text-base font-semibold text-[var(--text-primary)] uppercase tracking-tight">
-                          {getOperationsString(s)}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-semibold text-[var(--text-primary)] uppercase tracking-tight">
+                            {getOperationsString(s)}
+                          </span>
+                          {s.isFixed && <span className="px-1 py-0.5 rounded text-[8px] tracking-widest bg-[#5B8FDB]/10 text-[#5B8FDB] border border-[#5B8FDB]/30 uppercase font-mono">FIXA</span>}
+                        </div>
                         {s.locationName && (
                           <span className="text-xs font-mono text-[var(--text-tertiary)] flex items-center gap-1">
                              {s.locationName}
@@ -1328,6 +1414,51 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
             />
           </div>
 
+          {!editingSchedule && (
+            <div className="border border-[var(--border)] rounded-xl p-4 bg-[var(--bg-base)] space-y-3">
+               <div className="flex items-center justify-between">
+                 <p className="text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase flex items-center gap-1"><RefreshCw className="w-3 h-3" /> Programação Fixa</p>
+                 <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isFixed}
+                      onChange={e => {
+                        setIsFixed(e.target.checked);
+                        if (!e.target.checked) setFixedUntil('');
+                      }}
+                      className="hidden"
+                    />
+                    <div className={`w-8 h-4 rounded-full transition-colors ${isFixed ? 'bg-[var(--accent)]' : 'bg-[var(--bg-surface)] border border-[var(--border)]'} relative`}>
+                      <div className={`w-3 h-3 rounded-full bg-white absolute top-0.5 transition-all ${isFixed ? 'left-4' : 'left-0.5 bg-[var(--text-tertiary)]'}`} />
+                    </div>
+                 </label>
+               </div>
+               
+               {isFixed && (
+                 <div className="pt-2 border-t border-[var(--border)] space-y-3">
+                   <div>
+                     <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Repetir até</label>
+                     <input
+                       type="date"
+                       required={isFixed}
+                       value={fixedUntil}
+                       onChange={e => setFixedUntil(e.target.value)}
+                       className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
+                     />
+                   </div>
+                   <p className="text-xs text-[var(--text-secondary)] italic">
+                     ℹ️ Serão criadas programações individuais para cada dia do período selecionado (máximo 90 dias).
+                   </p>
+                   {fixedUntil && new Date(fixedUntil + 'T12:00:00') >= new Date(date + 'T12:00:00') && (
+                     <div className="text-xs bg-[#D4A843]/10 text-[#D4A843] px-3 py-2 rounded border border-[#D4A843]/30">
+                       <span className="font-semibold">Prévia: </span> Serão criadas {Math.min(90, Math.floor((new Date(fixedUntil + 'T12:00:00').getTime() - new Date(date + 'T12:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1)} programações.
+                     </div>
+                   )}
+                 </div>
+               )}
+            </div>
+          )}
+
           <div className="pt-4 flex justify-end gap-2">
             <button
               type="button"
@@ -1351,12 +1482,18 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
 
       <ConfirmDialog
         isOpen={deletingId !== null}
-        title="Excluir Programação"
-        description="Tem certeza que deseja excluir? Esta ação não pode ser desfeita."
+        title={schedules.find(s => s.id === deletingId)?.isFixed ? "Excluir Programação Fixa" : "Excluir Programação"}
+        description={schedules.find(s => s.id === deletingId)?.isFixed ? "Tem certeza que deseja excluir? Esta programação faz parte de um grupo recorrente." : "Tem certeza que deseja excluir? Esta ação não pode ser desfeita."}
         onConfirm={handleDelete}
         onClose={() => setDeletingId(null)}
-        confirmText="Excluir"
+        confirmText={schedules.find(s => s.id === deletingId)?.isFixed ? "Apenas esta" : "Excluir"}
         isDestructive={true}
+        secondaryAction={
+          schedules.find(s => s.id === deletingId)?.isFixed ? {
+            label: "Excluir grupo (futuras)",
+            onClick: handleDeleteGroup
+          } : undefined
+        }
       />
 
       <ConfirmDialog

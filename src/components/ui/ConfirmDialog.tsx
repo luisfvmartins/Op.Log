@@ -11,6 +11,10 @@ interface ConfirmDialogProps {
   cancelText?: string;
   isDestructive?: boolean;
   requireInputConfirm?: string;
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 export function ConfirmDialog({
@@ -22,7 +26,8 @@ export function ConfirmDialog({
   confirmText = 'Confirmar',
   cancelText = 'Cancelar',
   isDestructive = false,
-  requireInputConfirm
+  requireInputConfirm,
+  secondaryAction
 }: ConfirmDialogProps) {
   const [inputValue, setInputValue] = useState('');
 
@@ -56,29 +61,51 @@ export function ConfirmDialog({
         </div>
       )}
 
-      <div className="flex justify-end gap-3">
-        <button
-          onClick={onClose}
-          className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-transparent rounded-md transition-colors border border-transparent"
-        >
-          {cancelText}
-        </button>
-        <button
-          onClick={() => {
-            if (isValid) {
-              onConfirm();
-            }
-          }}
-          disabled={!isValid}
-          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-            !isValid ? 'border border-[var(--border)] text-[var(--text-tertiary)] cursor-not-allowed opacity-50' :
-            isDestructive 
-              ? 'bg-transparent border border-[#E05252]/30 text-[#E05252] hover:bg-[#E05252]/10' 
-              : 'bg-transparent border border-[var(--accent-border)] text-[var(--accent)] hover:bg-[var(--accent-tint)]'
-          }`}
-        >
-          {confirmText}
-        </button>
+      <div className="flex justify-between items-center mt-2">
+        <div>
+          {secondaryAction && (
+             <button
+               onClick={() => {
+                 if (isValid) {
+                   secondaryAction.onClick();
+                 }
+               }}
+               disabled={!isValid}
+               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                 !isValid ? 'border border-[var(--border)] text-[var(--text-tertiary)] cursor-not-allowed opacity-50' :
+                 isDestructive 
+                   ? 'bg-transparent border border-[#E05252]/30 text-[#E05252] hover:bg-[#E05252]/10' 
+                   : 'bg-transparent border border-[#D4A843]/30 text-[#D4A843] hover:bg-[#D4A843]/10'
+               }`}
+             >
+               {secondaryAction.label}
+             </button>
+          )}
+        </div>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-transparent rounded-md transition-colors border border-transparent"
+          >
+            {cancelText}
+          </button>
+          <button
+            onClick={() => {
+              if (isValid) {
+                onConfirm();
+              }
+            }}
+            disabled={!isValid}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              !isValid ? 'border border-[var(--border)] text-[var(--text-tertiary)] cursor-not-allowed opacity-50' :
+              isDestructive 
+                ? 'bg-transparent border border-[#E05252]/30 text-[#E05252] hover:bg-[#E05252]/10' 
+                : 'bg-transparent border border-[var(--accent-border)] text-[var(--accent)] hover:bg-[var(--accent-tint)]'
+            }`}
+          >
+            {confirmText}
+          </button>
+        </div>
       </div>
     </Modal>
   );

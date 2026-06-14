@@ -14,6 +14,8 @@ export interface Schedule {
   locationName?: string;
   observations?: string;
   status: string; // "Ativo", "Encerrado"
+  isFixed?: boolean;
+  fixedGroupId?: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
