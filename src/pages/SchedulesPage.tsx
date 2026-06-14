@@ -598,7 +598,6 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     entregas: activeSchedules.filter(s => (s.operations || [s.operation]).includes('Entrega')).length,
     transferencias: activeSchedules.filter(s => (s.operations || [s.operation]).includes('Transferência')).length,
     manobras: activeSchedules.filter(s => (s.operations || [s.operation]).includes('Manobra')).length,
-    pendencias: activeSchedules.filter(s => s.observations && s.observations.trim().length > 0).length,
     folgas: drivers.filter(d => ['Folga', 'Férias', 'Afastado'].includes(d.status)).length,
     semProgramacao: drivers.filter(d => 
       !['Folga', 'Férias', 'Afastado'].includes(d.status) &&
@@ -613,7 +612,6 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
     if (dashboardFilter === 'entregas') return activeSchedules.filter(s => (s.operations || [s.operation]).includes('Entrega'));
     if (dashboardFilter === 'transferencias') return activeSchedules.filter(s => (s.operations || [s.operation]).includes('Transferência'));
     if (dashboardFilter === 'manobras') return activeSchedules.filter(s => (s.operations || [s.operation]).includes('Manobra'));
-    if (dashboardFilter === 'pendencias') return activeSchedules.filter(s => s.observations && s.observations.trim().length > 0);
     
     // For folgas and semProgramacao, we are showing drivers instead of schedules!
     // But since the main list is meant for schedules, we'll create "fake" schedules just for display, or render a different component.
@@ -961,7 +959,6 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
             { id: 'entregas', label: 'Entregas', val: metrics.entregas, style: 'bg-[var(--bg-surface)] border-[var(--border)] font-semibold text-[var(--text-primary)] hover:border-[var(--border-hover)]' },
             { id: 'transferencias', label: 'Transferências', val: metrics.transferencias, style: 'bg-[var(--bg-surface)] border-[var(--border)] font-semibold text-[var(--text-primary)] hover:border-[var(--border-hover)]' },
             { id: 'manobras', label: 'Manobras', val: metrics.manobras, style: 'bg-[var(--bg-surface)] border-[var(--border)] font-semibold text-[var(--text-primary)] hover:border-[var(--border-hover)]' },
-            { id: 'pendencias', label: 'Pendências', val: metrics.pendencias, style: 'bg-[#E0BC6A]/10 border-[#E0BC6A]/30 font-semibold text-[#E0BC6A]' },
             { id: 'folgas', label: 'Folgas/Férias', val: metrics.folgas, style: 'bg-[#5B8FDB]/10 border-[#5B8FDB]/30 font-semibold text-[#5B8FDB]' },
             { id: 'semProgramacao', label: 'Sem programação', val: metrics.semProgramacao, style: 'bg-[#4CAF7D]/10 border-[#4CAF7D]/30 font-semibold text-[#4CAF7D]' }
           ].map(card => (
