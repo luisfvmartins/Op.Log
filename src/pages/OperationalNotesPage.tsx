@@ -33,6 +33,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
   const [editingOp, setEditingOp] = useState<OperationLog | undefined>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
+  const [expandedTasks, setExpandedTasks] = useState<string[]>([]);
 
   // Form
   const [type, setType] = useState<'note' | 'task'>('note');
@@ -41,6 +42,8 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
   const [priority, setPriority] = useState('Baixa');
   const [status, setStatus] = useState('Pendente');
   const [dueDate, setDueDate] = useState('');
+  const [time, setTime] = useState('');
+  const [checklistItems, setChecklistItems] = useState<{ id: string; text: string; done: boolean }[]>([]);
   const [driverText, setDriverText] = useState('');
   const [vehicleText, setVehicleText] = useState('');
   const [driverDropdownOpen, setDriverDropdownOpen] = useState(false);
@@ -84,6 +87,8 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       setPriority(op.priority || 'Baixa');
       setStatus(op.status || 'Pendente');
       setDueDate(op.date || '');
+      setTime(op.time || '');
+      setChecklistItems(op.checklistItems || []);
       setDriverText(
         op.driverRef ||
         (op.driverId ? drivers.find(d => d.id === op.driverId)?.nome || op.driverId : '')
@@ -101,6 +106,8 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       setPriority('Baixa');
       setStatus('Pendente');
       setDueDate('');
+      setTime('');
+      setChecklistItems([]);
       setDriverText('');
       setVehicleText('');
       setIsPinned(false);
@@ -127,9 +134,11 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
         priority,
         status: type === 'task' ? status : '',
         date: dueDate,
+        time: time || undefined,
         driverRef: driverText.trim(),
         vehicleRef: vehicleText.trim(),
-        isPinned
+        isPinned,
+        checklistItems: type === 'task' ? checklistItems : []
       };
       
       // Remove any remaining undefined values just in case
@@ -351,10 +360,65 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                        {task.description && (
                          <p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2">{task.description}</p>
                        )}
+                       {task.checklistItems && task.checklistItems.length > 0 && (
+                         <div className="mt-3">
+                           <button
+                             onClick={() => {
+                               setExpandedTasks(prev => 
+                                 prev.includes(task.id!) 
+                                   ? prev.filter(id => id !== task.id!)
+                                   : [...prev, task.id!]
+                               );
+                             }}
+                             className="group/check flex items-center gap-2 hover:bg-[var(--bg-base)] px-2 py-1 -ml-2 rounded transition-colors text-left"
+                           >
+                             <div className="font-mono text-[10px] tracking-widest text-[var(--text-secondary)] flex items-center gap-1 group-hover/check:text-[var(--text-primary)]">
+                               <CheckSquare className="w-3 h-3" />
+                               <span className="text-[var(--accent)] tracking-[0.2em] font-bold">
+                                 {'█'.repeat(Math.round((task.checklistItems.filter(i => i.done).length / task.checklistItems.length) * 10))}
+                                 {'░'.repeat(10 - Math.round((task.checklistItems.filter(i => i.done).length / task.checklistItems.length) * 10))}
+                               </span>
+                               <span className="ml-1 tracking-tight">{task.checklistItems.filter(i => i.done).length}/{task.checklistItems.length} itens</span>
+                             </div>
+                           </button>
+
+                           {expandedTasks.includes(task.id!) && (
+                             <div className="mt-2 space-y-2 pl-1 border-l-2 border-[var(--border)] ml-1">
+                               {task.checklistItems.map((item, index) => (
+                                 <label key={item.id} className="flex items-start gap-2 cursor-pointer group/item">
+                                   <input
+                                     type="checkbox"
+                                     checked={item.done}
+                                     onChange={async (e) => {
+                                       const newItems = [...task.checklistItems!];
+                                       newItems[index].done = e.target.checked;
+                                       try {
+                                         await updateOperation(task.id!, { checklistItems: newItems });
+                                         loadData();
+                                       } catch (err) {
+                                         addToast('Erro ao atualizar item', 'error');
+                                       }
+                                     }}
+                                     className="mt-0.5 w-3.5 h-3.5 text-[var(--accent)] bg-[var(--bg-base)] border border-[var(--border)] rounded focus:ring-[var(--accent)] focus:ring-offset-[var(--bg-surface)]"
+                                   />
+                                   <span className={`text-sm tracking-tight ${item.done ? 'text-[var(--text-tertiary)] line-through' : 'text-[var(--text-secondary)] group-hover/item:text-[var(--text-primary)]'}`}>
+                                     {item.text}
+                                   </span>
+                                 </label>
+                               ))}
+                             </div>
+                           )}
+                         </div>
+                       )}
                        <div className="flex flex-wrap items-center gap-2 mt-3">
                          {task.date && (
                            <span className="flex items-center gap-1 text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-base)] border border-[var(--border)] px-1.5 py-0.5 rounded">
                              <Calendar className="w-3 h-3"/> {task.date.split('-').reverse().join('/')}
+                           </span>
+                         )}
+                         {task.time && (
+                           <span className="flex items-center gap-1 text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-base)] border border-[var(--border)] px-1.5 py-0.5 rounded">
+                             <Clock className="w-3 h-3"/> {task.time}
                            </span>
                          )}
                          <span className={`flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded border ${
@@ -393,79 +457,8 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
              <button type="button" onClick={() => setType('task')} className={`flex-1 py-1.5 text-sm font-medium rounded transition-colors ${type === 'task' ? 'bg-[var(--bg-surface)] border border-[var(--border)] shadow-sm text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>Tarefa</button>
           </div>
 
-          <div>
-            <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Descrição</label>
-            <textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              rows={3}
-              placeholder="Detalhes adicionais..."
-              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] resize-none text-sm tracking-tight"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-               <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Categoria</label>
-               <select
-                 value={category}
-                 onChange={e => setCategory(e.target.value)}
-                 className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
-               >
-                 <option value="Operacional">Operacional</option>
-                 <option value="Programação">Programação</option>
-                 <option value="Manutenção">Manutenção</option>
-                 <option value="Cliente">Cliente</option>
-                 <option value="Outro">Outro</option>
-               </select>
-            </div>
-            {type === 'task' && (
-               <>
-                  <div>
-                    <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Prioridade</label>
-                    <select
-                      value={priority}
-                      onChange={e => setPriority(e.target.value)}
-                      className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
-                    >
-                      <option value="Baixa">Baixa</option>
-                      <option value="Média">Média</option>
-                      <option value="Alta">Alta</option>
-                      <option value="Crítica">Crítica</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Status</label>
-                    <select
-                      value={status}
-                      onChange={e => setStatus(e.target.value)}
-                      className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
-                    >
-                      <option value="Pendente">Pendente</option>
-                      <option value="Em andamento">Em andamento</option>
-                      <option value="Aguardando retorno">Aguardando retorno</option>
-                      <option value="Concluída">Concluída</option>
-                    </select>
-                  </div>
-               </>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 gap-4">
-             <div>
-                <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">{type === 'task' ? 'Prazo (Data)' : 'Data do Evento'} *</label>
-                <input
-                  type="date"
-                  required
-                  value={dueDate}
-                  onChange={e => setDueDate(e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
-                />
-             </div>
-          </div>
-
           {/* Vínculos */}
-          <div className="border border-[var(--border)] rounded-xl p-4 bg-[var(--bg-base)] space-y-3">
+          <div className="bg-[var(--bg-base)] border border-[var(--border)] rounded-xl p-4 space-y-3">
              <p className="text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">Vincular a (Opcional)</p>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* Motorista */}
@@ -531,19 +524,147 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
              </div>
           </div>
 
-         {type === 'note' && (
-            <div className="flex items-center gap-2">
-               <input
-                 type="checkbox"
-                 id="isPinned"
-                 checked={isPinned}
-                 onChange={e => setIsPinned(e.target.checked)}
-                 className="w-4 h-4 text-[var(--accent)] bg-[var(--bg-base)] border border-[var(--border)] rounded focus:ring-[var(--accent)] focus:ring-offset-[var(--bg-surface)]"
-               />
-               <label htmlFor="isPinned" className="text-sm font-medium text-[var(--text-primary)]">
-                 Fixar anotação
-               </label>
-            </div>
+          <div className="grid grid-cols-2 gap-4">
+             <div>
+                <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Data do Evento *</label>
+                <input
+                  type="date"
+                  required
+                  value={dueDate}
+                  onChange={e => setDueDate(e.target.value)}
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
+                />
+             </div>
+             <div>
+                <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Hora (Opcional)</label>
+                <input
+                  type="time"
+                  value={time}
+                  onChange={e => setTime(e.target.value)}
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent)]"
+                />
+             </div>
+          </div>
+
+          {type === 'note' && (
+            <>
+              <div>
+                <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Descrição</label>
+                <textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  rows={3}
+                  placeholder="Detalhes adicionais..."
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] resize-none text-sm tracking-tight"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                 <input
+                   type="checkbox"
+                   id="isPinned"
+                   checked={isPinned}
+                   onChange={e => setIsPinned(e.target.checked)}
+                   className="w-4 h-4 text-[var(--accent)] bg-[var(--bg-base)] border border-[var(--border)] rounded focus:ring-[var(--accent)] focus:ring-offset-[var(--bg-surface)]"
+                 />
+                 <label htmlFor="isPinned" className="text-sm font-medium text-[var(--text-primary)]">
+                   Fixar anotação
+                 </label>
+              </div>
+            </>
+          )}
+
+          {type === 'task' && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                   <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Categoria</label>
+                   <select
+                     value={category}
+                     onChange={e => setCategory(e.target.value)}
+                     className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                   >
+                     <option value="Operacional">Operacional</option>
+                     <option value="Programação">Programação</option>
+                     <option value="Manutenção">Manutenção</option>
+                     <option value="Cliente">Cliente</option>
+                     <option value="Outro">Outro</option>
+                   </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Prioridade</label>
+                  <select
+                    value={priority}
+                    onChange={e => setPriority(e.target.value)}
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                  >
+                    <option value="Baixa">Baixa</option>
+                    <option value="Média">Média</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Crítica">Crítica</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Descrição</label>
+                <textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  rows={2}
+                  placeholder="Detalhes adicionais da tarefa..."
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] resize-none text-sm tracking-tight"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-1">Checklist (Opcional)</label>
+                <div className="space-y-2">
+                  {checklistItems.map((item, index) => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={item.done}
+                        onChange={e => {
+                          const newItems = [...checklistItems];
+                          newItems[index].done = e.target.checked;
+                          setChecklistItems(newItems);
+                        }}
+                        className="w-4 h-4 text-[var(--accent)] bg-[var(--bg-base)] border border-[var(--border)] rounded focus:ring-[var(--accent)] focus:ring-offset-[var(--bg-surface)]"
+                      />
+                      <input
+                        type="text"
+                        value={item.text}
+                        onChange={e => {
+                          const newItems = [...checklistItems];
+                          newItems[index].text = e.target.value;
+                          setChecklistItems(newItems);
+                        }}
+                        placeholder="Novo item..."
+                        className="flex-1 bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-2 py-1 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setChecklistItems(checklistItems.filter(i => i.id !== item.id));
+                        }}
+                        className="p-1 text-[var(--text-tertiary)] hover:text-[#E05252] transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setChecklistItems([...checklistItems, { id: Date.now().toString(), text: '', done: false }]);
+                    }}
+                    className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition mt-1"
+                  >
+                    <Plus className="w-3 h-3" /> Adicionar item
+                  </button>
+                </div>
+              </div>
+            </>
           )}
 
           <div className="pt-4 flex justify-end gap-2">
@@ -607,6 +728,7 @@ function NoteCard({ note, onEdit, onDelete, onTogglePin, viewMode }: { note: Ope
          <div className="mt-auto pt-3 border-t border-[var(--border)] flex items-center justify-between">
             <div className="flex items-center gap-2">
                {note.date && <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1"><Calendar className="w-3 h-3"/> {new Date(note.date + 'T12:00:00').toLocaleDateString('pt-BR')}</span>}
+               {note.time && <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1"><Clock className="w-3 h-3"/> {note.time}</span>}
             </div>
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
                <button onClick={onEdit} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"><Edit2 className="w-[14px] h-[14px]"/></button>

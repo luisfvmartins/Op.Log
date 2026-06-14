@@ -20,6 +20,7 @@ export interface OperationLog {
   placeId?: string;
   color?: string;
   isPinned?: boolean;
+  checklistItems?: { id: string; text: string; done: boolean }[];
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
