@@ -27,6 +27,7 @@ function exportReportToPDF(
       motorista: string;
       horario: string;
       observacao?: string;
+      emoji?: string;
     }[];
   }[],
   notes: {
@@ -711,95 +712,56 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
        }
     }
 
-    // 1. PENDÊNCIAS OPERACIONAIS
-    const pended = sortSchedules(activeSchedules.filter(s => s.observations && s.observations.trim().length > 0));
-    if (pended.length > 0) {
-      rpt += `──────────────────\n🟡 PROGRAMADO\n──────────────────\n\n`;
-      const items: any[] = [];
-      pended.forEach(s => {
-        const placa = getVehiclePlate(s.vehicleId);
-        const motorista = getDriverName(s.driverId).toUpperCase();
-        const horario = getDriverJornada(s.driverId);
-        rpt += `🟡 \`${placa}\` ${motorista} - ${horario} | *${s.observations}*\n\n`;
-        items.push({ placa, motorista, horario, observacao: s.observations });
-      });
-      pdfData.groups.push({ status: 'PROGRAMADO', emoji: '🟡', items });
-    }
-
     // Categorization
-    const opsByCli: Record<string, Schedule[]> = {};
-    const colEntArr: Schedule[] = [];
-    const tripsByReg: Record<string, Schedule[]> = {};
+    const viagem: Schedule[] = [];
+    const coletas: Schedule[] = [];
+    const entregas: Schedule[] = [];
+    const outras: Schedule[] = [];
 
     activeSchedules.forEach(s => {
         const opArr = s.operations || [s.operation];
-        
-        if (opArr.includes('Viagem')) {
-            const loc = (s.locationName || 'Diversas Regiões').toUpperCase();
-            if (!tripsByReg[loc]) tripsByReg[loc] = [];
-            tripsByReg[loc].push(s);
-        } else if (opArr.includes('Coleta') || opArr.includes('Entrega') || opArr.includes('Transferência')) {
-            colEntArr.push(s);
-        } else {
-            const loc = (s.locationName || 'OUTRAS OPERAÇÕES').toUpperCase();
-            if (!opsByCli[loc]) opsByCli[loc] = [];
-            opsByCli[loc].push(s);
-        }
+        if (opArr.includes('Viagem')) viagem.push(s);
+        else if (opArr.includes('Coleta')) coletas.push(s);
+        else if (opArr.includes('Entrega')) entregas.push(s);
+        else outras.push(s);
     });
 
-    // 2. OPERAÇÃO CLIENTE
-    const cliKeys = Object.keys(opsByCli).sort();
-    cliKeys.forEach(cli => {
-        if (opsByCli[cli].length > 0) {
-            rpt += `──────────────────\n🔵 EM OPERAÇÃO - ${cli}\n──────────────────\n\n`;
-            const items: any[] = [];
-            sortSchedules(opsByCli[cli]).forEach(s => {
-                const opsStr = (s.operations || [s.operation]).join(', ');
-                const local = s.locationName ? s.locationName : '';
-                const placa = getVehiclePlate(s.vehicleId);
-                const motorista = getDriverName(s.driverId).toUpperCase();
-                const obs = opsStr + (local ? ` ${local}` : '');
-                rpt += `🔵 \`${placa}\` ${motorista} - ${obs}`.trim() + `\n\n`;
-                items.push({ placa, motorista, horario: '', observacao: obs });
-            });
-            pdfData.groups.push({ status: `EM OPERAÇÃO - ${cli}`, emoji: '🔵', items });
-        }
-    });
-
-    // 3. COLETAS / ENTREGAS
-    if (colEntArr.length > 0) {
-        rpt += `──────────────────\n🔵 EM OPERAÇÃO - COLETAS / ENTREGAS\n──────────────────\n\n`;
+    const buildGroup = (title: string, list: Schedule[]) => {
+        if (list.length === 0) return '';
+        let text = `──────────────────\n${title}\n──────────────────\n\n`;
         const items: any[] = [];
-        sortSchedules(colEntArr).forEach(s => {
+        sortSchedules(list).forEach(s => {
             const opsStr = (s.operations || [s.operation]).join(', ');
             const local = s.locationName ? s.locationName : '';
             const placa = getVehiclePlate(s.vehicleId);
             const motorista = getDriverName(s.driverId).toUpperCase();
-            const obs = opsStr + (local ? ` ${local}` : '');
-            rpt += `🔵 \`${placa}\` ${motorista} - ${obs}`.trim() + `\n\n`;
-            items.push({ placa, motorista, horario: '', observacao: obs });
+            const horario = getDriverJornada(s.driverId);
+            
+            const hasObs = s.observations && s.observations.trim().length > 0;
+            const emoji = hasObs ? '🟡' : '🔵';
+            
+            let desc = '';
+            if (hasObs) {
+                 desc = `${horario} | *${s.observations.trim()}*`;
+            } else {
+                 desc = opsStr + (local ? ` ${local}` : '');
+            }
+
+            text += `${emoji} \`${placa}\` ${motorista} - ${desc}\n\n`;
+            items.push({ placa, motorista, horario: hasObs ? horario : '', observacao: hasObs ? s.observations : desc, emoji });
         });
-        pdfData.groups.push({ status: 'EM OPERAÇÃO', emoji: '🔵', items });
+        pdfData.groups.push({ status: title, emoji: '🔵', items });
+        return text;
+    };
+
+    rpt += buildGroup('VIAGEM', viagem);
+    rpt += buildGroup('COLETAS', coletas);
+    rpt += buildGroup('ENTREGAS', entregas);
+    if (outras.length > 0) {
+        rpt += buildGroup('OUTRAS OPERAÇÕES', outras);
     }
 
-    // 4. REGIÕES (Viagens)
-    const tripKeys = Object.keys(tripsByReg).sort();
-    tripKeys.forEach(reg => {
-       if (tripsByReg[reg].length > 0) {
-           rpt += `──────────────────\n🔵 EM OPERAÇÃO - ${reg}\n──────────────────\n\n`;
-           const items: any[] = [];
-           sortSchedules(tripsByReg[reg]).forEach(s => {
-               const placa = getVehiclePlate(s.vehicleId);
-               const motorista = getDriverName(s.driverId).toUpperCase();
-               const obs = s.locationName ? s.locationName : 'EM VIAGEM';
-               rpt += `🔵 \`${placa}\` ${motorista} - ${obs}\n\n`;
-               items.push({ placa, motorista, horario: '', observacao: obs });
-           });
-           pdfData.groups.push({ status: `EM OPERAÇÃO - ${reg}`, emoji: '🔵', items });
-       }
-    });
-
-    // 5. FOLGA / FÉRIAS / AFASTAMENTOS
+    // INDISPONÍVEL
     const folgas = sortDriversList(drivers.filter(d => ['Folga', 'Férias', 'Afastado'].includes(d.status)));
     if (folgas.length > 0) {
         rpt += `──────────────────\n🔴 INDISPONÍVEL\n──────────────────\n\n`;
@@ -808,12 +770,12 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
             const placa = getVehiclePlate(d.veiculoPadraoId || '');
             const jorna = `[${d.inicioJornada || '08:00'} às ${d.fimJornada || '18:00'}]`;
             rpt += `🔴 \`${placa}\` ${d.nome.toUpperCase()} - ${jorna} | *${d.status.toUpperCase()}*\n\n`;
-            items.push({ placa, motorista: d.nome.toUpperCase(), horario: jorna, observacao: d.status.toUpperCase() });
+            items.push({ placa, motorista: d.nome.toUpperCase(), horario: jorna, observacao: d.status.toUpperCase(), emoji: '🔴' });
         });
         pdfData.groups.push({ status: 'INDISPONÍVEL', emoji: '🔴', items });
     }
 
-    // 6. SEM PROGRAMAÇÃO
+    // DISPONÍVEL
     const semProg = sortDriversList(drivers.filter(d => 
         !['Folga', 'Férias', 'Afastado'].includes(d.status) &&
         !activeSchedules.some(s => s.driverId === d.id)
@@ -825,7 +787,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
             const placa = getVehiclePlate(d.veiculoPadraoId || '');
             const jorna = `[${d.inicioJornada || '08:00'} às ${d.fimJornada || '18:00'}]`;
             rpt += `⚪ \`${placa}\` ${d.nome.toUpperCase()} - ${jorna}\n\n`;
-            items.push({ placa, motorista: d.nome.toUpperCase(), horario: jorna });
+            items.push({ placa, motorista: d.nome.toUpperCase(), horario: jorna, emoji: '⚪' });
         });
         pdfData.groups.push({ status: 'DISPONÍVEL', emoji: '⚪', items });
     }
