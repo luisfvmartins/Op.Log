@@ -697,7 +697,20 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
        const isoToday = targetDate;
 
        const ops = await getOperations(user.uid);
-       const todayNotes = ops.filter(o => o.type === 'note' && o.date === isoToday);
+       const dbNotes = ops.filter(o => o.type === 'note' && o.date === isoToday);
+       
+       const schedNotes: any[] = schedules
+         .filter(s => s.date === isoToday && s.observations && s.observations.trim().length > 0)
+         .map(s => ({
+            type: 'note',
+            date: s.date,
+            category: 'Programação',
+            description: s.observations,
+            vehicleId: s.vehicleId,
+            driverId: s.driverId
+         }));
+
+       const todayNotes = [...dbNotes, ...schedNotes];
        
        if (todayNotes.length > 0) {
          rpt += `──────────────────\n📌 ANOTAÇÕES OPERACIONAIS\n──────────────────\n\n`;
@@ -707,6 +720,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                if(cat === 'Programação') return '📅';
                if(cat === 'Manutenção') return '🔧';
                if(cat === 'Cliente') return '🏢';
+               if(cat === 'Extra') return '📝';
                return '📌';
             };
             const emoji = getCategoryEmoji(o.category);
@@ -724,12 +738,11 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
 
             const placaStr = placaVal ? `\`${placaVal.toUpperCase()}\`` : '';
             const motoristaStr = motoristaVal ? `${motoristaVal.toUpperCase()}` : '';
-            const categoriaStr = o.category ? `${o.category} - ` : '';
             const descricaoStr = o.description || '';
 
             const parts = [emoji, placaStr, motoristaStr].filter(Boolean).join(' ');
 
-            rpt += `${parts} — ${categoriaStr}${descricaoStr}\n\n`;
+            rpt += `${parts} — ${descricaoStr}\n\n`;
             pdfData.notes.push({
                placa: placaVal ? placaVal.toUpperCase() : '',
                motorista: motoristaVal ? motoristaVal.toUpperCase() : '',

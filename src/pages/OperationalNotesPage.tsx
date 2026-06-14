@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getOperations, createOperation, updateOperation, deleteOperation, OperationLog } from '../services/operations';
 import { getDrivers, Driver } from '../services/drivers';
 import { getVehicles, Vehicle } from '../services/vehicles';
-import { getSchedules, Schedule } from '../services/schedules';
+import { getSchedules, Schedule, updateSchedule } from '../services/schedules';
 import { ToastContainer } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
 import { Modal } from '../components/ui/Modal';
@@ -169,8 +169,13 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
 
       if (editingOp?.id) {
-        await updateOperation(editingOp.id, data);
-        addToast('Registro atualizado', 'success');
+        if (editingOp.id.startsWith('sched-')) {
+          await updateSchedule(editingOp.id.replace('sched-', ''), { observations: data.description });
+          addToast('Anotação de programação atualizada', 'success');
+        } else {
+          await updateOperation(editingOp.id, data);
+          addToast('Registro atualizado', 'success');
+        }
       } else {
         await createOperation(data);
         addToast('Registro criado', 'success');
@@ -234,6 +239,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
           case 'Programação': return '📅';
           case 'Manutenção': return '🔧';
           case 'Cliente': return '🏢';
+          case 'Extra': return '📝';
           default: return '📌';
       }
   };
@@ -278,27 +284,14 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
         const dText = note.driverRef || (note.driverId ? drivers.find(d => d.id === note.driverId)?.nome : '');
         const emoji = getCategoryEmoji(note.category);
         
-        let whatsappPrefix = [];
-        let pdfPrefix = [];
-        if (vText) {
-          whatsappPrefix.push(`\`${vText.toUpperCase()}\``);
-          pdfPrefix.push(`${vText.toUpperCase()}`);
-        }
-        if (dText) {
-          whatsappPrefix.push(`${dText.toUpperCase()}`);
-          pdfPrefix.push(`${dText.toUpperCase()}`);
-        }
-        
-        let whatsappPrefixStr = whatsappPrefix.join(' ');
-        let pdfPrefixStr = pdfPrefix.join(' ');
-        
-        if (whatsappPrefixStr) whatsappPrefixStr += ' ';
-        if (pdfPrefixStr) pdfPrefixStr += ' ';
-        
-        const categoryPart = note.category ? `${note.category} - ` : '';
+        const placaStr = vText ? `\`${vText.toUpperCase()}\`` : '';
+        const motoristaStr = dText ? `${dText.toUpperCase()}` : '';
 
-        whatsappText += `${emoji} ${whatsappPrefixStr}— ${categoryPart}${note.description}\n`;
-        pdfText += `${emoji} ${pdfPrefixStr}— ${categoryPart}${note.description}\n`;
+        const whatsappParts = [emoji, placaStr, motoristaStr].filter(Boolean).join(' ');
+        const pdfParts = [emoji, vText ? vText.toUpperCase() : '', dText ? dText.toUpperCase() : ''].filter(Boolean).join(' ');
+
+        whatsappText += `${whatsappParts} — ${note.description}\n`;
+        pdfText += `${pdfParts} — ${note.description}\n`;
       });
       whatsappText += `\n`;
       pdfText += `\n`;
@@ -776,6 +769,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                      <option value="Programação">Programação</option>
                      <option value="Manutenção">Manutenção</option>
                      <option value="Cliente">Cliente</option>
+                     <option value="Extra">Extra</option>
                      <option value="Outro">Outro</option>
                    </select>
                 </div>
@@ -987,12 +981,12 @@ function NoteCard({ note, onEdit, onDelete, onTogglePin, viewMode }: { note: Ope
                {note.date && <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1"><Calendar className="w-3 h-3"/> {new Date(note.date + 'T12:00:00').toLocaleDateString('pt-BR')}</span>}
                {note.time && <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1"><Clock className="w-3 h-3"/> {note.time}</span>}
             </div>
-            {(!isReadOnly) && (
                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
                   <button onClick={onEdit} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"><Edit2 className="w-[14px] h-[14px]"/></button>
-                  <button onClick={onDelete} className="text-[var(--text-tertiary)] hover:text-[#E05252] transition"><Trash2 className="w-[14px] h-[14px]"/></button>
+                  {(!isReadOnly) && (
+                     <button onClick={onDelete} className="text-[var(--text-tertiary)] hover:text-[#E05252] transition"><Trash2 className="w-[14px] h-[14px]"/></button>
+                  )}
                </div>
-            )}
          </div>
       </div>
    )
