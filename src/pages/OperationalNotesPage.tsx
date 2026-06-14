@@ -34,6 +34,13 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [expandedTasks, setExpandedTasks] = useState<string[]>([]);
+  
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [dashboardFilter, setDashboardFilter] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ type: 'edit' | 'delete'; op: OperationLog } | null>(null);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportText, setReportText] = useState('');
 
   // Form
   const [type, setType] = useState<'note' | 'task'>('note');
@@ -78,8 +85,16 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
     }
   };
 
-  const handleOpenModal = (op?: OperationLog) => {
+  const isPastDate = (dateStr: string) => {
+     return dateStr < todayStr;
+  };
+
+  const handleOpenModal = (op?: OperationLog, force = false) => {
     if (op) {
+      if (!force && op.date && isPastDate(op.date)) {
+        setPendingAction({ type: 'edit', op });
+        return;
+      }
       setEditingOp(op);
       setType(op.type as 'note' | 'task');
       setDescription(op.description || '');
@@ -105,7 +120,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       setCategory('Operacional');
       setPriority('Baixa');
       setStatus('Pendente');
-      setDueDate('');
+      setDueDate(selectedDate);
       setTime('');
       setChecklistItems([]);
       setDriverText('');
@@ -113,6 +128,14 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       setIsPinned(false);
     }
     setIsModalOpen(true);
+  };
+
+  const handleRequestDelete = (op: OperationLog, force = false) => {
+    if (!force && op.date && isPastDate(op.date)) {
+      setPendingAction({ type: 'delete', op });
+      return;
+    }
+    setDeletingId(op.id!);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -204,11 +227,74 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
      return 'Anotação';
   };
 
-  const filteredOps = operations.filter(op => {
-    const filterText = `${getOpDisplayTitle(op)} ${op.description || ''} ${op.category || ''}`.toLowerCase();
-    const typeMatch = (activeTab === 'Anotações' && op.type === 'note') || (activeTab === 'Tarefas' && op.type === 'task');
-    return filterText.includes(searchQuery.toLowerCase()) && typeMatch;
-  }).sort((a, b) => {
+  const getCategoryEmoji = (category?: string) => {
+      switch (category) {
+          case 'Operacional': return '📝';
+          case 'Programação': return '📅';
+          case 'Manutenção': return '🔧';
+          case 'Cliente': return '🏢';
+          default: return '📌';
+      }
+  };
+
+  const generateReport = () => {
+    const splitDate = selectedDate.split('-');
+    const formattedDate = `${splitDate[2]}/${splitDate[1]}/${splitDate[0]}`;
+    let rpt = `📊 *RELATÓRIO OPERACIONAL | ${formattedDate}*\n\n`;
+    
+    // Anotações
+    const dateNotes = operations.filter(o => o.type === 'note' && o.date === selectedDate);
+    if (dateNotes.length > 0) {
+      rpt += `📌 *ANOTAÇÕES*\n`;
+      dateNotes.forEach(note => {
+        const vText = note.vehicleRef || (note.vehicleId ? vehicles.find(v => v.id === note.vehicleId)?.placa : '');
+        const dText = note.driverRef || (note.driverId ? drivers.find(d => d.id === note.driverId)?.nome : '');
+        const emoji = getCategoryEmoji(note.category);
+        
+        let prefix = [];
+        if (vText) prefix.push(`\`[${vText.toUpperCase()}]\``);
+        if (dText) prefix.push(`[${dText.toUpperCase()}]`);
+        
+        const prefixStr = prefix.length > 0 ? `${prefix.join(' ')} ` : '';
+        rpt += `${emoji} ${prefixStr}— ${note.description}\n`;
+      });
+      rpt += `\n`;
+    }
+
+    // Tarefas
+    const dateTasks = operations.filter(o => o.type === 'task' && o.date === selectedDate);
+    if (dateTasks.length > 0) {
+      rpt += `📋 *TAREFAS*\n`;
+      dateTasks.forEach(task => {
+        rpt += `• [${task.priority}] ${task.category} — ${task.description} (${task.status})\n`;
+      });
+    }
+    
+    setReportText(rpt);
+    setReportModalOpen(true);
+  };
+
+  const getFilteredItems = () => {
+    let list = operations;
+
+    if (dashboardFilter === 'anotacoes') list = list.filter(o => o.type === 'note' && o.date === selectedDate);
+    else if (dashboardFilter === 'fixadas') list = list.filter(o => o.type === 'note' && o.isPinned);
+    else if (dashboardFilter === 'tarefas') list = list.filter(o => o.type === 'task');
+    else if (dashboardFilter === 'tarefasDia') list = list.filter(o => o.type === 'task' && o.date === selectedDate);
+    else if (dashboardFilter === 'tarefasPendentes') list = list.filter(o => o.type === 'task' && o.status !== 'Concluída');
+    else if (dashboardFilter === 'tarefasConcluidas') list = list.filter(o => o.type === 'task' && o.status === 'Concluída');
+    else {
+      list = list.filter(o => o.date === selectedDate);
+    }
+
+    return list.filter(op => {
+      const filterText = `${getOpDisplayTitle(op)} ${op.description || ''} ${op.category || ''}`.toLowerCase();
+      const typeMatch = (activeTab === 'Anotações' && op.type === 'note') || (activeTab === 'Tarefas' && op.type === 'task');
+      return filterText.includes(searchQuery.toLowerCase()) && (dashboardFilter ? true : typeMatch);
+    });
+  };
+
+  const filteredOps = getFilteredItems().sort((a, b) => {
     if (sortBy === 'az') {
       return getOpDisplayTitle(a).localeCompare(getOpDisplayTitle(b));
     } else if (sortBy === 'za') {
@@ -231,6 +317,15 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
     if (p === 'Alta' || p === 'Crítica') return 'text-red-500 bg-red-50 dark:bg-red-500/10';
     if (p === 'Média') return 'text-amber-500 bg-amber-50 dark:bg-amber-500/10';
     return 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10';
+  };
+
+  const handleCardClick = (filter: string, tab: 'Anotações' | 'Tarefas') => {
+    if (dashboardFilter === filter) {
+      setDashboardFilter(null);
+    } else {
+      setDashboardFilter(filter);
+      setActiveTab(tab);
+    }
   };
 
   return (
@@ -264,12 +359,49 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       />
 
       <main className="p-6 max-w-[1600px] mx-auto space-y-6">
+        {/* Date Selector & Report */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+          <div className="w-full md:w-auto flex justify-center">
+            <div className="flex items-center gap-4 bg-[var(--bg-card)] border border-[var(--border)] rounded-full px-4 py-2 shadow-sm">
+              <button
+                onClick={() => {
+                  const d = new Date(`${selectedDate}T12:00:00`);
+                  d.setDate(d.getDate() - 1);
+                  setSelectedDate(d.toISOString().split('T')[0]);
+                }}
+                className="p-1 px-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-base)] rounded-full transition font-bold"
+              >
+                &lt;
+              </button>
+              <div className="text-sm font-mono tracking-widest text-[var(--text-primary)] uppercase flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[var(--accent)]" /> {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR')}
+              </div>
+              <button
+                onClick={() => {
+                  const d = new Date(`${selectedDate}T12:00:00`);
+                  d.setDate(d.getDate() + 1);
+                  setSelectedDate(d.toISOString().split('T')[0]);
+                }}
+                className="p-1 px-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-base)] rounded-full transition font-bold"
+              >
+                &gt;
+              </button>
+            </div>
+          </div>
+          <button
+            onClick={generateReport}
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:border-[var(--border-hover)] transition"
+          >
+            <BookOpen className="w-4 h-4" /> Relatório Operacional
+          </button>
+        </div>
+
         {/* Tabs */}
         <div className="flex space-x-1 bg-[var(--bg-surface)] border border-[var(--border)] p-1 rounded-md w-fit">
           {(['Anotações', 'Tarefas'] as const).map(tab => (
             <button
                key={tab}
-               onClick={() => setActiveTab(tab)}
+               onClick={() => { setActiveTab(tab); setDashboardFilter(null); }}
                className={`px-4 py-1.5 text-sm font-medium rounded transition-colors ${
                   activeTab === tab 
                      ? 'bg-[var(--accent-tint)] text-[var(--text-primary)] border border-[var(--accent-border)]' 
@@ -282,29 +414,41 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
         </div>
 
         {/* Dashboard Indicators */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div onClick={() => handleCardClick('anotacoes', 'Anotações')} className={`cursor-pointer transition-all border rounded-xl p-4 ${dashboardFilter === 'anotacoes' ? 'bg-[var(--accent-tint)] border-[var(--accent)] shadow-sm' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--border-hover)]'}`}>
             <p className="text-[10px] text-[var(--text-tertiary)] font-mono uppercase tracking-widest">Total de Anotações</p>
             <p className="text-2xl font-mono text-[var(--text-primary)] mt-1">
-              {operations.filter(o => o.type === 'note').length}
+              {operations.filter(o => o.type === 'note' && o.date === selectedDate).length}
             </p>
           </div>
-          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4">
+          <div onClick={() => handleCardClick('fixadas', 'Anotações')} className={`cursor-pointer transition-all border rounded-xl p-4 ${dashboardFilter === 'fixadas' ? 'bg-[#D4A843]/10 border-[#D4A843]/30 shadow-sm' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--border-hover)]'}`}>
             <p className="text-[10px] text-[var(--text-tertiary)] font-mono uppercase tracking-widest">Anotações Fixadas</p>
             <p className="text-2xl font-mono text-[#D4A843] mt-1">
               {operations.filter(o => o.type === 'note' && o.isPinned).length}
             </p>
           </div>
-          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4">
-            <p className="text-[10px] text-[var(--text-tertiary)] font-mono uppercase tracking-widest">Tarefas Pendentes</p>
-            <p className="text-2xl font-mono text-[#5B8FDB] mt-1">
-              {operations.filter(o => o.type === 'task' && o.status !== 'Concluído').length}
+          <div onClick={() => handleCardClick('tarefas', 'Tarefas')} className={`cursor-pointer transition-all border rounded-xl p-4 ${dashboardFilter === 'tarefas' ? 'bg-[#5B8FDB]/10 border-[#5B8FDB]/30 shadow-sm' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--border-hover)]'}`}>
+            <p className="text-[10px] text-[var(--text-tertiary)] font-mono uppercase tracking-widest">Total de Tarefas</p>
+            <p className="text-2xl font-mono text-[var(--text-primary)] mt-1">
+              {operations.filter(o => o.type === 'task').length}
             </p>
           </div>
-          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl p-4">
+          <div onClick={() => handleCardClick('tarefasDia', 'Tarefas')} className={`cursor-pointer transition-all border rounded-xl p-4 ${dashboardFilter === 'tarefasDia' ? 'bg-[#5B8FDB]/10 border-[#5B8FDB]/30 shadow-sm' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--border-hover)]'}`}>
+            <p className="text-[10px] text-[var(--text-tertiary)] font-mono uppercase tracking-widest">Tarefas do Dia</p>
+            <p className="text-2xl font-mono text-[#5B8FDB] mt-1">
+              {operations.filter(o => o.type === 'task' && o.date === selectedDate).length}
+            </p>
+          </div>
+          <div onClick={() => handleCardClick('tarefasPendentes', 'Tarefas')} className={`cursor-pointer transition-all border rounded-xl p-4 ${dashboardFilter === 'tarefasPendentes' ? 'bg-[#E0BC6A]/10 border-[#E0BC6A]/30 shadow-sm' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--border-hover)]'}`}>
+            <p className="text-[10px] text-[var(--text-tertiary)] font-mono uppercase tracking-widest">Tarefas Pendentes</p>
+            <p className="text-2xl font-mono text-[#E0BC6A] mt-1">
+              {operations.filter(o => o.type === 'task' && o.status !== 'Concluída').length}
+            </p>
+          </div>
+          <div onClick={() => handleCardClick('tarefasConcluidas', 'Tarefas')} className={`cursor-pointer transition-all border rounded-xl p-4 ${dashboardFilter === 'tarefasConcluidas' ? 'bg-[#4CAF7D]/10 border-[#4CAF7D]/30 shadow-sm' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--border-hover)]'}`}>
             <p className="text-[10px] text-[var(--text-tertiary)] font-mono uppercase tracking-widest">Tarefas Concluídas</p>
             <p className="text-2xl font-mono text-[#4CAF7D] mt-1">
-              {operations.filter(o => o.type === 'task' && o.status === 'Concluído').length}
+              {operations.filter(o => o.type === 'task' && o.status === 'Concluída').length}
             </p>
           </div>
         </div>
@@ -468,7 +612,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                     value={driverText}
                     onChange={e => { setDriverText(e.target.value); setDriverDropdownOpen(true); }}
                     onBlur={() => setTimeout(() => setDriverDropdownOpen(false), 150)}
-                    placeholder="Motorista (nome ou texto livre)"
+                    placeholder="João Francisco de Almeida"
                     className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-3 py-1.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                   />
                   {driverDropdownOpen && driverText.trim().length > 0 && (
@@ -498,7 +642,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
                     value={vehicleText}
                     onChange={e => { setVehicleText(e.target.value); setVehicleDropdownOpen(true); }}
                     onBlur={() => setTimeout(() => setVehicleDropdownOpen(false), 150)}
-                    placeholder="Placa (cadastrada ou nova)"
+                    placeholder="Digite a placa..."
                     className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md px-3 py-1.5 text-sm text-[var(--text-primary)] font-mono uppercase focus:outline-none focus:border-[var(--accent)]"
                     style={{ textTransform: 'uppercase' }}
                   />
@@ -686,7 +830,66 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
         </form>
       </Modal>
 
-      <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
+      <ConfirmDialog
+        isOpen={pendingAction !== null}
+        title={pendingAction?.type === 'edit' ? "Editar anotação passada" : "Excluir anotação passada"}
+        description={`Esta anotação é de uma data anterior (${pendingAction?.op?.date}). ${pendingAction?.type === 'edit' ? 'Editar' : 'Excluir'} pode afetar relatórios já gerados. Deseja continuar?`}
+        onConfirm={() => {
+          if (!pendingAction) return;
+          if (pendingAction.type === 'edit') {
+            handleOpenModal(pendingAction.op, true);
+          } else {
+            handleRequestDelete(pendingAction.op, true);
+          }
+          setPendingAction(null);
+        }}
+        onClose={() => setPendingAction(null)}
+        confirmText={pendingAction?.type === 'edit' ? "Editar mesmo assim" : "Excluir mesmo assim"}
+        isDestructive={true}
+      />
+
+      {/* Report Modal */}
+      <Modal isOpen={reportModalOpen} onClose={() => setReportModalOpen(false)} title="Gerar Relatório">
+        <div className="space-y-4">
+          <textarea
+            value={reportText}
+            onChange={e => setReportText(e.target.value)}
+            rows={15}
+            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl p-4 text-[var(--text-primary)] font-mono text-xs whitespace-pre-wrap focus:outline-none focus:border-[var(--accent)] resize-none"
+          />
+          
+          <div className="flex justify-end gap-3 pt-4 border-t border-[var(--border)]">
+            <button
+               onClick={() => {
+                 navigator.clipboard.writeText(reportText);
+                 addToast('Copiado para a área de transferência', 'success');
+               }}
+               className="px-4 py-2 text-sm font-medium bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--border-hover)] rounded-md transition-colors"
+            >
+              Copiar Texto
+            </button>
+            <button
+               onClick={() => {
+                 // Basic text to PDF
+                 import('jspdf').then(({ default: jsPDF }) => {
+                   const splitDate = selectedDate.split('-');
+                   const formattedDate = `${splitDate[2]}/${splitDate[1]}/${splitDate[0]}`;
+                   const doc = new jsPDF();
+                   doc.setFont("helvetica", "normal");
+                   doc.setFontSize(12);
+                   
+                   const lines = doc.splitTextToSize(reportText, 180);
+                   doc.text(lines, 15, 20);
+                   doc.save(`Anotacoes_${formattedDate.replace(/\//g, '-')}.pdf`);
+                 });
+               }}
+               className="px-4 py-2 text-sm font-medium bg-[var(--accent)] text-[#0C0D0F] hover:bg-[var(--accent-hover)] rounded-md transition-colors"
+            >
+              Baixar PDF
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <ConfirmDialog
         isOpen={deletingId !== null}

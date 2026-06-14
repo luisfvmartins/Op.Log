@@ -337,23 +337,24 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
 
   const handleOpenModal = (sched?: Schedule, force: boolean = false) => {
     if (sched) {
-      if (!force && isPastDate(sched.date)) {
+      const isDummy = sched.id?.startsWith('drv-');
+      if (!force && !isDummy && sched.date && isPastDate(sched.date)) {
         setPendingAction({ type: 'edit', schedule: sched });
         return;
       }
-      setEditingSchedule(sched);
+      setEditingSchedule(isDummy ? undefined : sched);
       setDriverId(sched.driverId);
       setVehicleId(sched.vehicleId);
-      setDate(sched.date);
+      setDate(isDummy ? selectedDate : sched.date);
       setTime(sched.time);
       
       const opArr = sched.operations || (sched.operation ? (Array.isArray(sched.operation) ? sched.operation : [sched.operation]) : []);
-      setOperations(opArr);
+      setOperations(opArr.length === 1 && (opArr[0] === 'Folga' || opArr[0] === 'Férias' || opArr[0] === 'Afastado' || opArr[0] === 'Sem Programação') ? [] : opArr);
       
       setLocationSearchDisplay(sched.locationName || '');
       
       setObservations(sched.observations || '');
-      setStatus(sched.status);
+      setStatus(isDummy ? 'Ativo' : sched.status);
       
       const d = drivers.find(d => d.id === sched.driverId);
       setDriverSearchDisplay(d?.nome || '');
@@ -559,11 +560,12 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
   };
 
   const handleRequestDelete = (sched: Schedule, force: boolean = false) => {
-    if (!force && isPastDate(sched.date)) {
+    if (!sched.id || sched.id.startsWith('drv-')) return;
+    if (!force && sched.date && isPastDate(sched.date)) {
       setPendingAction({ type: 'delete', schedule: sched });
       return;
     }
-    setDeletingId(sched.id!);
+    setDeletingId(sched.id);
   };
 
   const isPastDate = (dateStr: string) => {
@@ -656,18 +658,36 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
        if (todayNotes.length > 0) {
          rpt += `──────────────────\n📌 ANOTAÇÕES OPERACIONAIS\n──────────────────\n\n`;
          todayNotes.forEach(o => {
-            const emoji = '📌';
-            const placaVal = o.vehicleRef || o.vehicleId;
-            const motoristaVal = o.driverRef || o.driverId;
-            const placa = placaVal ? `\`${placaVal.toUpperCase()}\`` : '`SEM PLACA`';
-            const motorista = motoristaVal ? motoristaVal.toUpperCase() : 'SEM MOTORISTA';
-            const categoria = o.category ? `[${o.category}]` : '';
-            const descricao = o.description ? ` — ${o.description}` : '';
+            const getCategoryEmoji = (cat?: string) => {
+               if(cat === 'Operacional') return '📝';
+               if(cat === 'Programação') return '📅';
+               if(cat === 'Manutenção') return '🔧';
+               if(cat === 'Cliente') return '🏢';
+               return '📌';
+            };
+            const emoji = getCategoryEmoji(o.category);
+            
+            let placaVal = o.vehicleRef || o.vehicleId;
+            if (o.vehicleId) {
+                const v = vehicles.find(vh => vh.id === o.vehicleId);
+                if (v) placaVal = v.placa;
+            }
+            let motoristaVal = o.driverRef || o.driverId;
+            if (o.driverId) {
+                const d = drivers.find(dr => dr.id === o.driverId);
+                if (d) motoristaVal = d.nome;
+            }
 
-            rpt += `${emoji} ${placa} ${motorista} - ${categoria}${descricao}\n\n`;
+            const placaStr = placaVal ? `\`[${placaVal.toUpperCase()}]\`` : '';
+            const motoristaStr = motoristaVal ? `[${motoristaVal.toUpperCase()}]` : '';
+            const descricaoStr = o.description || '';
+
+            const parts = [emoji, placaStr, motoristaStr].filter(Boolean).join(' ');
+
+            rpt += `${parts} — ${descricaoStr}\n\n`;
             pdfData.notes.push({
-               placa: placaVal ? placaVal.toUpperCase() : 'SEM PLACA',
-               motorista: motoristaVal ? motoristaVal.toUpperCase() : 'SEM MOTORISTA',
+               placa: placaVal ? placaVal.toUpperCase() : '',
+               motorista: motoristaVal ? motoristaVal.toUpperCase() : '',
                categoria: o.category || '',
                descricao: o.description || ''
             });
@@ -1137,7 +1157,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                        }
                     }}
                     onFocus={() => setDriverDropdownOpen(true)}
-                    placeholder="Digite o nome..."
+                    placeholder="João Francisco de Almeida"
                     className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                  />
                  {driverDropdownOpen && driverSearchDisplay.trim() !== '' && (
@@ -1362,7 +1382,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
                        setLocationDropdownOpen(true);
                     }}
                     onFocus={() => setLocationDropdownOpen(true)}
-                    placeholder="Pesquisar local..."
+                    placeholder="Centro de Estética Autoprime"
                     className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] tracking-tight"
                  />
                  {locationDropdownOpen && locationSearchDisplay.trim() !== '' && (
@@ -1409,7 +1429,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
               value={observations}
               onChange={e => setObservations(e.target.value)}
               rows={2}
-              placeholder="Ex: Retornando ao pátio novo para troca de carreta."
+              placeholder="Ex: retornando ao pátio novo para troca de carreta."
               className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-[var(--text-primary)] resize-none focus:outline-none focus:border-[var(--accent)] font-mono text-sm tracking-tight"
             />
           </div>
