@@ -96,7 +96,7 @@ function exportReportToPDF(
       doc.text(`${note.placa}  ${note.motorista}`, marginLeft + 2, y);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(80, 80, 80);
-      const safeDesc = (note.descricao || '').replace(/[^\x20-\x7E\xA0-\xFF]/g, '');
+      const safeDesc = (note.descricao || '').replace(/[\u1000-\uFFFF]+/g, '');
       doc.text(`[${note.categoria}]${safeDesc ? '  ' + safeDesc : ''}`, marginLeft + 2, y + 4);
       y += lineHeight + 4;
     });
@@ -144,7 +144,7 @@ function exportReportToPDF(
         checkPageBreak(6);
         doc.setFontSize(7);
         doc.setTextColor(130, 130, 130);
-        const safeObs = item.observacao.replace(/[^\x20-\x7E\xA0-\xFF]/g, '');
+        const safeObs = item.observacao.replace(/[\u1000-\uFFFF]+/g, '');
         doc.text(`  ${safeObs}`, marginLeft + 4, y);
       }
       y += lineHeight;
@@ -869,7 +869,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-full pb-24 font-sans">
+    <div className="min-h-screen bg-[var(--bg-base)] pb-24">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       <UnifiedHeader
@@ -898,9 +898,9 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         searchPlaceholder="Buscar programação..."
       />
       
-      <main className="flex-1 p-6 space-y-6 overflow-x-hidden">
+      <main className="p-6 max-w-[1600px] mx-auto space-y-6">
         <div className="flex justify-center mb-6">
-          <div className="flex items-center gap-4 bg-[var(--bg-surface)] border border-[var(--border-strong)] rounded-full px-4 py-2 shadow-sm">
+          <div className="flex items-center gap-4 bg-[var(--bg-card)] border border-[var(--border)] rounded-full px-4 py-2 shadow-sm">
             <button
               onClick={() => {
                 const d = new Date(`${selectedDate}T12:00:00`);
@@ -920,7 +920,7 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
               />
               <button
                 onClick={() => setSelectedDate(todayStr)}
-                className="text-xs px-3 py-1 font-medium bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-[var(--text-primary)] hover:border-[var(--text-tertiary)] rounded-full transition"
+                className="text-xs px-3 py-1 font-medium bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--border-hover)] rounded-full transition"
               >
                 Hoje
               </button>
@@ -959,21 +959,21 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
         {/* Dashboard Indicators */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
           {[
-            { id: 'emOperacao', label: 'Motoristas em operação', val: metrics.emOperacao, style: 'bg-[var(--accent-main)] border-[var(--accent-main)] font-semibold text-[var(--bg-elevated)] ring-1 ring-inset ring-[var(--accent-main)]' },
-            { id: 'coletas', label: 'Coletas', val: metrics.coletas, style: 'bg-[var(--bg-surface)] border-[var(--border-strong)] font-semibold text-[var(--text-primary)] hover:border-[var(--text-tertiary)] hover:shadow-sm' },
-            { id: 'entregas', label: 'Entregas', val: metrics.entregas, style: 'bg-[var(--bg-surface)] border-[var(--border-strong)] font-semibold text-[var(--text-primary)] hover:border-[var(--text-tertiary)] hover:shadow-sm' },
-            { id: 'transferencias', label: 'Transferências', val: metrics.transferencias, style: 'bg-[var(--bg-surface)] border-[var(--border-strong)] font-semibold text-[var(--text-primary)] hover:border-[var(--text-tertiary)] hover:shadow-sm' },
-            { id: 'manobras', label: 'Manobras', val: metrics.manobras, style: 'bg-[var(--bg-surface)] border-[var(--border-strong)] font-semibold text-[var(--text-primary)] hover:border-[var(--text-tertiary)] hover:shadow-sm' },
+            { id: 'emOperacao', label: 'Motoristas em operação', val: metrics.emOperacao, style: 'bg-[var(--accent-tint)] border-[var(--accent-border)] font-semibold text-[var(--accent)]' },
+            { id: 'coletas', label: 'Coletas', val: metrics.coletas, style: 'bg-[var(--bg-surface)] border-[var(--border)] font-semibold text-[var(--text-primary)] hover:border-[var(--border-hover)]' },
+            { id: 'entregas', label: 'Entregas', val: metrics.entregas, style: 'bg-[var(--bg-surface)] border-[var(--border)] font-semibold text-[var(--text-primary)] hover:border-[var(--border-hover)]' },
+            { id: 'transferencias', label: 'Transferências', val: metrics.transferencias, style: 'bg-[var(--bg-surface)] border-[var(--border)] font-semibold text-[var(--text-primary)] hover:border-[var(--border-hover)]' },
+            { id: 'manobras', label: 'Manobras', val: metrics.manobras, style: 'bg-[var(--bg-surface)] border-[var(--border)] font-semibold text-[var(--text-primary)] hover:border-[var(--border-hover)]' },
             { id: 'folgas', label: 'Folgas/Férias', val: metrics.folgas, style: 'bg-[#5B8FDB]/10 border-[#5B8FDB]/30 font-semibold text-[#5B8FDB]' },
             { id: 'semProgramacao', label: 'Sem programação', val: metrics.semProgramacao, style: 'bg-[#4CAF7D]/10 border-[#4CAF7D]/30 font-semibold text-[#4CAF7D]' }
           ].map(card => (
             <button
               key={card.id}
               onClick={() => setDashboardFilter(dashboardFilter === card.id ? null : card.id)}
-              className={`text-left p-3 rounded-xl border transition-all ${dashboardFilter === card.id ? card.style.replace('bg-[var(--bg-surface)]', 'bg-[var(--bg-subtle)]').replace('border-[var(--border-strong)]', 'border-[var(--text-primary)]') : card.style}`}
+              className={`text-left p-3 rounded-xl border transition-all ${dashboardFilter === card.id ? card.style.replace('bg-[var(--bg-surface)]', 'bg-[var(--accent-tint)]').replace('border-[var(--border)]', 'border-[var(--accent-border)]') : card.style}`}
             >
-              <p className={`text-[10px] font-mono uppercase tracking-widest line-clamp-2 leading-tight h-8 ${card.id === 'emOperacao' && dashboardFilter !== card.id ? 'text-[var(--bg-elevated)]/70' : 'text-[var(--text-tertiary)]'}`}>{card.label}</p>
-              <p className={`text-xl sm:text-2xl font-mono mt-1 ${dashboardFilter === card.id ? 'text-[var(--text-primary)]' : card.style.match(/text-\[[^\]]+\]/)?.[0] || 'text-[var(--text-primary)]'}`}>{card.val}</p>
+              <p className="text-[10px] font-mono text-[var(--text-tertiary)] uppercase tracking-widest line-clamp-2 leading-tight h-8">{card.label}</p>
+              <p className={`text-xl sm:text-2xl font-mono mt-1 ${dashboardFilter === card.id ? 'text-[var(--accent)]' : card.style.match(/text-\[[^\]]+\]/)?.[0] || 'text-[var(--text-primary)]'}`}>{card.val}</p>
             </button>
           ))}
         </div>
@@ -987,64 +987,64 @@ export function SchedulesPage({ theme, toggleTheme }: { theme: 'light' | 'dark',
              <p className="text-[var(--text-secondary)]">Nenhuma programação encontrada.</p>
           </div>
         ) : viewMode === 'list' ? (
-           <div className="bg-[var(--bg-surface)] border border-[var(--border-strong)] rounded-xl overflow-hidden shadow-low">
+           <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
               <div className="overflow-x-auto">
                  <table className="w-full text-left text-sm whitespace-nowrap border-collapse">
-                    <thead className="bg-transparent border-b border-[var(--border-subtle)]">
+                    <thead className="bg-transparent border-b border-[var(--border)]">
                        <tr>
-                          <th className="px-5 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">OPERAÇÃO</th>
-                          <th className="px-5 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">DATA / HORA</th>
-                          <th className="px-5 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">MOTORISTA</th>
-                          <th className="px-5 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">VEÍCULO</th>
-                          <th className="px-5 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">STATUS</th>
-                          <th className="px-5 py-3 pr-6 w-32 text-right text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">AÇÕES</th>
+                          <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">OPERAÇÃO</th>
+                          <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">DATA / HORA</th>
+                          <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">MOTORISTA</th>
+                          <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">VEÍCULO</th>
+                          <th className="px-4 py-3 text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">STATUS</th>
+                          <th className="px-5 py-3 pr-6 w-32 text-right text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase border-b border-[var(--border)]">AÇÕES</th>
                        </tr>
                     </thead>
-                    <tbody className="divide-y divide-[var(--border-subtle)]">
+                    <tbody className="divide-y divide-[var(--border)]">
                        {itemsToDisplay.map(s => {
                           const drv = drivers.find(d => d.id === s.driverId);
                           const veh = vehicles.find(v => v.id === s.vehicleId);
                           const isEncerrado = s.status === 'Encerrado';
                           return (
-                             <tr key={s.id} className="hover:bg-[var(--bg-subtle)] group transition-colors">
-                                <td className="px-5 py-3 font-semibold text-[var(--text-primary)] text-[13px] uppercase">
+                             <tr key={s.id} className="hover:bg-[var(--bg-base)] transition">
+                                <td className="px-4 py-3 font-semibold text-[var(--text-primary)] uppercase">
                                    <div className="flex flex-col gap-1">
                                       <div className="flex items-center gap-2">
                                          <span>{getOperationsString(s)}</span>
-                                         {s.isFixed && <span className="px-1.5 py-0.5 rounded text-[9px] tracking-widest bg-[var(--bg-base)] text-[var(--text-primary)] border border-[var(--border-strong)] uppercase font-mono">FIXA</span>}
+                                         {s.isFixed && <span className="px-1 py-0.5 rounded text-[8px] tracking-widest bg-[#5B8FDB]/10 text-[#5B8FDB] border border-[#5B8FDB]/30 uppercase font-mono">FIXA</span>}
                                       </div>
                                       {s.locationName && (
-                                        <span className="text-[11px] font-mono text-[var(--text-secondary)] flex items-center gap-1">
+                                        <span className="text-[10px] font-mono text-[var(--text-tertiary)] flex items-center gap-1">
                                            {s.locationName}
                                         </span>
                                       )}
                                    </div>
                                 </td>
-                                <td className="px-5 py-3 text-[var(--text-secondary)] text-[12px] font-mono">
+                                <td className="px-4 py-3 text-[var(--text-secondary)] font-mono">
                                    <div className="flex items-center gap-2">
-                                      <Clock className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                                      <Clock className="w-[14px] h-[14px] text-[var(--text-tertiary)]" />
                                       {s.date ? formatDatePTBR(s.date) : ''} às {s.time}
                                    </div>
                                 </td>
-                                <td className="px-5 py-3 font-medium text-[var(--text-primary)] text-[13px]">{drv?.nome || 'N/A'}</td>
-                                <td className="px-5 py-3 font-mono text-[var(--text-primary)] text-[12px]">{veh?.placa || 'N/A'}</td>
-                                <td className="px-5 py-3">
-                                   <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-mono border ${isEncerrado ? 'bg-[var(--bg-surface)] text-[var(--text-tertiary)] border-[var(--border-strong)]' : 'bg-[var(--accent-main)]/10 text-[var(--accent-main)] border-[var(--accent-main)]'}`}>
+                                <td className="px-4 py-3 font-medium text-[var(--text-primary)]">{drv?.nome || 'N/A'}</td>
+                                <td className="px-4 py-3 font-mono text-[var(--text-primary)]">{veh?.placa || 'N/A'}</td>
+                                <td className="px-4 py-3">
+                                   <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-mono border ${isEncerrado ? 'bg-[var(--bg-base)] text-[var(--text-secondary)] border-[var(--border)]' : 'bg-[var(--accent-tint)] text-[var(--accent)] border-[var(--accent-border)]'}`}>
                                       {s.status}
                                    </span>
                                 </td>
-                                <td className="px-5 py-3 pr-6 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-       <div className="flex items-center justify-end gap-1">
-         <button onClick={() => handleOpenModal(s)} className="w-8 h-8 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] rounded transition-colors" title="Editar">
-                                      <Edit2 className="w-4 h-4"/>
+                                <td className="px-5 py-3 pr-6 text-right">
+       <div className="flex items-center justify-end gap-3">
+         <button onClick={() => handleOpenModal(s)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition" title="Editar">
+                                      <Edit2 className="w-[14px] h-[14px]"/>
                                    </button>
                                    {!isEncerrado && (
-                                      <button onClick={() => handleComplete(s)} className="w-8 h-8 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[#4CAF7D] hover:bg-[var(--bg-surface)] rounded transition-colors" title="Encerrar">
-                                         <CheckCircle className="w-4 h-4" />
+                                      <button onClick={() => handleComplete(s)} className="text-[var(--text-tertiary)] hover:text-[#4CAF7D] transition" title="Encerrar">
+                                         <CheckCircle className="w-[14px] h-[14px]" />
                                       </button>
                                    )}
-                                   <button onClick={() => handleRequestDelete(s)} className="w-8 h-8 flex items-center justify-center text-[var(--text-tertiary)] hover:text-red-500 hover:bg-red-500/10 rounded transition-colors" title="Excluir">
-                                      <Trash2 className="w-4 h-4" />
+                                   <button onClick={() => handleRequestDelete(s)} className="text-[var(--text-tertiary)] hover:text-[#E05252] transition" title="Excluir">
+                                      <Trash2 className="w-[14px] h-[14px]" />
                                    </button>
                                 
        </div>

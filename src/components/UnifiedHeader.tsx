@@ -1,6 +1,5 @@
 import { Upload, Download, Sun, Moon, Info, LogOut, LayoutGrid, List as ListIcon, Search, Plus } from 'lucide-react';
 import { useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 
 export interface UnifiedHeaderProps {
   title: string;
@@ -43,7 +42,7 @@ export function UnifiedHeader({
   sortOptions,
   onOpenModal,
   buttonText,
-  buttonIcon = <Plus className="w-3.5 h-3.5 shrink-0" />,
+  buttonIcon = <Plus className="w-5 h-5 shrink-0" />,
   theme,
   toggleTheme,
   logout,
@@ -58,116 +57,94 @@ export function UnifiedHeader({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="sticky top-0 z-30 flex flex-col bg-[var(--bg-base)]/90 backdrop-blur-xl border-b border-[var(--border-subtle)] shrink-0">
-      <div className="w-full px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        
-        {/* Title Area */}
-        <div className="flex flex-col select-none border-l-[3px] border-[var(--accent-main)] pl-3">
-          <h1 className="text-lg font-semibold tracking-tight text-[var(--text-primary)] leading-none">{title}</h1>
-          {subtitle && <p className="text-[11px] text-[var(--text-secondary)] mt-1.5">{subtitle}</p>}
-        </div>
-
-        {/* Controls Area */}
-        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar sm:overflow-visible">
-          
-          <div className="relative group w-48 sm:w-56 shrink-0 h-8">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] group-focus-within:text-[var(--text-primary)] transition-colors" />
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full h-full bg-[var(--bg-surface)] border border-[var(--border-strong)] hover:border-[var(--text-tertiary)] focus:border-[var(--accent-main)] rounded shadow-sm pl-8 pr-3 text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none transition-all font-medium"
-            />
+    <header className="sticky top-0 z-30 bg-[var(--bg-base)]/90 backdrop-blur-md border-b border-[var(--border)] flex flex-col">
+      <div className="px-4 sm:px-6 lg:px-8 py-3 max-w-screen-2xl mx-auto w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col select-none">
+            <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)] leading-tight">{title}</h1>
+            {subtitle && <p className="text-xs font-mono text-[var(--text-tertiary)] mt-0.5">{subtitle}</p>}
           </div>
 
-          <div className="relative border border-[var(--border-strong)] hover:border-[var(--text-tertiary)] bg-[var(--bg-surface)] shadow-sm rounded flex-shrink-0 transition-all focus-within:border-[var(--accent-main)] h-8">
-             <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value)}
-              className="appearance-none bg-transparent pl-3 pr-7 h-full text-[13px] text-[var(--text-primary)] font-medium cursor-pointer focus:outline-none"
-            >
-              {sortOptions.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-[var(--text-tertiary)]">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          <div className="flex items-center gap-3 w-full sm:w-auto overflow-x-auto hide-scrollbar pb-1 sm:pb-0">
+            <div className="relative group w-40 sm:w-64 shrink-0">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+              <input
+                type="text"
+                placeholder={searchPlaceholder}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md pl-9 pr-3 py-1.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-0 transition-colors"
+              />
             </div>
-          </div>
 
-          <div className="flex items-center bg-[var(--bg-subtle)] p-0.5 rounded border border-[var(--border-subtle)] shrink-0 h-8">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`h-full px-2 rounded-sm transition-all flex items-center justify-center ${viewMode === 'grid' ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-            >
-              <LayoutGrid className="w-3.5 h-3.5 shrink-0" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`h-full px-2 rounded-sm transition-all flex items-center justify-center ${viewMode === 'list' ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-            >
-              <ListIcon className="w-3.5 h-3.5 shrink-0" />
-            </button>
-          </div>
+            <div className="relative border border-[var(--border)] bg-[var(--bg-surface)] rounded-md flex-shrink-0">
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="appearance-none bg-transparent pl-3 pr-8 py-1.5 text-sm text-[var(--text-primary)] cursor-pointer focus:outline-none"
+              >
+                {sortOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[var(--text-tertiary)]">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
 
-          <div className="flex items-center gap-1 shrink-0 ml-1">
-            {onImport && (
-              <>
-                <input type="file" ref={fileInputRef} accept=".json" onChange={onImport} className="hidden" />
-                <button onClick={() => fileInputRef.current?.click()} className="h-8 px-2 flex items-center justify-center rounded border border-[var(--border-strong)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors shadow-sm" title="Importar JSON">
-                  <Upload className="w-3.5 h-3.5 shrink-0" />
-                </button>
-              </>
-            )}
-            {onExport && (
-              <button onClick={onExport} className="h-8 px-2 flex items-center justify-center rounded border border-[var(--border-strong)] bg-[var(--bg-surface)] hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors shadow-sm" title="Exportar JSON">
-                <Download className="w-3.5 h-3.5 shrink-0" />
+            <div className="flex items-center border-l border-[var(--border)] pl-3 shrink-0">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'text-[var(--accent)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
+              >
+                <LayoutGrid className="w-4 h-4 shrink-0" />
               </button>
-            )}
-          </div>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'text-[var(--accent)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
+              >
+                <ListIcon className="w-4 h-4 shrink-0" />
+              </button>
+              
+              {onImport && (
+                <>
+                  <input type="file" ref={fileInputRef} accept=".json" onChange={onImport} className="hidden" />
+                  <button onClick={() => fileInputRef.current?.click()} className="p-1.5 ml-1 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors" title="Importar">
+                    <Upload className="w-4 h-4 shrink-0" />
+                  </button>
+                </>
+              )}
+              {onExport && (
+                <button onClick={onExport} className="p-1.5 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors" title="Exportar">
+                  <Download className="w-4 h-4 shrink-0" />
+                </button>
+              )}
+            </div>
 
-          <button
-            onClick={onOpenModal}
-            className="group flex items-center justify-center gap-2 bg-[var(--accent-main)] hover:bg-[var(--accent-hover)] text-[var(--bg-elevated)] px-4 h-8 rounded text-[13px] font-medium transition-colors shrink-0 ml-1 shadow-sm"
-          >
-            {buttonIcon}
-            <span>{buttonText}</span>
-          </button>
+            <button
+              onClick={onOpenModal}
+              className="flex items-center justify-center bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[#0C0D0F] px-4 py-1.5 rounded-md text-sm font-medium transition-colors shrink-0"
+            >
+              <span>{buttonText}</span>
+            </button>
+          </div>
         </div>
       </div>
       
       {/* MASS ACTION BAR */}
-      <div className="w-full overflow-hidden relative" style={{ height: selectedIds && selectedIds.size > 0 && onDeleteSelected ? '36px' : '0px', transition: 'height 0.2s ease-in-out' }}>
-        <AnimatePresence>
-          {selectedIds && selectedIds.size > 0 && onDeleteSelected && (
-            <motion.div 
-              initial={{ y: -36, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -36, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="absolute inset-x-0 bottom-0 bg-[var(--accent-main)]/[0.05] border-t border-[var(--accent-main)]/[0.1] h-[36px] flex items-center"
-            >
-              <div className="w-full px-6 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-4 h-4 bg-[var(--accent-main)] text-[var(--bg-elevated)] rounded-full flex items-center justify-center text-[10px] font-mono font-bold">
-                    {selectedIds.size}
-                  </span>
-                  <span className="text-[12px] font-medium text-[var(--text-primary)]">
-                    {selectedIds.size === 1 ? 'item selecionado' : 'itens selecionados'}
-                  </span>
-                </div>
-                <button 
-                  onClick={onDeleteSelected}
-                  className="px-3 py-1 rounded text-[11px] font-medium bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors"
-                >
-                  Excluir Selecionados
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
+      {selectedIds && selectedIds.size > 0 && onDeleteSelected && (
+        <div className="bg-[var(--accent)] px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between shadow-inner animate-in slide-in-from-top-2 text-[#0C0D0F]">
+          <span className="font-mono text-sm tracking-wide">
+             {selectedIds.size} {selectedIds.size === 1 ? 'selecionado' : 'selecionados'}
+          </span>
+          <button 
+             onClick={onDeleteSelected}
+             className="bg-black/5 hover:bg-black/10 px-4 py-1.5 rounded-md font-semibold text-sm transition-colors"
+          >
+             Excluir Selecionados
+          </button>
+        </div>
+      )}
+    </header>
   );
 }

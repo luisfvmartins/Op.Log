@@ -1,6 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin, ExternalLink, Check, MoreHorizontal } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin, ExternalLink, Check } from 'lucide-react';
 import { usePlaces } from '../hooks/usePlaces';
 import { useToast } from '../hooks/useToast';
 import { Place } from '../services/places';
@@ -223,7 +222,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   const clearSelection = () => setSelectedIds(new Set());
 
   return (
-    <div className="flex flex-col flex-1 min-h-full font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] text-slate-800 dark:text-slate-200 font-sans selection:bg-blue-500/30">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       {/* HEADER */}
@@ -262,76 +261,67 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
       />
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 p-6 overflow-x-hidden">
+      <main className="p-6 max-w-[1600px] mx-auto pb-32">
         {loading ? (
-          <div className="flex items-center justify-center py-20 text-[var(--text-tertiary)]">
-            <div className="w-5 h-5 border-2 border-[var(--text-tertiary)] border-t-[var(--text-primary)] rounded-full animate-spin" />
+          <div className="flex items-center justify-center py-20 text-zinc-500">
+            <div className="w-5 h-5 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
           </div>
         ) : filteredPlaces.length === 0 ? (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-32 px-4 text-center border-2 border-dashed border-[var(--border)] rounded-xl bg-[var(--bg-surface)] backdrop-blur-sm"
-          >
-            <div className="w-12 h-12 bg-[var(--text-primary)]/5 rounded-full flex items-center justify-center mb-5">
-              <MapPin className="w-5 h-5 text-[var(--text-secondary)]" strokeWidth={1.5} />
+          <div className="flex flex-col items-center justify-center py-24 px-4 text-center border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-sm">
+            <div className="w-16 h-16 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
+              <MapPin className="w-8 h-8 text-slate-400 dark:text-slate-500" />
             </div>
-            <h3 className="text-[var(--text-primary)] font-semibold mb-2 tracking-tight">Nenhum local encontrado</h3>
-            <p className="text-[var(--text-secondary)] text-sm max-w-sm mx-auto mb-8">Tente buscar por outros termos, altere os filtros ou cadastre um novo local para começar.</p>
+            <h3 className="text-slate-900 dark:text-white font-semibold text-lg mb-2">Nenhum local encontrado</h3>
+            <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-6">Tente buscar por outros termos, altere os filtros ou cadastre um novo local para começar.</p>
             <button
               onClick={() => {
                 setEditingPlace(undefined);
                 setIsPlaceModalOpen(true);
               }}
-              className="flex items-center gap-1.5 bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-[var(--text-primary)]/90 px-4 py-2 rounded-md text-sm font-medium transition-colors border border-transparent shadow-sm"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 xl:bg-slate-900 xl:hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
               <Plus className="w-4 h-4" />
               Novo Local
             </button>
-          </motion.div>
+          </div>
         ) : viewMode === 'grid' ? (
-          <motion.div 
-            initial="hidden" animate="show"
-            variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05 } } }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredPlaces.map(place => (
-              <motion.div key={place.id} variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}>
-                <PlaceCard
-                  place={place}
-                  isSelected={selectedIds.has(place.id!)}
-                  onSelect={() => toggleSelection(place.id!)}
-                  onEdit={() => { setEditingPlace(place); setIsPlaceModalOpen(true); }}
-                  onDelete={() => setDeletingPlaceId(place.id!)}
-                  onCopy={() => handleCopySingle(place)}
-                  onShare={() => handleShareSingle(place)}
-                  renderCity={renderCity}
-                />
-              </motion.div>
+              <PlaceCard
+                key={place.id}
+                place={place}
+                isSelected={selectedIds.has(place.id!)}
+                onSelect={() => toggleSelection(place.id!)}
+                onEdit={() => { setEditingPlace(place); setIsPlaceModalOpen(true); }}
+                onDelete={() => setDeletingPlaceId(place.id!)}
+                onCopy={() => handleCopySingle(place)}
+                onShare={() => handleShareSingle(place)}
+                renderCity={renderCity}
+              />
             ))}
-          </motion.div>
+          </div>
         ) : (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl overflow-hidden shadow-sm">
+          <div className="bg-[var(--bg-base)] border border-[var(--border)] rounded-xl overflow-hidden shadow-sm">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-[var(--bg-subtle)] border-b border-[var(--border)] text-[var(--text-tertiary)] font-mono tracking-widest text-[10px] uppercase">
+              <thead className="bg-transparent border-b border-[var(--border)] text-[var(--text-tertiary)] font-mono tracking-widest text-[10px] uppercase">
                 <tr>
                   <th className="px-4 py-3 w-10">
                     <button
                       onClick={handleSelectAllToggle}
                       className="cursor-pointer flex items-center justify-center w-full h-full"
-                      title="Selecionar Todos"
                     >
-                      <div className={`w-4 h-4 rounded-[4px] flex items-center justify-center transition-colors border ${selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-base)]' : 'border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--text-tertiary)]'}`}>
-                        {selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 && <Check className="w-3 h-3" strokeWidth={2.5} />}
+                      <div className={`w-4 h-4 rounded flex items-center justify-center transition-colors border ${selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 ? 'bg-[var(--accent)] border-[var(--accent)] text-[#0C0D0F]' : 'border-[var(--border)] hover:border-[var(--border-hover)]'}`}>
+                        {selectedIds.size === filteredPlaces.length && filteredPlaces.length > 0 && <Check className="w-3 h-3" />}
                       </div>
                     </button>
                   </th>
-                  <th className="px-4 py-3 font-medium">Nome Fantasia</th>
-                  <th className="px-4 py-3 font-medium">Cidade</th>
-                  <th className="px-4 py-3 font-medium">Razão Social</th>
-                  <th className="px-5 py-3 pr-6 w-32 text-right font-medium">Ações</th>
+                  <th className="px-4 py-3">NOME FANTASIA</th>
+                  <th className="px-4 py-3">CIDADE</th>
+                  <th className="px-4 py-3">RAZÃO SOCIAL</th>
+                  <th className="px-5 py-3 pr-6 w-32 text-right">AÇÕES</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--border)]">
+              <tbody className="divide-none">
                 {filteredPlaces.map(place => (
                   <PlaceRow
                     key={place.id}
@@ -347,51 +337,42 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
                 ))}
               </tbody>
             </table>
-          </motion.div>
+          </div>
         )}
       </main>
 
       {/* CONTEXTUAL ACTION BAR */}
-      <AnimatePresence>
-        {selectedIds.size > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.95, x: '-50%' }}
-            animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
-            exit={{ opacity: 0, y: 20, scale: 0.95, x: '-50%' }}
-            className="fixed bottom-8 left-1/2 z-40 bg-[var(--bg-elevated)] border border-[var(--border-strong)] px-4 py-2 rounded-lg flex items-center gap-4 shadow-high"
-          >
-            <div className="flex items-center gap-2 pr-4 border-r border-[var(--border-subtle)]">
-              <span className="w-5 h-5 bg-[var(--accent-main)] text-[var(--bg-elevated)] rounded flex items-center justify-center text-xs font-mono font-bold">
-                {selectedIds.size}
-              </span>
-              <span className="text-[13px] font-medium text-[var(--text-secondary)]">
-                {selectedIds.size === 1 ? 'Local selecionado' : 'Locais selecionados'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 pl-1">
-              <button
-                onClick={() => setIsRouteModalOpen(true)}
-                className="text-[13px] font-medium text-[var(--bg-elevated)] bg-[var(--accent-main)] hover:bg-[var(--accent-hover)] px-3 py-1.5 rounded transition-colors"
-              >
-                Criar Roteiro
-              </button>
-              <button
-                onClick={() => setDeleteAllConfirmStep(1)}
-                className="text-[13px] font-medium text-red-600 hover:bg-red-500/10 px-3 py-1.5 rounded transition-colors"
-              >
-                Excluir
-              </button>
-              <button
-                onClick={clearSelection}
-                className="w-7 h-7 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] rounded transition-colors ml-1"
-                title="Limpar seleção"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-[var(--accent)] px-6 py-3 rounded-xl flex items-center gap-6 shadow-[0_4px_24px_rgba(212,168,67,0.3)] animate-in slide-in-from-bottom-5">
+          <div className="flex items-center gap-2 pr-6 border-r border-[#0C0D0F]/10">
+            <span className="w-6 h-6 bg-[#0C0D0F]/10 text-[#0C0D0F] rounded-md flex items-center justify-center text-xs font-mono font-bold">
+              {selectedIds.size}
+            </span>
+            <span className="text-sm font-medium text-[#0C0D0F] hidden sm:inline">Selecionados</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsRouteModalOpen(true)}
+              className="text-sm font-semibold text-[#0C0D0F] flex items-center gap-2 hover:bg-[#0C0D0F]/10 px-3 py-1.5 rounded-md transition-colors border border-transparent"
+            >
+              Criar Roteiro
+            </button>
+            <button
+              onClick={() => setDeleteAllConfirmStep(1)}
+              className="p-1.5 text-[#0C0D0F]/70 hover:text-[#0C0D0F] hover:bg-[#0C0D0F]/10 rounded-md transition-colors ml-2"
+              title="Excluir selecionados"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={clearSelection}
+              className="text-sm font-medium text-[#0C0D0F]/70 hover:text-[#0C0D0F] transition-colors ml-2"
+            >
+              Limpar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MODALS AND DRAWERS */}
       <ConfirmDialog
@@ -469,99 +450,102 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
 function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity }: any) {
   return (
-    <div 
-      className={`relative p-5 rounded-xl flex flex-col h-[220px] group transition-all duration-200 cursor-pointer border ${isSelected ? 'border-[var(--border-strong)] bg-[var(--accent-main)]/[0.02] ring-1 ring-[var(--border-strong)]' : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)] hover:shadow-low'}`} 
-      onClick={onSelect}
-    >
+    <div className={`relative p-5 rounded-xl flex flex-col gap-3 min-h-[220px] group transition-all duration-150 cursor-pointer border ${isSelected ? 'border-[var(--accent-border)] bg-[var(--accent-tint)]' : 'border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--border-hover)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]'}`} onClick={onSelect}>
+      
       {/* Checkbox */}
-      <div className={`absolute top-5 right-5 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-        <div className={`w-[18px] h-[18px] rounded flex items-center justify-center transition-colors border ${isSelected ? 'bg-[var(--accent-main)] border-[var(--accent-main)] text-[var(--bg-elevated)]' : 'bg-[var(--bg-surface)] border-[var(--border-strong)] group-hover:border-[var(--text-tertiary)]'}`}>
+      <div className={`absolute top-4 right-4 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+        <div className={`w-4 h-4 rounded-sm flex items-center justify-center transition-colors border ${isSelected ? 'bg-[var(--accent)] border-[var(--accent)] text-[#0C0D0F]' : 'bg-[var(--bg-surface)] border-[var(--border)]'}`}>
           {isSelected && (
-            <svg className="w-3.5 h-3.5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <svg className="w-3 h-3 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
           )}
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="pr-8 shrink-0 mb-3 block">
-          <span className="text-[10px] font-mono tracking-widest uppercase text-[var(--text-tertiary)] truncate mb-1">
-            {place.nomeRazaoSocial || 'Sem Razão Social'}
-          </span>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="pr-8 shrink-0">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--text-tertiary)] truncate block mb-1">{place.nomeRazaoSocial}</span>
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-semibold text-[var(--text-primary)] tracking-tight truncate leading-tight">
-              {place.nomeFantasia}
-            </h3>
+            <h3 className="text-base font-semibold text-[var(--text-primary)] tracking-tight truncate">{place.nomeFantasia}</h3>
             {place.linkGoogleMaps && (
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
                   window.open(ensureAbsoluteUrl(place.linkGoogleMaps), '_blank', 'noopener,noreferrer');
                 }}
-                className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors shrink-0" 
-                title="Abrir no Mapa"
+                className="text-[var(--text-tertiary)] hover:text-[var(--accent)] transition-colors shrink-0" title="Abrir no Mapa"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
           
-          <div className="flex items-center gap-1.5 text-[var(--text-secondary)] text-[12px] mt-1.5 font-medium">
-            <MapPin className="w-3.5 h-3.5 shrink-0 text-[var(--text-tertiary)]" />
-            <span className="truncate">{renderCity(place.cidade)}</span>
+          <div className="flex flex-col gap-1 mt-1 mb-1">
+            <div className="flex items-center gap-1.5 text-[var(--text-secondary)] font-mono text-xs">
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{renderCity(place.cidade)}</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 -mr-2 flex flex-col gap-2 
+        <div className="flex-1 overflow-y-auto pr-1 -mr-1 space-y-3 mt-2 pb-2 
           [&::-webkit-scrollbar]:w-1 
           [&::-webkit-scrollbar-track]:bg-transparent 
-          [&::-webkit-scrollbar-thumb]:bg-[var(--border-strong)]
+          [&::-webkit-scrollbar-thumb]:bg-[var(--border)]
           [&::-webkit-scrollbar-thumb]:rounded-full"
         >
           {Array.isArray(place.tags) && place.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5 mt-1">
               {place.tags.map((tag: string) => (
-                 <span key={tag} className="px-1.5 py-0.5 bg-[var(--bg-subtle)] text-[var(--text-secondary)] text-[11px] font-medium rounded truncate max-w-full">
-                   {tag}
-                 </span>
+                 <span key={tag} className="px-1.5 py-0.5 bg-[var(--bg-base)] text-[var(--text-tertiary)] text-[10px] font-mono rounded border border-[var(--border)] shadow-sm">{tag}</span>
               ))}
             </div>
           )}
           
           {place.observacoes && place.observacoes.length > 0 && (
-            <div className="flex flex-col gap-1.5 mt-1">
+            <div className="flex flex-col gap-2 mt-3">
               {place.observacoes.map((obs: any, i: number) => (
-                <div key={i} className="flex gap-2 text-[12px] leading-tight">
-                  <span className="font-mono text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider shrink-0 mt-0.5">{obs.categoria}</span>
-                  <span className="text-[var(--text-secondary)]">{obs.texto}</span>
+                <div key={i} className="border-l-2 border-[var(--accent)] pl-2 shrink-0">
+                  <span className="text-[10px] text-[var(--accent)] uppercase tracking-widest font-mono block mb-0.5">{obs.categoria}</span>
+                  <span className="text-xs text-[var(--text-secondary)] leading-snug inline-block">{obs.texto}</span>
                 </div>
               ))}
             </div>
           )}
 
           {place.observacao && (!place.observacoes || place.observacoes.length === 0) && (
-            <div className="text-[12px] leading-relaxed text-[var(--text-secondary)]">
-              {place.observacao}
+            <div className="mt-3 border-l-2 border-[var(--accent)] pl-2 shrink-0">
+              <span className="text-[10px] text-[var(--accent)] uppercase tracking-widest font-mono block mb-0.5">Observação</span>
+              <span className="text-xs text-[var(--text-secondary)] leading-snug">{place.observacao}</span>
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-subtle)] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-        <div className="flex gap-1 text-[var(--text-tertiary)] text-[12px] font-medium">
-          <button onClick={onCopy} className="flex items-center gap-1.5 px-2 py-1.5 hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] rounded transition-colors">
-            <Copy className="w-3.5 h-3.5" />
-            <span>Copiar</span>
-          </button>
-           <button onClick={onShare} className="flex items-center gap-1.5 px-2 py-1.5 hover:text-[#25D366] hover:bg-[#25D366]/10 rounded transition-colors">
+      <div className="flex items-center justify-between mt-auto pt-4 border-t border-[var(--border)] shrink-0" onClick={e => e.stopPropagation()}>
+        <button onClick={onCopy} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:underline transition-colors flex items-center gap-1.5 py-1.5">
+          <Copy className="w-3.5 h-3.5" />
+          Copiar Info
+        </button>
+        <div className="flex gap-1.5 text-[var(--text-tertiary)]">
+          {place.linkGoogleMaps && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(ensureAbsoluteUrl(place.linkGoogleMaps), '_blank', 'noopener,noreferrer');
+              }}
+              className="p-1.5 hover:text-[var(--accent)] rounded-md transition-colors" 
+              title="Abrir no Mapa"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <button onClick={onShare} className="p-1.5 hover:text-[#4CAF7D] rounded-md transition-colors" title="WhatsApp">
             <Share2 className="w-3.5 h-3.5" />
-            <span>Share</span>
           </button>
-        </div>
-        <div className="flex gap-1 text-[var(--text-tertiary)]">
-          <button onClick={onEdit} className="w-8 h-8 flex items-center justify-center hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] rounded transition-colors" title="Editar">
+          <button onClick={onEdit} className="p-1.5 hover:text-[var(--text-primary)] rounded-md transition-colors" title="Editar">
             <Edit2 className="w-3.5 h-3.5" />
           </button>
-          <button onClick={onDelete} className="w-8 h-8 flex items-center justify-center hover:text-red-500 hover:bg-red-500/10 rounded transition-colors" title="Excluir">
+          <button onClick={onDelete} className="p-1.5 hover:text-[#E05252] rounded-md transition-colors" title="Excluir">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -572,67 +556,90 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
 
 function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity }: any) {
   return (
-    <tr className={`group transition-colors border-b border-[var(--border-subtle)] last:border-0 ${isSelected ? 'bg-[var(--accent-main)]/[0.02]' : 'hover:bg-[var(--bg-subtle)]'}`}>
-      <td className="px-4 py-3 align-middle w-10">
-        <div className="flex items-center cursor-pointer h-full" onClick={onSelect}>
-          <div className={`w-[16px] h-[16px] rounded flex items-center justify-center border transition-colors ${isSelected ? 'bg-[var(--accent-main)] border-[var(--accent-main)] text-[var(--bg-elevated)]' : 'border-[var(--border-strong)] bg-[var(--bg-surface)] group-hover:border-[var(--text-tertiary)]'}`}>
+    <tr className={`group transition-colors ${isSelected ? 'bg-blue-50 dark:bg-blue-500/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}>
+      <td className="px-4 py-3">
+        <div className="flex items-center cursor-pointer" onClick={onSelect}>
+          <div className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-white/20 bg-white dark:bg-black/20'}`}>
             {isSelected && (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-white"><polyline points="20 6 9 17 4 12"></polyline></svg>
             )}
           </div>
         </div>
       </td>
-      <td className="px-4 py-3 align-middle">
-        <div className="flex items-center gap-3">
-          <span className="text-[var(--text-primary)] text-[13px] font-semibold tracking-tight truncate max-w-[200px]">{place.nomeFantasia}</span>
+      <td className="px-4 py-3">
+        <div className="flex flex-col py-1">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-900 dark:text-white font-semibold transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">{place.nomeFantasia}</span>
+            {place.linkGoogleMaps && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(ensureAbsoluteUrl(place.linkGoogleMaps), '_blank', 'noopener,noreferrer');
+                }}
+                className="text-slate-300 hover:text-blue-500 transition-colors" title="Abrir no Mapa"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          
+          {place.observacoes && place.observacoes.length > 0 && (
+            <div className="flex flex-col gap-0.5 mt-1">
+              {place.observacoes.slice(0, 2).map((obs, i) => (
+                <div key={i} className="text-[10px] text-amber-700 dark:text-amber-400 font-medium truncate max-w-[250px]" title={`${obs.categoria}: ${obs.texto}`}>
+                  <span className="font-bold mr-1">{obs.categoria}:</span>{obs.texto}
+                </div>
+              ))}
+              {place.observacoes.length > 2 && (
+                <span className="text-[9px] text-amber-600/70 dark:text-amber-500/70 italic">+{place.observacoes.length - 2} obs...</span>
+              )}
+            </div>
+          )}
+
+          {place.observacao && (!place.observacoes || place.observacoes.length === 0) && (
+            <div className="text-[10px] mt-0.5 text-amber-700 dark:text-amber-400 font-medium truncate max-w-[250px]" title={place.observacao}>
+              <span className="font-bold mr-1">Obs:</span>{place.observacao}
+            </div>
+          )}
+          {Array.isArray(place.tags) && place.tags.length > 0 && (
+            <div className="flex gap-1 mt-1.5 flex-wrap">
+              {place.tags.map((tag: string) => (
+                <span key={tag} className="px-1.5 py-0.5 bg-slate-100 dark:bg-[#09090B] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 text-[9px] font-medium rounded-md truncate max-w-[80px]">{tag}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex flex-col">
+          <span className="text-slate-500 dark:text-slate-400 font-medium">{renderCity(place.cidade)}</span>
+        </div>
+      </td>
+      <td className="px-4 py-3 text-slate-400 dark:text-slate-500 truncate max-w-[200px]">{place.nomeRazaoSocial}</td>
+      <td className="px-5 py-3 pr-6 text-right">
+        <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           {place.linkGoogleMaps && (
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 window.open(ensureAbsoluteUrl(place.linkGoogleMaps), '_blank', 'noopener,noreferrer');
               }}
-              className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors opacity-0 group-hover:opacity-100" title="Abrir no Mapa"
+              className="p-1.5 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded transition-colors" 
+              title="Abrir no Mapa"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
+              <MapPin className="w-4 h-4" />
             </button>
           )}
-        </div>
-      </td>
-      <td className="px-4 py-3 align-middle text-[var(--text-secondary)] text-[13px] truncate max-w-[150px]">
-        {renderCity(place.cidade)}
-      </td>
-      <td className="px-4 py-3 align-middle">
-        <div className="flex flex-col gap-1 max-w-[300px]">
-          <span className="text-[var(--text-tertiary)] text-[12px] truncate">
-            {place.nomeRazaoSocial || '-'}
-          </span>
-          {Array.isArray(place.tags) && place.tags.length > 0 && (
-             <div className="flex gap-1 flex-wrap">
-               {place.tags.slice(0,2).map((tag: string) => (
-                 <span key={tag} className="px-1.5 py-[1px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-[10px] font-medium rounded truncate max-w-[80px]">
-                   {tag}
-                 </span>
-               ))}
-               {place.tags.length > 2 && (
-                 <span className="px-1 py-[1px] text-[var(--text-tertiary)] text-[10px]">+{place.tags.length - 2}</span>
-               )}
-             </div>
-          )}
-        </div>
-      </td>
-      <td className="px-5 py-3 pr-6 text-right align-middle">
-        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={onCopy} className="w-8 h-8 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] rounded transition-colors" title="Copiar">
+          <button onClick={onCopy} className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded" title="Copiar">
             <Copy className="w-4 h-4" />
           </button>
-          <button onClick={onShare} className="w-8 h-8 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[#25D366] hover:bg-[var(--bg-surface)] rounded transition-colors" title="WhatsApp">
+          <button onClick={onShare} className="p-1.5 text-slate-400 hover:text-green-500 dark:hover:text-green-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded" title="WhatsApp">
             <Share2 className="w-4 h-4" />
           </button>
-          <div className="w-px h-4 bg-[var(--border-subtle)] mx-1"></div>
-          <button onClick={onEdit} className="w-8 h-8 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] rounded transition-colors" title="Editar">
+          <button onClick={onEdit} className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded" title="Editar">
             <Edit2 className="w-4 h-4" />
           </button>
-          <button onClick={onDelete} className="w-8 h-8 flex items-center justify-center text-[var(--text-tertiary)] hover:text-red-500 hover:bg-red-500/10 rounded transition-colors" title="Excluir">
+          <button onClick={onDelete} className="p-1.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-white/10 rounded" title="Excluir">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>

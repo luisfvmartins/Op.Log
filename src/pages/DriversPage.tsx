@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Users, Plus, Search, MapPin, Map, Calendar, Edit2, Trash2, Upload, Download, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut, Check, Truck, X } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Users, Plus, Search, MapPin, Map, Calendar, Edit2, Trash2, Upload, Download, LayoutGrid, List as ListIcon, CheckSquare, Sun, Moon, Info, LogOut, Check, Truck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getDrivers, createDriver, updateDriver, deleteDriver, Driver } from '../services/drivers';
 import { getVehicles, createVehicle, Vehicle } from '../services/vehicles';
@@ -329,7 +328,7 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-full pb-24 font-sans">
+    <div className="min-h-screen bg-[var(--bg-base)] pb-24">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       {/* HEADER */}
@@ -364,7 +363,7 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
         searchPlaceholder="Pesquisar motorista..."
       />
 
-      <main className="flex-1 p-6 space-y-6 overflow-x-hidden">
+      <main className="p-6 max-w-[1600px] mx-auto pb-32">
         {/* Dashboard Indicators */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <button onClick={() => setDashboardFilter(dashboardFilter === 'total' ? null : 'total')} className={`text-left border rounded-xl p-4 transition-all ${dashboardFilter === 'total' ? 'bg-[var(--accent-tint)] border-[var(--accent-border)]' : 'bg-[var(--bg-surface)] border-[var(--border)] hover:border-[var(--border-hover)]'}`}>
@@ -690,37 +689,29 @@ export function DriversPage({ theme, toggleTheme }: { theme: 'light' | 'dark', t
 
       {/* CONTEXTUAL ACTION BAR */}
       {selectedIds.size > 0 && (
-        <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.95, x: '-50%' }}
-            animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
-            exit={{ opacity: 0, y: 20, scale: 0.95, x: '-50%' }}
-            className="fixed bottom-8 left-1/2 z-40 bg-[var(--bg-elevated)] border border-[var(--border-strong)] px-4 py-2 rounded-lg flex items-center gap-4 shadow-high"
-          >
-            <div className="flex items-center gap-2 pr-4 border-r border-[var(--border-subtle)]">
-              <span className="w-5 h-5 bg-[var(--accent-main)] text-[var(--bg-elevated)] rounded flex items-center justify-center text-xs font-mono font-bold">
-                {selectedIds.size}
-              </span>
-              <span className="text-[13px] font-medium text-[var(--text-secondary)]">
-                {selectedIds.size === 1 ? 'Motorista selecionado' : 'Motoristas selecionados'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 pl-1">
-              <button
-                onClick={() => setIsDeleteSelectedModalOpen(true)}
-                className="text-[13px] font-medium text-red-600 hover:bg-red-500/10 px-3 py-1.5 rounded transition-colors"
-                title="Excluir selecionados"
-              >
-                Excluir
-              </button>
-              <button
-                onClick={() => setSelectedIds(new Set())}
-                className="w-7 h-7 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] rounded transition-colors ml-1"
-                title="Limpar seleção"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-[var(--accent)] px-6 py-3 rounded-xl flex items-center gap-6 shadow-[0_4px_24px_rgba(212,168,67,0.3)] animate-in slide-in-from-bottom-5">
+          <div className="flex items-center gap-2 pr-6 border-r border-[#0C0D0F]/10">
+            <span className="w-6 h-6 bg-[#0C0D0F]/10 text-[#0C0D0F] rounded-md flex items-center justify-center text-xs font-mono font-bold">
+              {selectedIds.size}
+            </span>
+            <span className="text-sm font-medium text-[#0C0D0F] hidden sm:inline">Selecionados</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsDeleteSelectedModalOpen(true)}
+              className="p-1.5 text-[#0C0D0F]/70 hover:text-[#0C0D0F] hover:bg-[#0C0D0F]/10 rounded-md transition-colors ml-2"
+              title="Excluir selecionados"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="text-sm font-medium text-[#0C0D0F]/70 hover:text-[#0C0D0F] transition-colors ml-2"
+            >
+              Limpar
+            </button>
+          </div>
+        </div>
       )}
 
       <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
