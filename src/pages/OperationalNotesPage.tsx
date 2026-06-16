@@ -292,7 +292,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
 
         whatsappText += `${whatsappParts} — ${note.description}\n`;
         // Remove known emojis from description just in case it breaks jsPDF
-        const safeDescription = (note.description || '').replace(/[\u1000-\uFFFF]+/g, '');
+        const safeDescription = (note.description || '').replace(/[^\x20-\x7E\xA0-\xFF]/g, '');
         pdfText += `${pdfParts ? pdfParts + ' — ' : ''}${safeDescription}\n`;
       });
       whatsappText += `\n`;
@@ -306,7 +306,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
       pdfText += `TAREFAS\n`;
       dateTasks.forEach(task => {
         whatsappText += `• *${task.priority}* ${task.category} — ${task.description} (${task.status})\n`;
-        const safeTaskDesc = (task.description || '').replace(/[\u1000-\uFFFF]+/g, '');
+        const safeTaskDesc = (task.description || '').replace(/[^\x20-\x7E\xA0-\xFF]/g, '');
         pdfText += `- ${task.priority} | ${task.category} - ${safeTaskDesc} (${task.status})\n`;
       });
     }
@@ -371,7 +371,7 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] pb-24">
+    <div className="flex flex-col flex-1 min-h-full pb-24 font-sans">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       <UnifiedHeader
@@ -400,11 +400,11 @@ export function OperationalNotesPage({ theme, toggleTheme }: { theme: 'light' | 
         searchPlaceholder="Buscar registros..."
       />
 
-      <main className="p-6 max-w-[1600px] mx-auto space-y-6">
+      <main className="flex-1 p-6 space-y-6 overflow-x-hidden">
         {/* Date Selector & Report */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
           <div className="w-full md:w-auto flex justify-center">
-            <div className="flex items-center gap-4 bg-[var(--bg-card)] border border-[var(--border)] rounded-full px-4 py-2 shadow-sm">
+            <div className="flex items-center gap-4 bg-[var(--bg-surface)] border border-[var(--border-strong)] rounded-full px-4 py-2 shadow-sm">
               <button
                 onClick={() => {
                   const d = new Date(`${selectedDate}T12:00:00`);

@@ -223,7 +223,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   const clearSelection = () => setSelectedIds(new Set());
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] font-sans">
+    <div className="flex flex-col flex-1 min-h-full font-sans">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       
       {/* HEADER */}
@@ -262,7 +262,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
       />
 
       {/* MAIN CONTENT */}
-      <main className="px-6 lg:px-8 max-w-[1600px] mx-auto pb-32 pt-4">
+      <main className="flex-1 p-6 overflow-x-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20 text-[var(--text-tertiary)]">
             <div className="w-5 h-5 border-2 border-[var(--text-tertiary)] border-t-[var(--text-primary)] rounded-full animate-spin" />
@@ -358,29 +358,32 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
             initial={{ opacity: 0, y: 20, scale: 0.95, x: '-50%' }}
             animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
             exit={{ opacity: 0, y: 20, scale: 0.95, x: '-50%' }}
-            className="fixed bottom-8 left-1/2 z-40 bg-[var(--text-primary)] px-6 py-3 rounded-full flex items-center gap-5 shadow-xl shadow-black/10 border border-white/10"
+            className="fixed bottom-8 left-1/2 z-40 bg-[var(--bg-elevated)] border border-[var(--border-strong)] px-4 py-2 rounded-lg flex items-center gap-4 shadow-high"
           >
-            <div className="flex items-center gap-3 pr-5 border-r border-[var(--bg-base)]/20">
-              <span className="w-6 h-6 bg-[var(--bg-base)] text-[var(--text-primary)] rounded-full flex items-center justify-center text-xs font-mono font-bold">
+            <div className="flex items-center gap-2 pr-4 border-r border-[var(--border-subtle)]">
+              <span className="w-5 h-5 bg-[var(--accent-main)] text-[var(--bg-elevated)] rounded flex items-center justify-center text-xs font-mono font-bold">
                 {selectedIds.size}
               </span>
+              <span className="text-[13px] font-medium text-[var(--text-secondary)]">
+                {selectedIds.size === 1 ? 'Local selecionado' : 'Locais selecionados'}
+              </span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 pl-1">
               <button
                 onClick={() => setIsRouteModalOpen(true)}
-                className="text-sm font-medium text-[var(--bg-base)] hover:bg-[var(--bg-base)]/10 px-3 py-1.5 rounded transition-colors"
+                className="text-[13px] font-medium text-[var(--bg-elevated)] bg-[var(--accent-main)] hover:bg-[var(--accent-hover)] px-3 py-1.5 rounded transition-colors"
               >
                 Criar Roteiro
               </button>
               <button
                 onClick={() => setDeleteAllConfirmStep(1)}
-                className="text-sm font-medium text-red-400 hover:bg-red-400/10 px-3 py-1.5 rounded transition-colors"
+                className="text-[13px] font-medium text-red-600 hover:bg-red-500/10 px-3 py-1.5 rounded transition-colors"
               >
                 Excluir
               </button>
               <button
                 onClick={clearSelection}
-                className="p-1 text-[var(--text-secondary)] hover:text-[var(--bg-base)] transition-colors ml-1"
+                className="w-7 h-7 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] rounded transition-colors ml-1"
                 title="Limpar seleção"
               >
                 <X className="w-4 h-4" />
@@ -467,21 +470,21 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity }: any) {
   return (
     <div 
-      className={`relative p-5 rounded-xl flex flex-col h-[220px] group transition-all duration-200 cursor-pointer border ${isSelected ? 'border-[var(--border)] bg-[var(--text-primary)]/[0.02]' : 'border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--border-hover)] hover:shadow-sm'}`} 
+      className={`relative p-5 rounded-xl flex flex-col h-[220px] group transition-all duration-200 cursor-pointer border ${isSelected ? 'border-[var(--border-strong)] bg-[var(--accent-main)]/[0.02] ring-1 ring-[var(--border-strong)]' : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)] hover:shadow-low'}`} 
       onClick={onSelect}
     >
       {/* Checkbox */}
       <div className={`absolute top-5 right-5 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-        <div className={`w-[18px] h-[18px] rounded-[4px] flex items-center justify-center transition-colors border ${isSelected ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-base)]' : 'bg-[var(--bg-surface)] border-[var(--border)] group-hover:border-[var(--text-tertiary)]'}`}>
+        <div className={`w-[18px] h-[18px] rounded flex items-center justify-center transition-colors border ${isSelected ? 'bg-[var(--accent-main)] border-[var(--accent-main)] text-[var(--bg-elevated)]' : 'bg-[var(--bg-surface)] border-[var(--border-strong)] group-hover:border-[var(--text-tertiary)]'}`}>
           {isSelected && (
-            <svg className="w-3 h-3 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <svg className="w-3.5 h-3.5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
           )}
         </div>
       </div>
 
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="pr-8 shrink-0 mb-3">
-          <span className="text-[10px] font-mono tracking-widest uppercase text-[var(--text-tertiary)] truncate block mb-1">
+        <div className="pr-8 shrink-0 mb-3 block">
+          <span className="text-[10px] font-mono tracking-widest uppercase text-[var(--text-tertiary)] truncate mb-1">
             {place.nomeRazaoSocial || 'Sem Razão Social'}
           </span>
           <div className="flex items-center gap-2">
@@ -502,7 +505,7 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
             )}
           </div>
           
-          <div className="flex items-center gap-1.5 text-[var(--text-secondary)] text-xs mt-1.5">
+          <div className="flex items-center gap-1.5 text-[var(--text-secondary)] text-[12px] mt-1.5 font-medium">
             <MapPin className="w-3.5 h-3.5 shrink-0 text-[var(--text-tertiary)]" />
             <span className="truncate">{renderCity(place.cidade)}</span>
           </div>
@@ -511,13 +514,13 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
         <div className="flex-1 overflow-y-auto pr-2 -mr-2 flex flex-col gap-2 
           [&::-webkit-scrollbar]:w-1 
           [&::-webkit-scrollbar-track]:bg-transparent 
-          [&::-webkit-scrollbar-thumb]:bg-[var(--border)]
+          [&::-webkit-scrollbar-thumb]:bg-[var(--border-strong)]
           [&::-webkit-scrollbar-thumb]:rounded-full"
         >
           {Array.isArray(place.tags) && place.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {place.tags.map((tag: string) => (
-                 <span key={tag} className="px-1.5 py-0.5 bg-[var(--bg-subtle)] text-[var(--text-secondary)] text-[10px] font-medium rounded-md truncate max-w-full">
+                 <span key={tag} className="px-1.5 py-0.5 bg-[var(--bg-subtle)] text-[var(--text-secondary)] text-[11px] font-medium rounded truncate max-w-full">
                    {tag}
                  </span>
               ))}
@@ -527,38 +530,38 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
           {place.observacoes && place.observacoes.length > 0 && (
             <div className="flex flex-col gap-1.5 mt-1">
               {place.observacoes.map((obs: any, i: number) => (
-                <div key={i} className="flex gap-2 text-[11px] leading-tight">
-                  <span className="font-mono text-[10px] text-[var(--text-secondary)] uppercase tracking-wider shrink-0 mt-0.5">{obs.categoria}</span>
-                  <span className="text-[var(--text-primary)]">{obs.texto}</span>
+                <div key={i} className="flex gap-2 text-[12px] leading-tight">
+                  <span className="font-mono text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider shrink-0 mt-0.5">{obs.categoria}</span>
+                  <span className="text-[var(--text-secondary)]">{obs.texto}</span>
                 </div>
               ))}
             </div>
           )}
 
           {place.observacao && (!place.observacoes || place.observacoes.length === 0) && (
-            <div className="text-[11px] leading-relaxed text-[var(--text-secondary)]">
+            <div className="text-[12px] leading-relaxed text-[var(--text-secondary)]">
               {place.observacao}
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border)] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-        <div className="flex gap-0.5 text-[var(--text-tertiary)] text-xs font-medium">
-          <button onClick={onCopy} className="flex items-center gap-1.5 px-2 py-1.5 hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] rounded-md transition-colors">
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-subtle)] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+        <div className="flex gap-1 text-[var(--text-tertiary)] text-[12px] font-medium">
+          <button onClick={onCopy} className="flex items-center gap-1.5 px-2 py-1.5 hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] rounded transition-colors">
             <Copy className="w-3.5 h-3.5" />
             <span>Copiar</span>
           </button>
-           <button onClick={onShare} className="flex items-center gap-1.5 px-2 py-1.5 hover:text-[#25D366] hover:bg-[#25D366]/10 rounded-md transition-colors">
+           <button onClick={onShare} className="flex items-center gap-1.5 px-2 py-1.5 hover:text-[#25D366] hover:bg-[#25D366]/10 rounded transition-colors">
             <Share2 className="w-3.5 h-3.5" />
             <span>Share</span>
           </button>
         </div>
-        <div className="flex gap-0.5 text-[var(--text-tertiary)]">
-          <button onClick={onEdit} className="p-1.5 hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] rounded-md transition-colors" title="Editar">
+        <div className="flex gap-1 text-[var(--text-tertiary)]">
+          <button onClick={onEdit} className="w-8 h-8 flex items-center justify-center hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] rounded transition-colors" title="Editar">
             <Edit2 className="w-3.5 h-3.5" />
           </button>
-          <button onClick={onDelete} className="p-1.5 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors" title="Excluir">
+          <button onClick={onDelete} className="w-8 h-8 flex items-center justify-center hover:text-red-500 hover:bg-red-500/10 rounded transition-colors" title="Excluir">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -569,10 +572,10 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
 
 function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity }: any) {
   return (
-    <tr className={`group transition-colors border-b border-[var(--border)] last:border-0 ${isSelected ? 'bg-[var(--text-primary)]/[0.02]' : 'hover:bg-[var(--bg-subtle)]/50'}`}>
-      <td className="px-4 py-3 align-middle">
+    <tr className={`group transition-colors border-b border-[var(--border-subtle)] last:border-0 ${isSelected ? 'bg-[var(--accent-main)]/[0.02]' : 'hover:bg-[var(--bg-subtle)]'}`}>
+      <td className="px-4 py-3 align-middle w-10">
         <div className="flex items-center cursor-pointer h-full" onClick={onSelect}>
-          <div className={`w-[16px] h-[16px] rounded-[4px] flex items-center justify-center border transition-colors ${isSelected ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-base)]' : 'border-[var(--border)] bg-[var(--bg-surface)] group-hover:border-[var(--text-tertiary)]'}`}>
+          <div className={`w-[16px] h-[16px] rounded flex items-center justify-center border transition-colors ${isSelected ? 'bg-[var(--accent-main)] border-[var(--accent-main)] text-[var(--bg-elevated)]' : 'border-[var(--border-strong)] bg-[var(--bg-surface)] group-hover:border-[var(--text-tertiary)]'}`}>
             {isSelected && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><polyline points="20 6 9 17 4 12"></polyline></svg>
             )}
@@ -581,7 +584,7 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
       </td>
       <td className="px-4 py-3 align-middle">
         <div className="flex items-center gap-3">
-          <span className="text-[var(--text-primary)] font-medium tracking-tight truncate max-w-[200px]">{place.nomeFantasia}</span>
+          <span className="text-[var(--text-primary)] text-[13px] font-semibold tracking-tight truncate max-w-[200px]">{place.nomeFantasia}</span>
           {place.linkGoogleMaps && (
             <button 
               onClick={(e) => {
@@ -595,23 +598,23 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
           )}
         </div>
       </td>
-      <td className="px-4 py-3 align-middle text-[var(--text-secondary)] text-sm truncate max-w-[150px]">
+      <td className="px-4 py-3 align-middle text-[var(--text-secondary)] text-[13px] truncate max-w-[150px]">
         {renderCity(place.cidade)}
       </td>
       <td className="px-4 py-3 align-middle">
         <div className="flex flex-col gap-1 max-w-[300px]">
-          <span className="text-[var(--text-tertiary)] text-xs truncate">
+          <span className="text-[var(--text-tertiary)] text-[12px] truncate">
             {place.nomeRazaoSocial || '-'}
           </span>
           {Array.isArray(place.tags) && place.tags.length > 0 && (
              <div className="flex gap-1 flex-wrap">
                {place.tags.slice(0,2).map((tag: string) => (
-                 <span key={tag} className="px-1.5 py-[1px] bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-secondary)] text-[9px] font-medium rounded truncate max-w-[80px]">
+                 <span key={tag} className="px-1.5 py-[1px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-[10px] font-medium rounded truncate max-w-[80px]">
                    {tag}
                  </span>
                ))}
                {place.tags.length > 2 && (
-                 <span className="px-1 py-[1px] text-[var(--text-tertiary)] text-[9px]">+{place.tags.length - 2}</span>
+                 <span className="px-1 py-[1px] text-[var(--text-tertiary)] text-[10px]">+{place.tags.length - 2}</span>
                )}
              </div>
           )}
@@ -619,17 +622,17 @@ function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSha
       </td>
       <td className="px-5 py-3 pr-6 text-right align-middle">
         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={onCopy} className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] rounded transition-colors" title="Copiar">
+          <button onClick={onCopy} className="w-8 h-8 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] rounded transition-colors" title="Copiar">
             <Copy className="w-4 h-4" />
           </button>
-          <button onClick={onShare} className="p-1.5 text-[var(--text-tertiary)] hover:text-[#25D366] hover:bg-[var(--bg-surface)] rounded transition-colors" title="WhatsApp">
+          <button onClick={onShare} className="w-8 h-8 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[#25D366] hover:bg-[var(--bg-surface)] rounded transition-colors" title="WhatsApp">
             <Share2 className="w-4 h-4" />
           </button>
-          <div className="w-px h-4 bg-[var(--border)] mx-1"></div>
-          <button onClick={onEdit} className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] rounded transition-colors" title="Editar">
+          <div className="w-px h-4 bg-[var(--border-subtle)] mx-1"></div>
+          <button onClick={onEdit} className="w-8 h-8 flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] rounded transition-colors" title="Editar">
             <Edit2 className="w-4 h-4" />
           </button>
-          <button onClick={onDelete} className="p-1.5 text-[var(--text-tertiary)] hover:text-red-500 hover:bg-red-500/10 rounded transition-colors" title="Excluir">
+          <button onClick={onDelete} className="w-8 h-8 flex items-center justify-center text-[var(--text-tertiary)] hover:text-red-500 hover:bg-red-500/10 rounded transition-colors" title="Excluir">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
