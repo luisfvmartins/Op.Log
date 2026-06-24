@@ -88,6 +88,10 @@ export function formatRouteMessage(
     
     message += `${icon} ${opType}: ${place.nomeFantasia}\n`;
     
+    if (place.cidade) {
+      message += `🏙️ Cidade: ${place.cidade}\n`;
+    }
+    
     const agendamento = places.length === 1 && agendamentoGeral ? agendamentoGeral : place.agendamento;
     if (agendamento) {
       message += `🕒 Agenda: ${formatDateToBR(agendamento)}\n`;
