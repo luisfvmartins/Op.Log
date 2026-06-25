@@ -1,4 +1,4 @@
-import { Upload, Download, Sun, Moon, Info, LogOut, LayoutGrid, List as ListIcon, Search, Plus } from 'lucide-react';
+import { Upload, Download, Sun, Moon, Info, LogOut, LayoutGrid, List as ListIcon, Search, Plus, X } from 'lucide-react';
 import { useRef } from 'react';
 
 export interface UnifiedHeaderProps {
@@ -73,8 +73,17 @@ export function UnifiedHeader({
                 placeholder={searchPlaceholder}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md pl-9 pr-3 py-1.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-0 transition-colors"
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-md pl-9 pr-9 py-1.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-0 transition-colors"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors rounded-full hover:bg-[var(--bg-base)]"
+                  title="Limpar pesquisa"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
             <div className="relative border border-[var(--border)] bg-[var(--bg-surface)] rounded-md flex-shrink-0">
