@@ -13,6 +13,10 @@ export function capitalizeText(text: string): string {
 export function formatDateToBR(dateString: string): string {
   if (!dateString) return dateString;
   try {
+    if (dateString.length === 10 && dateString.includes('-')) {
+       const [y, m, d] = dateString.split('-');
+       return `${d}/${m}/${y}`;
+    }
     const d = new Date(dateString);
     if (isNaN(d.getTime())) return dateString;
     return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(d);

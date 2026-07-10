@@ -28,6 +28,8 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
     cidade: '',
     nomeRazaoSocial: '',
     linkGoogleMaps: '',
+    tagsText: '',
+    isFavorite: false,
   });
   const [observacoes, setObservacoes] = useState<(Observacao & { clientId: string })[]>([]);
 
@@ -48,6 +50,8 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
         cidade: initialData.cidade || '',
         nomeRazaoSocial: initialData.nomeRazaoSocial || '',
         linkGoogleMaps: initialData.linkGoogleMaps || '',
+        tagsText: initialData.tags ? initialData.tags.join(', ') : '',
+        isFavorite: initialData.isFavorite || false,
       });
       if (initialData.observacoes && initialData.observacoes.length > 0) {
         setObservacoes(initialData.observacoes.map(o => ({ ...o, clientId: crypto.randomUUID() })));
@@ -151,10 +155,14 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
       .filter(o => o.categoria.trim() || o.texto.trim())
       .map(({ clientId, ...rest }) => rest);
     
-    await onSubmit({
-      ...submitData,
-      observacoes: cleanObs
-    });
+      const { tagsText, ...rest } = submitData;
+      const parsedTags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
+      
+      await onSubmit({
+        ...rest,
+        tags: parsedTags,
+        observacoes: cleanObs
+      });
   };
 
   // Category Manager logic
@@ -219,6 +227,30 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
             className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-all font-mono"
             placeholder="https://maps.app.goo.gl/..."
           />
+        </div>
+        
+        <div className="space-y-1">
+          <label className="block text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-widest mb-1.5">Tags (separadas por vírgula)</label>
+          <input
+            name="tagsText"
+            value={formData.tagsText}
+            onChange={handleChange}
+            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-all font-mono"
+            placeholder="Ex: CD, Parceiro, Rápido"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 pt-2 pb-1">
+          <input
+            type="checkbox"
+            id="isFavorite"
+            checked={formData.isFavorite}
+            onChange={(e) => setFormData(prev => ({ ...prev, isFavorite: e.target.checked }))}
+            className="w-4 h-4 rounded border-[var(--border)] text-[var(--accent)] focus:ring-[var(--accent)] bg-[var(--bg-base)]"
+          />
+          <label htmlFor="isFavorite" className="text-sm text-[var(--text-primary)] cursor-pointer">
+            Marcar como favorito
+          </label>
         </div>
 
         <div className="space-y-2 pt-2">

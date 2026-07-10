@@ -7,6 +7,7 @@ import { formatRouteMessage, formatDateToBR } from '../../../lib/formatter';
 import { getDrivers, updateDriver, Driver } from '../../../services/drivers';
 import { getVehicles, updateVehicle, Vehicle } from '../../../services/vehicles';
 import { createSchedule } from '../../../services/schedules';
+import { updatePlace } from '../../../services/places';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getCidadesBrasileiras } from '../../../services/ibge';
 
@@ -73,12 +74,26 @@ function DraggableRouteStop({
           <p className="text-xs text-[var(--text-secondary)] truncate flex items-center gap-1 font-mono"><MapPin className="w-3 h-3 text-[var(--text-tertiary)] shrink-0"/> {renderCity(place.cidade)}</p>
         </div>
         
-        <div className="ml-0 sm:ml-[10px] mt-3" onPointerDown={(e) => e.stopPropagation()}>
+        <div className="ml-0 sm:ml-[10px] mt-3 flex gap-2" onPointerDown={(e) => e.stopPropagation()}>
           <input
-            type="datetime-local"
-            value={place.agendamento || ''}
-            onChange={(e) => onStopChange(place.id!, 'agendamento', e.target.value)}
-            className="w-full shrink-0 text-xs bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-2 py-2 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors font-mono"
+            type="date"
+            value={(place.agendamento || '').split('T')[0]}
+            onChange={(e) => {
+              const date = e.target.value;
+              const time = (place.agendamento || '').split('T')[1] || '';
+              onStopChange(place.id!, 'agendamento', date ? (time ? `${date}T${time}` : date) : '');
+            }}
+            className="flex-[3] min-w-0 text-xs bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-2 py-2 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors font-mono"
+          />
+          <input
+            type="time"
+            value={(place.agendamento || '').split('T')[1] || ''}
+            onChange={(e) => {
+              const time = e.target.value;
+              const date = (place.agendamento || '').split('T')[0] || new Date().toISOString().split('T')[0];
+              onStopChange(place.id!, 'agendamento', time ? `${date}T${time}` : date);
+            }}
+            className="flex-[2] min-w-0 text-xs bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-2 py-2 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors font-mono"
           />
         </div>
       </div>
@@ -222,6 +237,16 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
         if (vId) await updateVehicle(vId, { status: 'Programado' });
       }
 
+      // Increment routeCount for each place
+      for (const p of places) {
+        if (p.id) {
+          const originalPlace = selectedPlaces.find(sp => sp.id === p.id);
+          if (originalPlace) {
+            await updatePlace(p.id, { routeCount: (originalPlace.routeCount || 0) + 1 });
+          }
+        }
+      }
+
       onClearSelection();
       onClose();
     } catch (err) {
@@ -277,13 +302,29 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
             {places.length === 1 ? (
               <div className="bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border)] space-y-4 z-0">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">Data e Hora</label>
-                  <input
-                    type="datetime-local"
-                    value={agendamentoGeral}
-                    onChange={(e) => setAgendamentoGeral(e.target.value)}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-all font-mono z-0"
-                  />
+                  <label className="text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase">Data (e opcionalmente Hora)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="date"
+                      value={(agendamentoGeral || '').split('T')[0]}
+                      onChange={(e) => {
+                        const date = e.target.value;
+                        const time = (agendamentoGeral || '').split('T')[1] || '';
+                        setAgendamentoGeral(date ? (time ? `${date}T${time}` : date) : '');
+                      }}
+                      className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-all font-mono z-0"
+                    />
+                    <input
+                      type="time"
+                      value={(agendamentoGeral || '').split('T')[1] || ''}
+                      onChange={(e) => {
+                        const time = e.target.value;
+                        const date = (agendamentoGeral || '').split('T')[0] || new Date().toISOString().split('T')[0];
+                        setAgendamentoGeral(time ? `${date}T${time}` : date);
+                      }}
+                      className="w-full max-w-[120px] bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-all font-mono z-0"
+                    />
+                  </div>
                 </div>
               </div>
             ) : (

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin, ExternalLink, Check } from 'lucide-react';
+import { Search, LayoutGrid, List, Plus, MapPin, Copy, Share2, Edit2, Trash2, Route as RouteIcon, X, Map, Sun, Moon, LogOut, Download, Upload, Info, Instagram, Linkedin, ExternalLink, Check, Star, RotateCcw } from 'lucide-react';
 import { usePlaces } from '../hooks/usePlaces';
 import { useToast } from '../hooks/useToast';
 import { Place } from '../services/places';
@@ -297,6 +297,14 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
                 onCopy={() => handleCopySingle(place)}
                 onShare={() => handleShareSingle(place)}
                 renderCity={renderCity}
+                onToggleFavorite={async (e: any) => {
+                  e.stopPropagation();
+                  if (place.id) await update(place.id, { isFavorite: !place.isFavorite });
+                }}
+                onResetRouteCount={async (e: any) => {
+                  e.stopPropagation();
+                  if (place.id) await update(place.id, { routeCount: 0 });
+                }}
               />
             ))}
           </div>
@@ -333,6 +341,14 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
                     onCopy={() => handleCopySingle(place)}
                     onShare={() => handleShareSingle(place)}
                     renderCity={renderCity}
+                    onToggleFavorite={async (e: any) => {
+                      e.stopPropagation();
+                      if (place.id) await update(place.id, { isFavorite: !place.isFavorite });
+                    }}
+                    onResetRouteCount={async (e: any) => {
+                      e.stopPropagation();
+                      if (place.id) await update(place.id, { routeCount: 0 });
+                    }}
                   />
                 ))}
               </tbody>
@@ -448,12 +464,19 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
 // ---------------- Helper Components ----------------
 
-function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity }: any) {
+function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity, onToggleFavorite, onResetRouteCount }: any) {
   return (
     <div className={`relative p-5 rounded-xl flex flex-col gap-3 min-h-[220px] group transition-all duration-150 cursor-pointer border ${isSelected ? 'border-[var(--accent-border)] bg-[var(--accent-tint)]' : 'border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--border-hover)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]'}`} onClick={onSelect}>
       
-      {/* Checkbox */}
-      <div className={`absolute top-4 right-4 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+      {/* Top right actions (Favorite, Checkbox) */}
+      <div className={`absolute top-4 right-4 z-10 flex flex-col items-center gap-2 transition-opacity ${isSelected || place.isFavorite ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+        <button 
+          onClick={onToggleFavorite}
+          className={`p-1.5 rounded-full transition-colors ${place.isFavorite ? 'text-yellow-400 hover:text-yellow-500' : 'text-[var(--text-tertiary)] hover:text-yellow-400'}`}
+          title={place.isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+        >
+          <Star className={`w-4 h-4 ${place.isFavorite ? 'fill-current' : ''}`} />
+        </button>
         <div className={`w-4 h-4 rounded-sm flex items-center justify-center transition-colors border ${isSelected ? 'bg-[var(--accent)] border-[var(--accent)] text-[#0C0D0F]' : 'bg-[var(--bg-surface)] border-[var(--border)]'}`}>
           {isSelected && (
             <svg className="w-3 h-3 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -518,6 +541,20 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
               <span className="text-xs text-[var(--text-secondary)] leading-snug">{place.observacao}</span>
             </div>
           )}
+
+          {place.routeCount !== undefined && place.routeCount > 0 && (
+            <div className="flex items-center gap-1 mt-4 text-xs text-[var(--text-secondary)]">
+              <RouteIcon className="w-3.5 h-3.5" />
+              <span>Usado em <strong>{place.routeCount}</strong> {place.routeCount === 1 ? 'roteiro' : 'roteiros'}</span>
+              <button 
+                onClick={onResetRouteCount} 
+                className="ml-auto p-1.5 text-[var(--text-tertiary)] hover:text-[#E05252] rounded transition-colors hover:bg-[var(--bg-base)]"
+                title="Resetar contador"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -554,16 +591,25 @@ function PlaceCard({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onSh
   );
 }
 
-function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity }: any) {
+function PlaceRow({ place, isSelected, onSelect, onEdit, onDelete, onCopy, onShare, renderCity, onToggleFavorite, onResetRouteCount }: any) {
   return (
     <tr className={`group transition-colors ${isSelected ? 'bg-blue-50 dark:bg-blue-500/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}>
       <td className="px-4 py-3">
-        <div className="flex items-center cursor-pointer" onClick={onSelect}>
-          <div className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-white/20 bg-white dark:bg-black/20'}`}>
-            {isSelected && (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-white"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            )}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center cursor-pointer" onClick={onSelect}>
+            <div className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-white/20 bg-white dark:bg-black/20'}`}>
+              {isSelected && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-white"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              )}
+            </div>
           </div>
+          <button 
+            onClick={onToggleFavorite}
+            className={`p-1 rounded-full transition-colors ${place.isFavorite ? 'text-yellow-400 hover:text-yellow-500' : 'text-slate-300 hover:text-yellow-400 opacity-0 group-hover:opacity-100'}`}
+            title={place.isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+          >
+            <Star className={`w-3.5 h-3.5 ${place.isFavorite ? 'fill-current' : ''}`} />
+          </button>
         </div>
       </td>
       <td className="px-4 py-3">

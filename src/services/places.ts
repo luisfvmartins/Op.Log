@@ -14,7 +14,9 @@ export interface Place {
   linkGoogleMaps: string;
   observacao?: string; // legacy or general observation
   observacoes?: Observacao[];
-  tags?: string[] | any; // legacy tags
+  tags?: string[]; // tags to classify points
+  isFavorite?: boolean;
+  routeCount?: number;
   userId?: string;
   createdAt?: any;
   updatedAt?: any;
