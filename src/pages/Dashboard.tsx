@@ -142,6 +142,10 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
     // Sort
     return result.sort((a, b) => {
+      // Favoritos primeiro
+      if (a.isFavorite && !b.isFavorite) return -1;
+      if (!a.isFavorite && b.isFavorite) return 1;
+
       if (sortBy === 'alpha') {
         return a.nomeFantasia.localeCompare(b.nomeFantasia);
       } else if (sortBy === 'alpha-za') {
@@ -221,6 +225,21 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
   const clearSelection = () => setSelectedIds(new Set());
 
+  const handleResetAllCounters = async () => {
+    if (confirm('Deseja zerar os contadores de uso em roteiros de todos os locais? Essa ação não pode ser desfeita.')) {
+      setIsBusy(true);
+      try {
+        const resetPromises = places.filter(p => p.routeCount && p.routeCount > 0).map(p => update(p.id!, { routeCount: 0 }));
+        await Promise.all(resetPromises);
+        addToast('Contadores zerados com sucesso', 'success');
+      } catch (err: any) {
+        addToast(err.message || 'Erro ao zerar contadores', 'error');
+      } finally {
+        setIsBusy(false);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#09090B] text-slate-800 dark:text-slate-200 font-sans selection:bg-blue-500/30">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
@@ -258,6 +277,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         toggleSelectAll={handleSelectAllToggle}
         onDeleteSelected={() => setDeleteAllConfirmStep(1)}
         searchPlaceholder="Pesquisar por nome, cidade ou razão social..."
+        onResetCounters={handleResetAllCounters}
       />
 
       {/* MAIN CONTENT */}

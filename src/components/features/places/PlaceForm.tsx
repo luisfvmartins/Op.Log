@@ -156,7 +156,7 @@ export function PlaceForm({ initialData, onSubmit, onCancel, isLoading }: PlaceF
       .map(({ clientId, ...rest }) => rest);
     
       const { tagsText, ...rest } = submitData;
-      const parsedTags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
+      const parsedTags = (tagsText || '').split(',').map(t => t.trim()).filter(Boolean);
       
       await onSubmit({
         ...rest,

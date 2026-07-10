@@ -1,4 +1,4 @@
-import { Upload, Download, Sun, Moon, Info, LogOut, LayoutGrid, List as ListIcon, Search, Plus, X } from 'lucide-react';
+import { Upload, Download, Sun, Moon, Info, LogOut, LayoutGrid, List as ListIcon, Search, Plus, X, RotateCcw } from 'lucide-react';
 import { useRef } from 'react';
 
 export interface UnifiedHeaderProps {
@@ -26,6 +26,7 @@ export interface UnifiedHeaderProps {
   toggleSelectAll?: () => void;
   searchPlaceholder?: string;
   onDeleteSelected?: () => void;
+  onResetCounters?: () => void;
 }
 
 export function UnifiedHeader({
@@ -52,7 +53,8 @@ export function UnifiedHeader({
   selectedIds,
   toggleSelectAll,
   searchPlaceholder = "Pesquisar...",
-  onDeleteSelected
+  onDeleteSelected,
+  onResetCounters
 }: UnifiedHeaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -126,6 +128,11 @@ export function UnifiedHeader({
               {onExport && (
                 <button onClick={onExport} className="p-1.5 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors" title="Exportar">
                   <Download className="w-4 h-4 shrink-0" />
+                </button>
+              )}
+              {onResetCounters && (
+                <button onClick={onResetCounters} className="p-1.5 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors" title="Zerar contadores de roteiro">
+                  <RotateCcw className="w-4 h-4 shrink-0" />
                 </button>
               )}
             </div>
