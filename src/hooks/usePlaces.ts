@@ -45,7 +45,6 @@ export function usePlaces() {
         const updatedPlace = { ...p, ...place };
         if (place.observacoes !== undefined) {
           delete updatedPlace.observacao;
-          delete updatedPlace.tags;
         }
         return updatedPlace;
       }

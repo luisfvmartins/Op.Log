@@ -78,7 +78,7 @@ export function formatRouteMessage(
     plateString = `Sem carreta (Aguardar avisar qual carreta engatar)\n\n*OBSERVAÇÃO OPERACIONAL:* Aguardar até passar a informação da carreta vazia para seguir para o carregamento.`;
   }
 
-  let message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 Carreta: ${aguardaCarretaVazia ? "" : plateString}\n\n`;
+  let message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 Carreta(s): ${aguardaCarretaVazia ? "" : plateString}\n\n`;
   if (aguardaCarretaVazia) {
      message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${plateString}\n\n`;
   }
@@ -91,6 +91,10 @@ export function formatRouteMessage(
     const opType = rawOp.charAt(0).toUpperCase() + rawOp.slice(1).toLowerCase();
     
     message += `${icon} ${opType}: ${place.nomeFantasia}\n`;
+    
+    if (place.nomeRazaoSocial) {
+      message += `🚩 Razão Social: ${place.nomeRazaoSocial}\n`;
+    }
     
     if (place.cidade) {
       message += `🏙️ Cidade: ${place.cidade}\n`;
