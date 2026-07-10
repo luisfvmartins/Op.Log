@@ -83,7 +83,6 @@ export async function updatePlace(id: string, place: Partial<Place>): Promise<vo
         const newP = { ...p, ...place, updatedAt: new Date().toISOString() };
         if (place.observacoes !== undefined) {
           delete newP.observacao;
-          delete newP.tags;
         }
         return newP;
       }
@@ -96,7 +95,6 @@ export async function updatePlace(id: string, place: Partial<Place>): Promise<vo
   const updateData: any = { ...place, updatedAt: serverTimestamp() };
   if (place.observacoes !== undefined) {
     updateData.observacao = deleteField();
-    updateData.tags = deleteField();
   }
   await updateDoc(docRef, updateData);
 }

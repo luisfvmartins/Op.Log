@@ -51,6 +51,7 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
   const [deleteAllConfirmStep, setDeleteAllConfirmStep] = useState(0);
   const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const [isResetConfirmModalOpen, setIsResetConfirmModalOpen] = useState(false);
   
   const [isBusy, setIsBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -225,18 +226,21 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
 
   const clearSelection = () => setSelectedIds(new Set());
 
-  const handleResetAllCounters = async () => {
-    if (confirm('Deseja zerar os contadores de uso em roteiros de todos os locais? Essa ação não pode ser desfeita.')) {
-      setIsBusy(true);
-      try {
-        const resetPromises = places.filter(p => p.routeCount && p.routeCount > 0).map(p => update(p.id!, { routeCount: 0 }));
-        await Promise.all(resetPromises);
-        addToast('Contadores zerados com sucesso', 'success');
-      } catch (err: any) {
-        addToast(err.message || 'Erro ao zerar contadores', 'error');
-      } finally {
-        setIsBusy(false);
-      }
+  const handleResetAllCounters = () => {
+    setIsResetConfirmModalOpen(true);
+  };
+
+  const confirmResetAllCounters = async () => {
+    setIsBusy(true);
+    setIsResetConfirmModalOpen(false);
+    try {
+      const resetPromises = places.filter(p => p.routeCount && p.routeCount > 0).map(p => update(p.id!, { routeCount: 0 }));
+      await Promise.all(resetPromises);
+      addToast('Contadores zerados com sucesso', 'success');
+    } catch (err: any) {
+      addToast(err.message || 'Erro ao zerar contadores', 'error');
+    } finally {
+      setIsBusy(false);
     }
   };
 
@@ -455,6 +459,16 @@ export function Dashboard({ theme, toggleTheme }: { theme: 'light' | 'dark', tog
         description="Esta ação não poderá ser desfeita. O local será removido permanentemente de todos os registros."
         isDestructive
         confirmText="Excluir Permanentemente"
+      />
+
+      <ConfirmDialog
+        isOpen={isResetConfirmModalOpen}
+        onClose={() => setIsResetConfirmModalOpen(false)}
+        onConfirm={confirmResetAllCounters}
+        title="Zerar todos os contadores?"
+        description="Deseja zerar os contadores de uso em roteiros de todos os locais? Essa ação não pode ser desfeita."
+        isDestructive
+        confirmText="Zerar Contadores"
       />
 
       <Modal
