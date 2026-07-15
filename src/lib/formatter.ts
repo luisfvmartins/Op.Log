@@ -78,7 +78,8 @@ export function formatRouteMessage(
     plateString = `Sem carreta (Aguardar avisar qual carreta engatar)\n\n*OBSERVAÇÃO OPERACIONAL:* Aguardar até passar a informação da carreta vazia para seguir para o carregamento.`;
   }
 
-  let message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 Carreta(s): ${aguardaCarretaVazia ? "" : plateString}\n\n`;
+  const carretaLabel = placa2 ? 'Carretas' : 'Carreta';
+  let message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${carretaLabel}: ${aguardaCarretaVazia ? "" : plateString}\n\n`;
   if (aguardaCarretaVazia) {
      message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${plateString}\n\n`;
   }
