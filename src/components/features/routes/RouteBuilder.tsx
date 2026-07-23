@@ -149,7 +149,10 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
     if (places.length <= 1 && operacaoGeral === 'Misto') {
       setOperacaoGeral('');
     }
-  }, [places.length, operacaoGeral]);
+    if (operacaoGeral !== 'Coleta' && aguardaCarretaVazia) {
+      setAguardaCarretaVazia(false);
+    }
+  }, [places.length, operacaoGeral, aguardaCarretaVazia]);
 
   const handleCopy = async () => {
     const message = formatRouteMessage(places, placa, placa2, observacaoGeral, operacaoGeral, agendamentoGeral, aguardaCarretaVazia);
@@ -224,13 +227,14 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   };
 
   const isMaintenance = operacaoGeral === 'Manutenção';
+  const isColeta = operacaoGeral === 'Coleta';
   const canGoToStep2 = operacaoGeral !== '';
   const isPlateValid = (p: string) => /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(p);
   const isPlacaValidOrEmpty = (p: string) => !p || isPlateValid(p);
 
   const canGoToStep4 = isMaintenance 
     ? (isPlacaValidOrEmpty(placa) && isPlacaValidOrEmpty(placa2) && (!placa || !placa2 || placa !== placa2))
-    : (aguardaCarretaVazia || (isPlateValid(placa) && isPlacaValidOrEmpty(placa2) && (placa !== placa2)));
+    : ((isColeta && aguardaCarretaVazia) || (isPlateValid(placa) && isPlacaValidOrEmpty(placa2) && (placa !== placa2)));
 
   const canFinish = operacaoGeral !== '' && places.length > 0 && canGoToStep4;
 
@@ -339,21 +343,23 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 pt-1 pb-1">
-                  <input
-                    type="checkbox"
-                    id="aguardaCarreta"
-                    checked={aguardaCarretaVazia}
-                    onChange={(e) => {
-                       setAguardaCarretaVazia(e.target.checked);
-                       if (e.target.checked) setPlaca('');
-                    }}
-                    className="w-4 h-4 rounded-sm border-[var(--border)] bg-[var(--bg-base)] text-[var(--accent)] focus:ring-[var(--accent)]"
-                  />
-                  <label htmlFor="aguardaCarreta" className="text-sm font-medium text-[var(--text-primary)]">
-                    Aguardar motorista avisar carreta
-                  </label>
-                </div>
+                {isColeta && (
+                  <div className="flex items-center gap-2 pt-1 pb-1">
+                    <input
+                      type="checkbox"
+                      id="aguardaCarreta"
+                      checked={aguardaCarretaVazia}
+                      onChange={(e) => {
+                         setAguardaCarretaVazia(e.target.checked);
+                         if (e.target.checked) setPlaca('');
+                      }}
+                      className="w-4 h-4 rounded-sm border-[var(--border)] bg-[var(--bg-base)] text-[var(--accent)] focus:ring-[var(--accent)]"
+                    />
+                    <label htmlFor="aguardaCarreta" className="text-sm font-medium text-[var(--text-primary)]">
+                      Aguardar motorista avisar carreta
+                    </label>
+                  </div>
+                )}
 
                 {!aguardaCarretaVazia && (
                   <>
