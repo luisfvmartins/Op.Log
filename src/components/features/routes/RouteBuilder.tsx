@@ -4,9 +4,6 @@ import { GripVertical, Trash2, Copy, MapPin, Truck, Box, ArrowRightLeft, CornerU
 import { Place } from '../../../services/places';
 import { RouteStop, RouteData, createRoute } from '../../../services/routes';
 import { formatRouteMessage, formatDateToBR } from '../../../lib/formatter';
-import { getDrivers, updateDriver, Driver } from '../../../services/drivers';
-import { getVehicles, updateVehicle, Vehicle } from '../../../services/vehicles';
-import { createSchedule } from '../../../services/schedules';
 import { updatePlace } from '../../../services/places';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getCidadesBrasileiras } from '../../../services/ibge';
@@ -120,11 +117,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   const [placa, setPlaca] = useState('');
   const [placa2, setPlaca2] = useState('');
   const [observacaoGeral, setObservacaoGeral] = useState('');
-  const [driverId, setDriverId] = useState('');
   const [aguardaCarretaVazia, setAguardaCarretaVazia] = useState(false);
-
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   
   const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
@@ -132,13 +125,6 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   useEffect(() => {
     getCidadesBrasileiras().then(setCidadesReais);
   }, []);
-
-  useEffect(() => {
-    if (user?.uid) {
-      getDrivers(user.uid).then(setDrivers);
-      getVehicles(user.uid).then(setVehicles);
-    }
-  }, [user]);
 
   const renderCity = (city?: string) => {
     if (!city) return '';
@@ -211,31 +197,6 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
         destinos: places,
         mensagemGerada: message
       } as RouteData, user.uid);
-
-      if (driverId) {
-        const veh = vehicles.find(v => v.placa.toUpperCase() === placa.toUpperCase());
-        const vId = veh ? veh.id : null;
-        
-        const scheduledDateRaw = places[0]?.agendamento || agendamentoGeral || new Date().toISOString();
-        const initialDate = scheduledDateRaw.split('T')[0];
-        const initialTime = scheduledDateRaw.split('T')[1] || '08:00';
-        
-        await createSchedule({
-          userId: user.uid,
-          driverId,
-          vehicleId: vId || '',
-          date: initialDate,
-          time: initialTime,
-          operation: operacaoGeral,
-          operations: [operacaoGeral],
-          locationName: 'Roteiro ' + operacaoGeral + ' (' + places.length + ' locais)',
-          observations: observacaoGeral || 'Origem RouteBuilder',
-          status: 'Ativo'
-        });
-
-        await updateDriver(driverId, { status: 'Programado' });
-        if (vId) await updateVehicle(vId, { status: 'Programado' });
-      }
 
       // Increment routeCount for each place
       for (const p of places) {
@@ -365,24 +326,10 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
 
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <h2 className="text-xl font-semibold text-[var(--text-primary)]">Motorista e Veículo(s)</h2>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">Implementos (Carretas)</h2>
             
             <div className="space-y-4">
               <div className="bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border)] space-y-4">
-                <div>
-                  <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Motorista (Opcional - Cria Programação)</label>
-                  <select
-                    value={driverId}
-                    onChange={(e) => setDriverId(e.target.value)}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] font-mono transition-all"
-                  >
-                    <option value="">Selecione um motorista...</option>
-                    {drivers.map(d => (
-                       <option key={d.id} value={d.id}>{d.nome}</option>
-                    ))}
-                  </select>
-                </div>
-
                 {isMaintenance ? (
                   <div className="p-4 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-tertiary)] flex items-center gap-2">
                     <Wrench className="w-4 h-4 shrink-0 text-[var(--accent)]" />
@@ -409,7 +356,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                     {!aguardaCarretaVazia && (
                       <>
                         <div>
-                          <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 1 {aguardaCarretaVazia ? '' : '*'}</label>
+                          <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 1 *</label>
                           <input
                             required={!aguardaCarretaVazia}
                             value={placa}
@@ -485,9 +432,8 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                
                <div className="p-4 border-b border-[var(--border)] flex justify-between items-start bg-[var(--bg-surface)]">
                  <div>
-                   <span className="text-[10px] uppercase font-mono text-[var(--text-tertiary)] tracking-wider block mb-2">Motorista e Implementos</span>
+                   <span className="text-[10px] uppercase font-mono text-[var(--text-tertiary)] tracking-wider block mb-2">Implementos (Carretas)</span>
                    <div className="space-y-1 text-sm font-mono">
-                     {driverId && <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Motorista:</span> {drivers.find(d => d.id === driverId)?.nome}</p>}
                      {isMaintenance ? (
                        <p className="text-[var(--text-tertiary)] italic">Manutenção (Sem carreta)</p>
                      ) : aguardaCarretaVazia ? (
@@ -576,3 +522,4 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
     </div>
   );
 }
+

@@ -5,32 +5,17 @@
 
 import { useEffect, useState } from 'react';
 import { Dashboard } from './pages/Dashboard';
-import { DriversPage } from './pages/DriversPage';
-import { VehiclesPage } from './pages/VehiclesPage';
-import { SchedulesPage } from './pages/SchedulesPage';
-import { OperationalNotesPage } from './pages/OperationalNotesPage';
 import { Login } from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Map, Users, Truck, Calendar, Menu, X, LogOut, Sun, Moon, BookOpen } from 'lucide-react';
+import { Map, Menu, X, LogOut, Sun, Moon, Info, Instagram } from 'lucide-react';
 
 function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'locais' | 'programacoes' | 'anotacoes' | 'motoristas' | 'veiculos'>(() => {
-    const saved = localStorage.getItem('oplog_activeTab');
-    return (saved as any) || 'locais';
-  });
-
-  useEffect(() => {
-    localStorage.setItem('oplog_activeTab', activeTab);
-  }, [activeTab]);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
   const navItems = [
     { id: 'locais', label: 'Locais', icon: Map, disabled: false },
-    { id: 'programacoes', label: 'Programações', icon: Calendar, disabled: true },
-    { id: 'anotacoes', label: 'Anotações', icon: BookOpen, disabled: true },
-    { id: 'motoristas', label: 'Motoristas', icon: Users, disabled: true },
-    { id: 'veiculos', label: 'Veículos', icon: Truck, disabled: true },
   ] as const;
 
   return (
@@ -52,21 +37,10 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
               <nav className="hidden md:flex items-center gap-1 h-full">
                 {navItems.map(item => {
                   const Icon = item.icon;
-                  const isActive = activeTab === item.id;
                   return (
                     <button
                       key={item.id}
-                      disabled={item.disabled}
-                      onClick={() => !item.disabled && setActiveTab(item.id)}
-                      title={item.disabled ? 'Funcionalidade desabilitada' : undefined}
-                      className={`flex items-center gap-2 px-3 h-full border-b-2 text-sm font-medium transition-colors
-                        ${item.disabled
-                          ? 'opacity-40 cursor-not-allowed border-transparent text-[var(--text-tertiary)]'
-                          : isActive 
-                            ? 'border-[#D4A843] text-[#F0EDE8]' 
-                            : 'border-transparent text-[var(--text-secondary)] hover:text-[#F0EDE8]'
-                        }
-                      `}
+                      className="flex items-center gap-2 px-3 h-full border-b-2 text-sm font-medium transition-colors border-[#D4A843] text-[#F0EDE8]"
                     >
                       <Icon className="w-4 h-4 shrink-0" />
                       <span>{item.label}</span>
@@ -85,6 +59,14 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
+
+              <button
+                onClick={() => setIsInfoModalOpen(true)}
+                className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                title="Informações do App"
+              >
+                <Info className="w-4 h-4" />
+              </button>
               
               <div className="w-px h-4 bg-[var(--border)] mx-1"></div>
               
@@ -98,7 +80,14 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
             </div>
 
             {/* Mobile Menu Button */}
-            <div className="md:hidden flex items-center">
+            <div className="md:hidden flex items-center gap-2">
+              <button
+                onClick={() => setIsInfoModalOpen(true)}
+                className="p-2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] rounded-md"
+                title="Informações do App"
+              >
+                <Info className="w-5 h-5" />
+              </button>
               <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 -mr-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-md">
                 {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -113,26 +102,11 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
             <div className="px-4 py-3 space-y-1">
               {navItems.map(item => {
                 const Icon = item.icon;
-                const isActive = activeTab === item.id;
                 return (
                   <button
                     key={item.id}
-                    disabled={item.disabled}
-                    onClick={() => {
-                      if (!item.disabled) {
-                        setActiveTab(item.id);
-                        setIsMobileMenuOpen(false);
-                      }
-                    }}
-                    title={item.disabled ? 'Funcionalidade desabilitada' : undefined}
-                    className={`w-full flex items-center gap-3 px-3 py-3 text-sm font-medium transition-colors border-l-2
-                      ${item.disabled
-                        ? 'opacity-40 cursor-not-allowed border-transparent text-[var(--text-tertiary)]'
-                        : isActive 
-                          ? 'border-[#D4A843] bg-[var(--accent-tint)] text-[var(--text-primary)]' 
-                          : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]'
-                      }
-                    `}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full flex items-center gap-3 px-3 py-3 text-sm font-medium transition-colors border-l-2 border-[#D4A843] bg-[var(--accent-tint)] text-[var(--text-primary)]"
                   >
                     <Icon className="w-5 h-5" />
                     {item.label}
@@ -149,6 +123,14 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 <span>Alternar Tema</span>
               </button>
+
+              <button
+                onClick={() => { setIsInfoModalOpen(true); setIsMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-3 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+              >
+                <Info className="w-5 h-5" />
+                <span>Sobre o App</span>
+              </button>
               
               <button
                 onClick={() => { logout(); setIsMobileMenuOpen(false); }}
@@ -164,12 +146,66 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-auto bg-[var(--bg-base)]">
-        {activeTab === 'locais' && <Dashboard theme={theme} toggleTheme={toggleTheme} />}
-        {activeTab === 'programacoes' && <SchedulesPage theme={theme} toggleTheme={toggleTheme} />}
-        {activeTab === 'anotacoes' && <OperationalNotesPage theme={theme} toggleTheme={toggleTheme} />}
-        {activeTab === 'motoristas' && <DriversPage theme={theme} toggleTheme={toggleTheme} />}
-        {activeTab === 'veiculos' && <VehiclesPage theme={theme} toggleTheme={toggleTheme} />}
+        <Dashboard theme={theme} toggleTheme={toggleTheme} />
       </main>
+
+      {/* App Info Modal */}
+      {isInfoModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl max-w-md w-full p-6 shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setIsInfoModalOpen(false)}
+              className="absolute top-4 right-4 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] p-1 rounded-md transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-[var(--accent-tint)] border border-[var(--accent)] flex items-center justify-center text-[var(--accent)] font-bold text-lg font-mono">
+                Op
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-[var(--text-primary)]">Op.Log</h3>
+                <p className="text-xs text-[var(--text-tertiary)] font-mono">Gestão de Locais e Roteiros</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-sm text-[var(--text-secondary)] border-t border-[var(--border)] pt-4">
+              <p className="leading-relaxed">
+                Sistema inteligente para gerenciamento de locais, cadastro de fornecedores/clientes e montagem rápida de roteiros de viagem e mensagens padronizadas.
+              </p>
+
+              <div className="bg-[var(--bg-base)] p-4 rounded-lg border border-[var(--border)] space-y-2">
+                <p className="text-xs font-mono uppercase tracking-wider text-[var(--text-tertiary)]">Créditos</p>
+                <p className="font-medium text-[var(--text-primary)] text-sm">
+                  (criado por Luís Martins)
+                </p>
+                <div className="flex items-center gap-2 pt-1 text-xs">
+                  <Instagram className="w-4 h-4 text-[var(--accent)] shrink-0" />
+                  <span className="text-[var(--text-secondary)] font-medium">Instagram:</span>
+                  <a
+                    href="https://instagram.com/luisfvmartins"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--accent)] hover:underline font-mono font-medium"
+                  >
+                    @luisfvmartins
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setIsInfoModalOpen(false)}
+                className="px-5 py-2 bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-surface)] rounded-md text-sm font-medium transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
