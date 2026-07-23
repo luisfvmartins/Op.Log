@@ -75,7 +75,7 @@ export function formatRouteMessage(
   }
   
   if (aguardaCarretaVazia) {
-    plateString = `Sem carreta (Aguardar avisar qual carreta engatar)\n\n*OBSERVAÇÃO OPERACIONAL:* Aguardar até passar a informação da carreta vazia para seguir para o carregamento.`;
+    plateString = 'Passar carreta vazia';
   }
 
   const isMaintenance = operacaoGeral === 'Manutenção';
@@ -83,7 +83,7 @@ export function formatRouteMessage(
   let message = `${greeting},\n\nSegue sua próxima programação:\n\n`;
 
   if (aguardaCarretaVazia) {
-    message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${plateString}\n\n`;
+    message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 Carreta: Passar carreta vazia\n\n`;
   } else if (placa) {
     message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${carretaLabel}: ${plateString}\n\n`;
   } else {
