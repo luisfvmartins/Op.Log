@@ -26,11 +26,11 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
   }, [activeTab]);
 
   const navItems = [
-    { id: 'locais', label: 'Locais', icon: Map },
-    { id: 'programacoes', label: 'Programações', icon: Calendar },
-    { id: 'anotacoes', label: 'Anotações', icon: BookOpen },
-    { id: 'motoristas', label: 'Motoristas', icon: Users },
-    { id: 'veiculos', label: 'Veículos', icon: Truck },
+    { id: 'locais', label: 'Locais', icon: Map, disabled: false },
+    { id: 'programacoes', label: 'Programações', icon: Calendar, disabled: true },
+    { id: 'anotacoes', label: 'Anotações', icon: BookOpen, disabled: true },
+    { id: 'motoristas', label: 'Motoristas', icon: Users, disabled: true },
+    { id: 'veiculos', label: 'Veículos', icon: Truck, disabled: true },
   ] as const;
 
   return (
@@ -56,11 +56,15 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
                   return (
                     <button
                       key={item.id}
-                      onClick={() => setActiveTab(item.id)}
+                      disabled={item.disabled}
+                      onClick={() => !item.disabled && setActiveTab(item.id)}
+                      title={item.disabled ? 'Funcionalidade desabilitada' : undefined}
                       className={`flex items-center gap-2 px-3 h-full border-b-2 text-sm font-medium transition-colors
-                        ${isActive 
-                          ? 'border-[#D4A843] text-[#F0EDE8]' 
-                          : 'border-transparent text-[var(--text-secondary)] hover:text-[#F0EDE8]'
+                        ${item.disabled
+                          ? 'opacity-40 cursor-not-allowed border-transparent text-[var(--text-tertiary)]'
+                          : isActive 
+                            ? 'border-[#D4A843] text-[#F0EDE8]' 
+                            : 'border-transparent text-[var(--text-secondary)] hover:text-[#F0EDE8]'
                         }
                       `}
                     >
@@ -113,11 +117,20 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
                 return (
                   <button
                     key={item.id}
-                    onClick={() => { setActiveTab(item.id); setIsMobileMenuOpen(false); }}
+                    disabled={item.disabled}
+                    onClick={() => {
+                      if (!item.disabled) {
+                        setActiveTab(item.id);
+                        setIsMobileMenuOpen(false);
+                      }
+                    }}
+                    title={item.disabled ? 'Funcionalidade desabilitada' : undefined}
                     className={`w-full flex items-center gap-3 px-3 py-3 text-sm font-medium transition-colors border-l-2
-                      ${isActive 
-                        ? 'border-[#D4A843] bg-[var(--accent-tint)] text-[var(--text-primary)]' 
-                        : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]'
+                      ${item.disabled
+                        ? 'opacity-40 cursor-not-allowed border-transparent text-[var(--text-tertiary)]'
+                        : isActive 
+                          ? 'border-[#D4A843] bg-[var(--accent-tint)] text-[var(--text-primary)]' 
+                          : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]'
                       }
                     `}
                   >

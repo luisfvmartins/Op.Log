@@ -78,10 +78,16 @@ export function formatRouteMessage(
     plateString = `Sem carreta (Aguardar avisar qual carreta engatar)\n\n*OBSERVAÇÃO OPERACIONAL:* Aguardar até passar a informação da carreta vazia para seguir para o carregamento.`;
   }
 
+  const isMaintenance = operacaoGeral === 'Manutenção';
   const carretaLabel = placa2 ? 'Carretas' : 'Carreta';
-  let message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${carretaLabel}: ${aguardaCarretaVazia ? "" : plateString}\n\n`;
-  if (aguardaCarretaVazia) {
-     message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${plateString}\n\n`;
+  let message = `${greeting},\n\nSegue sua próxima programação:\n\n`;
+
+  if (isMaintenance || (!placa && !aguardaCarretaVazia)) {
+    message = `${greeting},\n\nSegue sua próxima programação:\n\n`;
+  } else if (aguardaCarretaVazia) {
+    message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${plateString}\n\n`;
+  } else {
+    message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${carretaLabel}: ${plateString}\n\n`;
   }
 
   const numberIcons = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
