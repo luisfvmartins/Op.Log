@@ -82,12 +82,12 @@ export function formatRouteMessage(
   const carretaLabel = placa2 ? 'Carretas' : 'Carreta';
   let message = `${greeting},\n\nSegue sua próxima programação:\n\n`;
 
-  if (isMaintenance || (!placa && !aguardaCarretaVazia)) {
-    message = `${greeting},\n\nSegue sua próxima programação:\n\n`;
-  } else if (aguardaCarretaVazia) {
+  if (aguardaCarretaVazia) {
     message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${plateString}\n\n`;
-  } else {
+  } else if (placa) {
     message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${carretaLabel}: ${plateString}\n\n`;
+  } else {
+    message = `${greeting},\n\nSegue sua próxima programação:\n\n`;
   }
 
   const numberIcons = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];

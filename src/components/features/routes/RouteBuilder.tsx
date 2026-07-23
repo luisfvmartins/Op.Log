@@ -217,20 +217,16 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
     }
   };
 
-  useEffect(() => {
-    if (operacaoGeral === 'Manutenção') {
-      setPlaca('');
-      setPlaca2('');
-      setAguardaCarretaVazia(false);
-    }
-  }, [operacaoGeral]);
-
   const isMaintenance = operacaoGeral === 'Manutenção';
   const canGoToStep2 = operacaoGeral !== '';
   const isPlateValid = (p: string) => /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(p);
-  const canGoToStep4 = isMaintenance || aguardaCarretaVazia || (isPlateValid(placa) && (!placa2 || isPlateValid(placa2)));
-  const canFinish = operacaoGeral !== '' && places.length > 0 && 
-    (isMaintenance || aguardaCarretaVazia || (isPlateValid(placa) && (!placa2 || isPlateValid(placa2)) && (placa !== placa2)));
+  const isPlacaValidOrEmpty = (p: string) => !p || isPlateValid(p);
+
+  const canGoToStep4 = isMaintenance 
+    ? (isPlacaValidOrEmpty(placa) && isPlacaValidOrEmpty(placa2) && (!placa || !placa2 || placa !== placa2))
+    : (aguardaCarretaVazia || (isPlateValid(placa) && isPlacaValidOrEmpty(placa2) && (placa !== placa2)));
+
+  const canFinish = operacaoGeral !== '' && places.length > 0 && canGoToStep4;
 
   return (
     <div className="flex flex-col h-full max-h-[75vh]">
@@ -330,58 +326,58 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
             
             <div className="space-y-4">
               <div className="bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border)] space-y-4">
-                {isMaintenance ? (
-                  <div className="p-4 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-tertiary)] flex items-center gap-2">
+                {isMaintenance && (
+                  <div className="p-3 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg text-xs text-[var(--text-tertiary)] flex items-center gap-2">
                     <Wrench className="w-4 h-4 shrink-0 text-[var(--accent)]" />
-                    <span>Operação de Manutenção: inserção de carreta desabilitada.</span>
+                    <span>Operação de Manutenção: a inclusão de carreta é facultativa.</span>
                   </div>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2 pt-2 pb-1">
-                      <input
-                        type="checkbox"
-                        id="aguardaCarreta"
-                        checked={aguardaCarretaVazia}
-                        onChange={(e) => {
-                           setAguardaCarretaVazia(e.target.checked);
-                           if (e.target.checked) setPlaca('');
-                        }}
-                        className="w-4 h-4 rounded-sm border-[var(--border)] bg-[var(--bg-base)] text-[var(--accent)] focus:ring-[var(--accent)]"
-                      />
-                      <label htmlFor="aguardaCarreta" className="text-sm font-medium text-[var(--text-primary)]">
-                        Aguardar motorista avisar carreta
-                      </label>
-                    </div>
+                )}
 
-                    {!aguardaCarretaVazia && (
-                      <>
-                        <div>
-                          <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 1 *</label>
-                          <input
-                            required={!aguardaCarretaVazia}
-                            value={placa}
-                            onChange={handlePlacaChange}
-                            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] font-mono tracking-widest transition-all uppercase"
-                            placeholder="ABC1B34"
-                            maxLength={7}
-                          />
-                          {placa.length > 0 && !isPlateValid(placa) && <span className="text-xs text-[#E05252] mt-1 block">Placa inválida</span>}
-                        </div>
-                        
-                        <div>
-                          <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 2 (Opcional)</label>
-                          <input
-                            value={placa2}
-                            onChange={handlePlaca2Change}
-                            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] font-mono tracking-widest transition-all uppercase"
-                            placeholder="XYZ9W87"
-                            maxLength={7}
-                          />
-                           {placa2.length > 0 && !isPlateValid(placa2) && <span className="text-xs text-[#E05252] mt-1 block">Placa inválida</span>}
-                           {placa2.length > 0 && placa2 === placa && <span className="text-xs text-[#E05252] mt-1 block">As placas devem ser diferentes</span>}
-                        </div>
-                      </>
-                    )}
+                <div className="flex items-center gap-2 pt-1 pb-1">
+                  <input
+                    type="checkbox"
+                    id="aguardaCarreta"
+                    checked={aguardaCarretaVazia}
+                    onChange={(e) => {
+                       setAguardaCarretaVazia(e.target.checked);
+                       if (e.target.checked) setPlaca('');
+                    }}
+                    className="w-4 h-4 rounded-sm border-[var(--border)] bg-[var(--bg-base)] text-[var(--accent)] focus:ring-[var(--accent)]"
+                  />
+                  <label htmlFor="aguardaCarreta" className="text-sm font-medium text-[var(--text-primary)]">
+                    Aguardar motorista avisar carreta
+                  </label>
+                </div>
+
+                {!aguardaCarretaVazia && (
+                  <>
+                    <div>
+                      <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">
+                        Carreta 1 {isMaintenance ? '(Opcional)' : '*'}
+                      </label>
+                      <input
+                        required={!isMaintenance && !aguardaCarretaVazia}
+                        value={placa}
+                        onChange={handlePlacaChange}
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] font-mono tracking-widest transition-all uppercase"
+                        placeholder="ABC1B34"
+                        maxLength={7}
+                      />
+                      {placa.length > 0 && !isPlateValid(placa) && <span className="text-xs text-[#E05252] mt-1 block">Placa inválida</span>}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 2 (Opcional)</label>
+                      <input
+                        value={placa2}
+                        onChange={handlePlaca2Change}
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] font-mono tracking-widest transition-all uppercase"
+                        placeholder="XYZ9W87"
+                        maxLength={7}
+                      />
+                       {placa2.length > 0 && !isPlateValid(placa2) && <span className="text-xs text-[#E05252] mt-1 block">Placa inválida</span>}
+                       {placa2.length > 0 && placa2 === placa && <span className="text-xs text-[#E05252] mt-1 block">As placas devem ser diferentes</span>}
+                    </div>
                   </>
                 )}
               </div>
@@ -434,16 +430,18 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                  <div>
                    <span className="text-[10px] uppercase font-mono text-[var(--text-tertiary)] tracking-wider block mb-2">Implementos (Carretas)</span>
                    <div className="space-y-1 text-sm font-mono">
-                     {isMaintenance ? (
-                       <p className="text-[var(--text-tertiary)] italic">Manutenção (Sem carreta)</p>
-                     ) : aguardaCarretaVazia ? (
-                       <p className="text-[var(--accent)] font-medium">Aguardar motorista avisar carreta</p>
-                     ) : (
-                       <>
-                         {placa && <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 1:</span> {placa}</p>}
-                         {placa2 && <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 2:</span> {placa2}</p>}
-                       </>
-                     )}
+                                   {aguardaCarretaVazia ? (
+                        <p className="text-[var(--accent)] font-medium">Aguardar motorista avisar carreta</p>
+                      ) : placa ? (
+                        <>
+                          <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 1:</span> {placa}</p>
+                          {placa2 && <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 2:</span> {placa2}</p>}
+                        </>
+                      ) : isMaintenance ? (
+                        <p className="text-[var(--text-tertiary)] italic">Manutenção (Sem carreta informada)</p>
+                      ) : (
+                        <p className="text-[var(--text-tertiary)] italic">Nenhuma carreta informada</p>
+                      )}
                    </div>
                  </div>
                  <button onClick={() => setStep(3)} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] font-medium hover:underline">Editar</button>
