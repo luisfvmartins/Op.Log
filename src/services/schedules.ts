@@ -1,5 +1,6 @@
 import { db } from '../lib/firebase';
 import { collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { addSystemLog } from './activityLog';
 
 export interface Schedule {
   id?: string;
@@ -42,6 +43,15 @@ export const createSchedule = async (schedule: Omit<Schedule, 'id' | 'createdAt'
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   });
+
+  addSystemLog({
+    actionType: 'Inclusão',
+    module: 'Programações',
+    description: `Nova programação registrada para ${schedule.date} às ${schedule.time}`,
+    details: `Local: ${schedule.locationName || 'N/A'} | Status: ${schedule.status}`,
+    userId: schedule.userId
+  });
+
   return newRef.id;
 };
 
@@ -51,8 +61,22 @@ export const updateSchedule = async (id: string, updates: Partial<Schedule>): Pr
     ...updates,
     updatedAt: serverTimestamp()
   });
+
+  addSystemLog({
+    actionType: 'Edição',
+    module: 'Programações',
+    description: `Atualização de programação ID: ${id}`,
+    details: updates.status ? `Status alterado para ${updates.status}` : undefined,
+    userId: updates.userId
+  });
 };
 
 export const deleteSchedule = async (id: string): Promise<void> => {
   await deleteDoc(doc(db, 'schedules', id));
+
+  addSystemLog({
+    actionType: 'Exclusão',
+    module: 'Programações',
+    description: `Exclusão de programação ID: ${id}`
+  });
 };

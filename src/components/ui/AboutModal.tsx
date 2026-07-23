@@ -1,12 +1,13 @@
-import { Instagram, Linkedin } from 'lucide-react';
+import { Instagram, Linkedin, History } from 'lucide-react';
 import { Modal } from './Modal';
 
 interface AboutModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenLogs?: () => void;
 }
 
-export function AboutModal({ isOpen, onClose }: AboutModalProps) {
+export function AboutModal({ isOpen, onClose, onOpenLogs }: AboutModalProps) {
   return (
     <Modal
       isOpen={isOpen}
@@ -50,7 +51,21 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
           </div>
         </div>
         
-        <div className="mt-8 flex justify-end">
+        <div className="mt-6 pt-4 border-t border-[var(--border)] flex items-center justify-between">
+          {onOpenLogs ? (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenLogs();
+              }}
+              className="flex items-center gap-2 text-xs font-mono text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors py-1 px-2 rounded-md hover:bg-[var(--bg-base)]"
+              title="Log de Atividades do Sistema"
+            >
+              <History className="w-3.5 h-3.5" />
+              <span>Log do Sistema</span>
+            </button>
+          ) : <div />}
+
           <button
             onClick={onClose}
             className="px-5 py-2.5 bg-transparent hover:bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text-primary)] rounded-md text-sm font-medium transition-colors"

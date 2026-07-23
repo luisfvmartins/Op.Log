@@ -7,12 +7,14 @@ import { useEffect, useState } from 'react';
 import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Map, Menu, X, LogOut, Sun, Moon, Info, Instagram } from 'lucide-react';
+import { Map, Menu, X, LogOut, Sun, Moon, Info, Instagram, History } from 'lucide-react';
+import { SystemLogsModal } from './components/ui/SystemLogsModal';
 
 function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
   const { logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 
   const navItems = [
     { id: 'locais', label: 'Locais', icon: Map, disabled: false },
@@ -54,7 +56,7 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
             <div className="hidden md:flex items-center gap-2">
               <button
                 onClick={toggleTheme}
-                className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-surface)]"
                 title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -62,7 +64,7 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
 
               <button
                 onClick={() => setIsInfoModalOpen(true)}
-                className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-surface)]"
                 title="Informações do App"
               >
                 <Info className="w-4 h-4" />
@@ -72,7 +74,7 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
               
               <button
                 onClick={logout}
-                className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-surface)]"
                 title="Sair"
               >
                 <LogOut className="w-4 h-4 shrink-0" />
@@ -195,7 +197,19 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 pt-4 border-t border-[var(--border)] flex items-center justify-between">
+              <button
+                onClick={() => {
+                  setIsInfoModalOpen(false);
+                  setIsLogModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 text-xs font-mono text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors py-1 px-2.5 rounded-md hover:bg-[var(--bg-base)]"
+                title="Exibir Log de Atividades do Sistema"
+              >
+                <History className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                <span>Log do Sistema</span>
+              </button>
+
               <button
                 onClick={() => setIsInfoModalOpen(false)}
                 className="px-5 py-2 bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-surface)] rounded-md text-sm font-medium transition-colors"
@@ -206,6 +220,12 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
           </div>
         </div>
       )}
+
+      {/* System Logs Modal */}
+      <SystemLogsModal
+        isOpen={isLogModalOpen}
+        onClose={() => setIsLogModalOpen(false)}
+      />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { db } from '../lib/firebase';
 import { collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { addSystemLog } from './activityLog';
 
 export interface Vehicle {
   id?: string;
@@ -33,6 +34,15 @@ export const createVehicle = async (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   });
+
+  addSystemLog({
+    actionType: 'Inclusão',
+    module: 'Veículos',
+    description: `Inclusão de veículo: ${vehicle.placa}`,
+    details: `Tipo: ${vehicle.tipo} | Status: ${vehicle.status}`,
+    userId: vehicle.userId
+  });
+
   return newRef.id;
 };
 
@@ -42,8 +52,22 @@ export const updateVehicle = async (id: string, updates: Partial<Vehicle>): Prom
     ...updates,
     updatedAt: serverTimestamp()
   });
+
+  addSystemLog({
+    actionType: 'Edição',
+    module: 'Veículos',
+    description: `Edição de veículo: ${updates.placa || id}`,
+    details: updates.status ? `Status: ${updates.status}` : undefined,
+    userId: updates.userId
+  });
 };
 
 export const deleteVehicle = async (id: string): Promise<void> => {
   await deleteDoc(doc(db, 'vehicles', id));
+
+  addSystemLog({
+    actionType: 'Exclusão',
+    module: 'Veículos',
+    description: `Exclusão de veículo ID: ${id}`
+  });
 };

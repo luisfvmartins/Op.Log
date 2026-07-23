@@ -1,5 +1,6 @@
 import { db } from '../lib/firebase';
 import { collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { addSystemLog } from './activityLog';
 
 export interface Driver {
   id?: string;
@@ -36,6 +37,15 @@ export const createDriver = async (driver: Omit<Driver, 'id' | 'createdAt' | 'up
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   });
+
+  addSystemLog({
+    actionType: 'Inclusão',
+    module: 'Motoristas',
+    description: `Inclusão de motorista: ${driver.nome}`,
+    details: `Tipo: ${driver.tipo} | Status: ${driver.status}`,
+    userId: driver.userId
+  });
+
   return newRef.id;
 };
 
@@ -45,8 +55,22 @@ export const updateDriver = async (id: string, updates: Partial<Driver>): Promis
     ...updates,
     updatedAt: serverTimestamp()
   });
+
+  addSystemLog({
+    actionType: 'Edição',
+    module: 'Motoristas',
+    description: `Edição de motorista: ${updates.nome || id}`,
+    details: updates.status ? `Status: ${updates.status}` : undefined,
+    userId: updates.userId
+  });
 };
 
 export const deleteDriver = async (id: string): Promise<void> => {
   await deleteDoc(doc(db, 'drivers', id));
+
+  addSystemLog({
+    actionType: 'Exclusão',
+    module: 'Motoristas',
+    description: `Exclusão de motorista ID: ${id}`
+  });
 };

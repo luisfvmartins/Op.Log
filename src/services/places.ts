@@ -1,5 +1,6 @@
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy, where, writeBatch, deleteField } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { addSystemLog } from './activityLog';
 
 export interface Observacao {
   categoria: string;
@@ -53,6 +54,7 @@ export async function getPlaces(userId: string): Promise<Place[]> {
 }
 
 export async function createPlace(place: Omit<Place, 'id' | 'createdAt' | 'updatedAt'>, userId: string): Promise<Place> {
+  let created: Place;
   if (!db) {
     const newPlace: Place = { 
       ...place, 
@@ -62,17 +64,26 @@ export async function createPlace(place: Omit<Place, 'id' | 'createdAt' | 'updat
       updatedAt: new Date().toISOString()
     };
     setLocalPlaces([newPlace, ...getLocalPlaces()]);
-    return newPlace;
+    created = newPlace;
+  } else {
+    const docRef = await addDoc(collection(db, COLLECTION), {
+      ...place,
+      userId,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    created = { id: docRef.id, ...place, userId };
   }
-  
-  const docRef = await addDoc(collection(db, COLLECTION), {
-    ...place,
-    userId,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+
+  addSystemLog({
+    actionType: 'Inclusão',
+    module: 'Locais',
+    description: `Inclusão do local: ${place.nomeFantasia}`,
+    details: `Cidade: ${place.cidade || 'N/A'} | Razão Social: ${place.nomeRazaoSocial || 'N/A'}`,
+    userId
   });
-  
-  return { id: docRef.id, ...place, userId };
+
+  return created;
 }
 
 export async function updatePlace(id: string, place: Partial<Place>): Promise<void> {
@@ -89,79 +100,100 @@ export async function updatePlace(id: string, place: Partial<Place>): Promise<vo
       return p;
     });
     setLocalPlaces(updated);
-    return;
+  } else {
+    const docRef = doc(db, COLLECTION, id);
+    const updateData: any = { ...place, updatedAt: serverTimestamp() };
+    if (place.observacoes !== undefined) {
+      updateData.observacao = deleteField();
+    }
+    await updateDoc(docRef, updateData);
   }
-  const docRef = doc(db, COLLECTION, id);
-  const updateData: any = { ...place, updatedAt: serverTimestamp() };
-  if (place.observacoes !== undefined) {
-    updateData.observacao = deleteField();
-  }
-  await updateDoc(docRef, updateData);
+
+  addSystemLog({
+    actionType: 'Edição',
+    module: 'Locais',
+    description: `Edição do local: ${place.nomeFantasia || id}`,
+    details: place.cidade ? `Cidade: ${place.cidade}` : undefined
+  });
 }
 
 export async function deletePlace(id: string): Promise<void> {
   if (!db) {
     setLocalPlaces(getLocalPlaces().filter(p => p.id !== id));
-    return;
+  } else {
+    const docRef = doc(db, COLLECTION, id);
+    await deleteDoc(docRef);
   }
-  const docRef = doc(db, COLLECTION, id);
-  await deleteDoc(docRef);
+
+  addSystemLog({
+    actionType: 'Exclusão',
+    module: 'Locais',
+    description: `Exclusão do local ID: ${id}`
+  });
 }
 
 export async function deletePlaces(ids: string[]): Promise<void> {
   if (!db) {
     setLocalPlaces(getLocalPlaces().filter(p => !ids.includes(p.id!)));
-    return;
+  } else {
+    const CHUNK_SIZE = 450;
+    for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+      const chunk = ids.slice(i, i + CHUNK_SIZE);
+      const batch = writeBatch(db);
+      
+      chunk.forEach(id => {
+        batch.delete(doc(db, COLLECTION, id));
+      });
+      
+      await batch.commit();
+    }
   }
-  
-  const CHUNK_SIZE = 450;
-  for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
-    const chunk = ids.slice(i, i + CHUNK_SIZE);
-    const batch = writeBatch(db);
-    
-    chunk.forEach(id => {
-      batch.delete(doc(db, COLLECTION, id));
-    });
-    
-    await batch.commit();
-  }
+
+  addSystemLog({
+    actionType: 'Exclusão',
+    module: 'Locais',
+    description: `Exclusão em massa: ${ids.length} local(is) removido(s)`
+  });
 }
 
 export async function deleteAllPlaces(userId?: string): Promise<void> {
   if (!db) {
     setLocalPlaces([]);
-    return;
-  }
-  
-  if (!userId) {
-    throw new Error('UserId required for deleting all places');
-  }
+  } else {
+    if (!userId) {
+      throw new Error('UserId required for deleting all places');
+    }
 
-  const q = query(
-    collection(db, COLLECTION),
-    where("userId", "==", userId)
-  );
+    const q = query(
+      collection(db, COLLECTION),
+      where("userId", "==", userId)
+    );
 
-  const snapshot = await getDocs(q);
-  
-  if (snapshot.empty) {
-    return;
-  }
-
-  // Firestore max batch size is 500
-  const CHUNK_SIZE = 450;
-  const docs = snapshot.docs;
-  
-  for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
-    const chunk = docs.slice(i, i + CHUNK_SIZE);
-    const batch = writeBatch(db);
+    const snapshot = await getDocs(q);
     
-    chunk.forEach(d => {
-      batch.delete(d.ref);
-    });
-    
-    await batch.commit();
+    if (!snapshot.empty) {
+      const CHUNK_SIZE = 450;
+      const docs = snapshot.docs;
+      
+      for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
+        const chunk = docs.slice(i, i + CHUNK_SIZE);
+        const batch = writeBatch(db);
+        
+        chunk.forEach(d => {
+          batch.delete(d.ref);
+        });
+        
+        await batch.commit();
+      }
+    }
   }
+
+  addSystemLog({
+    actionType: 'Exclusão',
+    module: 'Locais',
+    description: `Exclusão total: todos os locais foram limpos`,
+    userId
+  });
 }
 
 export async function importData(places: Omit<Place, 'id' | 'userId' | 'createdAt' | 'updatedAt'>[], userId: string): Promise<void> {
@@ -175,25 +207,30 @@ export async function importData(places: Omit<Place, 'id' | 'userId' | 'createdA
       updatedAt: new Date().toISOString()
     }));
     setLocalPlaces([...newPlaces, ...current]);
-    return;
-  }
-  
-  // Firestore max batch size is 500. We use 450 to be safe.
-  const CHUNK_SIZE = 450;
-  for (let i = 0; i < places.length; i += CHUNK_SIZE) {
-    const chunk = places.slice(i, i + CHUNK_SIZE);
-    const batch = writeBatch(db);
-    
-    chunk.forEach(place => {
-      const docRef = doc(collection(db, COLLECTION));
-      batch.set(docRef, {
-        ...place,
-        userId,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+  } else {
+    const CHUNK_SIZE = 450;
+    for (let i = 0; i < places.length; i += CHUNK_SIZE) {
+      const chunk = places.slice(i, i + CHUNK_SIZE);
+      const batch = writeBatch(db);
+      
+      chunk.forEach(place => {
+        const docRef = doc(collection(db, COLLECTION));
+        batch.set(docRef, {
+          ...place,
+          userId,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
       });
-    });
-    
-    await batch.commit();
+      
+      await batch.commit();
+    }
   }
+
+  addSystemLog({
+    actionType: 'Importação',
+    module: 'Locais',
+    description: `Importação de dados: ${places.length} locais cadastrados`,
+    userId
+  });
 }
