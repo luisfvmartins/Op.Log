@@ -145,6 +145,12 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
     setPlaces(newPlaces);
   }, [selectedPlaces]);
 
+  useEffect(() => {
+    if (places.length <= 1 && operacaoGeral === 'Misto') {
+      setOperacaoGeral('');
+    }
+  }, [places.length, operacaoGeral]);
+
   const handleCopy = async () => {
     const message = formatRouteMessage(places, placa, placa2, observacaoGeral, operacaoGeral, agendamentoGeral, aguardaCarretaVazia);
     await navigator.clipboard.writeText(message);
@@ -244,7 +250,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <h2 className="text-xl font-semibold text-[var(--text-primary)]">Qual o tipo da operação?</h2>
             <div className="grid grid-cols-2 gap-3 mt-4">
-              {OPERATION_TYPES.map(type => (
+              {OPERATION_TYPES.filter(type => type.id !== 'Misto' || places.length > 1).map(type => (
                 <button
                   key={type.id}
                   onClick={() => {

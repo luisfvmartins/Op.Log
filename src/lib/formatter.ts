@@ -134,7 +134,11 @@ export function formatRouteMessage(
     message += `📝 Observações gerais:\n${observacaoGeral}\n\n`;
   }
 
-  message += `⚠️ Após o engate, conferir documentação, condições do veículo e horário de atendimento de cada destino antes de seguir viagem.`;
+  if (!isMaintenance) {
+    message += `⚠️ Após o engate, conferir documentação, condições do veículo e horário de atendimento de cada destino antes de seguir viagem.`;
+  } else {
+    message = message.trimEnd();
+  }
 
   return message;
 }
