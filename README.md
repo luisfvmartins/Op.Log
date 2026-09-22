@@ -158,30 +158,20 @@ O projeto utiliza uma arquitetura frontend baseada em React + TypeScript, organi
 - **Lucide React** — biblioteca de ícones.
 - **Motion** — animações e transições.
 - **@hello-pangea/dnd** — drag and drop para organização de roteiros.
-- **clsx** e **tailwind-merge** — composição e tratamento de classes CSS.
 
 ### Dados e backend
 
 - **Firebase** — autenticação e persistência dos dados da aplicação.
-- **Express** — suporte à camada de API/customizações de backend.
 - **IBGE** — consulta de dados de municípios brasileiros.
-- **dotenv** — gerenciamento de variáveis de ambiente.
-
-### Recursos adicionais
-
-- **@google/genai** — integração com recursos da API Gemini.
-- **jsPDF** — geração de documentos PDF.
-- **date-fns** — operações e formatação de datas.
 
 ## Requisitos
 
 Para executar o projeto localmente, recomenda-se:
 
-- **Node.js** em versão compatível com as dependências do projeto.
+- **Node.js 20 ou superior**.
 - **npm**.
 - Um projeto configurado no **Firebase**.
 - Credenciais do Firebase para o ambiente de desenvolvimento.
-- Chave da API Gemini caso os recursos que utilizam Gemini estejam habilitados.
 
 ## Instalação
 
@@ -260,7 +250,6 @@ Para disponibilizar o servidor na rede local, o script de desenvolvimento já ut
 | `npm run build` | Gera a build de produção |
 | `npm run preview` | Executa localmente a build de produção |
 | `npm run typecheck` | Verifica os tipos TypeScript sem gerar arquivos |
-| `npm run clean` | Remove artefatos locais de build definidos pelo projeto |
 
 ### Build de produção
 
@@ -387,7 +376,7 @@ Para propor melhorias:
 3. Implemente e teste a mudança.
 4. Execute a verificação de tipos:
    ```bash
-   npm run lint
+   npm run typecheck
    ```
 5. Gere a build:
    ```bash
@@ -397,7 +386,7 @@ Para propor melhorias:
 
 ## Licença
 
-O código-fonte principal do projeto contém arquivos sob **Apache License 2.0**, conforme o cabeçalho de licença presente no código da aplicação. Consulte os arquivos do repositório para verificar a licença aplicável a cada componente e dependência.
+Este projeto é distribuído sob a **Apache License 2.0**. Consulte o arquivo `LICENSE` para os termos completos.
 
 ## Autor
 
