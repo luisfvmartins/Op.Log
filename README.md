@@ -188,8 +188,8 @@ Para executar o projeto localmente, recomenda-se:
 Clone o repositório:
 
 ```bash
-git clone https://github.com/luisfvmartins/Locais-e-Roteiros.git
-cd Locais-e-Roteiros
+git clone https://github.com/luisfvmartins/Op.Log.git
+cd Op.Log
 ```
 
 Instale as dependências:
@@ -221,6 +221,20 @@ VITE_FIREBASE_APP_ID="SEU_APP_ID"
 ```
 
 > **Importante:** não versione chaves, tokens ou credenciais reais. Utilize o `.env.example` apenas como referência e mantenha os valores sensíveis no ambiente local ou no provedor de hospedagem.
+
+## Endereço de produção e migração de domínio
+
+O endereço oficial de acesso do **Op.Log** é:
+
+**https://oplog.luisfvmartins.com**
+
+O endereço anterior, **transmagna.vercel.app**, está sendo descontinuado. Durante o período de transição, a aplicação exibe um aviso aos usuários que acessarem o endereço antigo, orientando a migração para o novo domínio.
+
+A mudança de domínio **não altera as contas nem os dados dos usuários**. A alteração se limita ao endereço utilizado para acessar a aplicação.
+
+> **Prazo de transição:** o endereço antigo ficará disponível somente até **30/09/2026 às 23h59**. Após esse prazo, o novo domínio deverá ser utilizado exclusivamente.
+
+A aplicação identifica o endereço antigo pelo hostname e exibe o aviso de migração tanto para usuários autenticados quanto para usuários que ainda estão na tela de login.
 
 ## Desenvolvimento
 
