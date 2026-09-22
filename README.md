@@ -370,6 +370,14 @@ Entre as possibilidades de evolução do projeto estão:
 - Exportação para formatos adicionais.
 - Melhorias de permissões e administração de usuários.
 
+## Suporte e sugestões
+
+Para suporte, relatos de problemas ou sugestões de melhorias, entre em contato pelo e-mail:
+
+**suporte.oplog@luisfvmartins.com**
+
+A aplicação também disponibiliza esse contato diretamente no menu **Informações do App (ⓘ)**.
+
 ## Contribuição
 
 Para propor melhorias:
