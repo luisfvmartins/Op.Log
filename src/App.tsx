@@ -9,12 +9,21 @@ import { Login } from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Map, Menu, X, LogOut, Sun, Moon, Info, Instagram, History } from 'lucide-react';
 import { SystemLogsModal } from './components/ui/SystemLogsModal';
+import { DomainMigrationModal } from './components/ui/DomainMigrationModal';
 
 function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) {
   const { logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [isDomainMigrationOpen, setIsDomainMigrationOpen] = useState(false);
+
+  useEffect(() => {
+    // Exibe o aviso somente no endereço antigo. No domínio novo, o aviso deixa de existir.
+    if (window.location.hostname === 'transmagna.vercel.app') {
+      setIsDomainMigrationOpen(true);
+    }
+  }, []);
 
   const navItems = [
     { id: 'locais', label: 'Locais', icon: Map, disabled: false },
@@ -220,6 +229,12 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
           </div>
         </div>
       )}
+
+      {/* Domain Migration Modal */}
+      <DomainMigrationModal
+        isOpen={isDomainMigrationOpen}
+        onClose={() => setIsDomainMigrationOpen(false)}
+      />
 
       {/* System Logs Modal */}
       <SystemLogsModal
