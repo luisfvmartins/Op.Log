@@ -1,6 +1,10 @@
 {
-  "name": "Locais e Roteiros",
-  "description": "Módulo operacional para gestão de locais de entrega e criação de roteiros para motoristas.",
+  "name": "Op.Log",
+  "description": "Aplicação web para gestão de locais e montagem de roteiros operacionais.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "Autenticação com Firebase",
+    "Gestão de locais",
+    "Montagem e compartilhamento de roteiros"
+  ]
 }
