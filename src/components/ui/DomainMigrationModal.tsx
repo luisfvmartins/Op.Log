@@ -62,11 +62,14 @@ export function DomainMigrationModal({ isOpen, onClose }: DomainMigrationModalPr
           </p>
         </div>
 
-        <div className="pt-1">
+        <div className="pt-1 space-y-3">
           <p className="text-sm text-[var(--text-secondary)]">
             <strong className="text-[var(--text-primary)]">Seus dados e sua conta permanecem os mesmos.</strong>{' '}
             Apenas o endereço de acesso está sendo alterado.
           </p>
+          <div className="px-3.5 py-3 rounded-md border border-[var(--accent-border)] bg-[var(--accent-tint)] text-xs leading-relaxed text-[var(--text-secondary)]">
+            <strong className="text-[var(--text-primary)]">Atenção:</strong> o endereço antigo ficará disponível somente até <strong className="text-[var(--text-primary)]">30/09 às 23h59</strong>. Após esse prazo, utilize exclusivamente o novo endereço.
+          </div>
         </div>
 
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 pt-2 border-t border-[var(--border)]">
