@@ -16,14 +16,6 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
-  const [isDomainMigrationOpen, setIsDomainMigrationOpen] = useState(false);
-
-  useEffect(() => {
-    // Exibe o aviso somente no endereço antigo. No domínio novo, o aviso deixa de existir.
-    if (window.location.hostname === 'transmagna.vercel.app') {
-      setIsDomainMigrationOpen(true);
-    }
-  }, []);
 
   const navItems = [
     { id: 'locais', label: 'Locais', icon: Map, disabled: false },
@@ -230,12 +222,6 @@ function AppLayout({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleThem
         </div>
       )}
 
-      {/* Domain Migration Modal */}
-      <DomainMigrationModal
-        isOpen={isDomainMigrationOpen}
-        onClose={() => setIsDomainMigrationOpen(false)}
-      />
-
       {/* System Logs Modal */}
       <SystemLogsModal
         isOpen={isLogModalOpen}
@@ -249,6 +235,14 @@ function MainApp() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
   });
+  const [isDomainMigrationOpen, setIsDomainMigrationOpen] = useState(false);
+
+  useEffect(() => {
+    // O aviso deve aparecer também para usuários que ainda não fizeram login.
+    if (window.location.hostname === 'transmagna.vercel.app') {
+      setIsDomainMigrationOpen(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -275,10 +269,26 @@ function MainApp() {
   }
 
   if (!user) {
-    return <Login theme={theme} toggleTheme={toggleTheme} />;
+    return (
+      <>
+        <Login theme={theme} toggleTheme={toggleTheme} />
+        <DomainMigrationModal
+          isOpen={isDomainMigrationOpen}
+          onClose={() => setIsDomainMigrationOpen(false)}
+        />
+      </>
+    );
   }
 
-  return <AppLayout theme={theme} toggleTheme={toggleTheme} />;
+  return (
+    <>
+      <AppLayout theme={theme} toggleTheme={toggleTheme} />
+      <DomainMigrationModal
+        isOpen={isDomainMigrationOpen}
+        onClose={() => setIsDomainMigrationOpen(false)}
+      />
+    </>
+  );
 }
 
 export default function App() {
