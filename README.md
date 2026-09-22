@@ -259,7 +259,7 @@ Para disponibilizar o servidor na rede local, o script de desenvolvimento já ut
 | `npm run dev` | Inicia o servidor de desenvolvimento Vite na porta 3000 |
 | `npm run build` | Gera a build de produção |
 | `npm run preview` | Executa localmente a build de produção |
-| `npm run lint` | Executa a verificação de tipos TypeScript |
+| `npm run typecheck` | Verifica os tipos TypeScript sem gerar arquivos |
 | `npm run clean` | Remove artefatos locais de build definidos pelo projeto |
 
 ### Build de produção
@@ -299,7 +299,7 @@ A camada de serviços concentra o acesso aos dados e evita que as páginas preci
 
 ## Integração com municípios brasileiros
 
-A aplicação possui integração com dados de cidades brasileiras por meio do serviço relacionado ao **IBGE**.
+A aplicação possui integração com dados de cidades brasileiras por meio da API de municípios do **IBGE**.
 
 Essa integração é utilizada para normalizar e apresentar cidades no formato:
 
