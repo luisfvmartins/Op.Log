@@ -117,7 +117,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
   const [placa, setPlaca] = useState('');
   const [placa2, setPlaca2] = useState('');
   const [observacaoGeral, setObservacaoGeral] = useState('');
-  const [aguardaCarretaVazia, setAguardaCarretaVazia] = useState(false);
+  const [semirreboqueIndefinido, setAguardaCarretaVazia] = useState(false);
   
   const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
@@ -149,20 +149,20 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
     if (places.length <= 1 && operacaoGeral === 'Misto') {
       setOperacaoGeral('');
     }
-    if (operacaoGeral !== 'Coleta' && aguardaCarretaVazia) {
+    if (operacaoGeral !== 'Coleta' && semirreboqueIndefinido) {
       setAguardaCarretaVazia(false);
     }
-  }, [places.length, operacaoGeral, aguardaCarretaVazia]);
+  }, [places.length, operacaoGeral, semirreboqueIndefinido]);
 
   const handleCopy = async () => {
-    const message = formatRouteMessage(places, placa, placa2, observacaoGeral, operacaoGeral, agendamentoGeral, aguardaCarretaVazia);
+    const message = formatRouteMessage(places, placa, placa2, observacaoGeral, operacaoGeral, agendamentoGeral, semirreboqueIndefinido);
     await navigator.clipboard.writeText(message);
     onSuccess('Resumo copiado com sucesso.');
     saveRouteLog(message);
   };
 
   const handleShare = async () => {
-    const message = formatRouteMessage(places, placa, placa2, observacaoGeral, operacaoGeral, agendamentoGeral, aguardaCarretaVazia);
+    const message = formatRouteMessage(places, placa, placa2, observacaoGeral, operacaoGeral, agendamentoGeral, semirreboqueIndefinido);
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
     onSuccess('Redirecionado para o WhatsApp.');
@@ -234,7 +234,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
 
   const canGoToStep4 = isMaintenance 
     ? (isPlacaValidOrEmpty(placa) && isPlacaValidOrEmpty(placa2) && (!placa || !placa2 || placa !== placa2))
-    : ((isColeta && aguardaCarretaVazia) || (isPlateValid(placa) && isPlacaValidOrEmpty(placa2) && (placa !== placa2)));
+    : ((isColeta && semirreboqueIndefinido) || (isPlateValid(placa) && isPlacaValidOrEmpty(placa2) && (placa !== placa2)));
 
   const canFinish = operacaoGeral !== '' && places.length > 0 && canGoToStep4;
 
@@ -332,14 +332,14 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
 
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <h2 className="text-xl font-semibold text-[var(--text-primary)]">Implementos (Carretas)</h2>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">Semirreboque</h2>
             
             <div className="space-y-4">
               <div className="bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border)] space-y-4">
                 {isMaintenance && (
                   <div className="p-3 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg text-xs text-[var(--text-tertiary)] flex items-center gap-2">
                     <Wrench className="w-4 h-4 shrink-0 text-[var(--accent)]" />
-                    <span>Operação de Manutenção: a inclusão de carreta é facultativa.</span>
+                    <span>Operação de Manutenção: a informação do semirreboque é facultativa.</span>
                   </div>
                 )}
 
@@ -347,28 +347,28 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                   <div className="flex items-center gap-2 pt-1 pb-1">
                     <input
                       type="checkbox"
-                      id="aguardaCarreta"
-                      checked={aguardaCarretaVazia}
+                      id="semirreboqueIndefinido"
+                      checked={semirreboqueIndefinido}
                       onChange={(e) => {
                          setAguardaCarretaVazia(e.target.checked);
                          if (e.target.checked) setPlaca('');
                       }}
                       className="w-4 h-4 rounded-sm border-[var(--border)] bg-[var(--bg-base)] text-[var(--accent)] focus:ring-[var(--accent)]"
                     />
-                    <label htmlFor="aguardaCarreta" className="text-sm font-medium text-[var(--text-primary)]">
-                      Aguardar motorista avisar carreta
+                    <label htmlFor="semirreboqueIndefinido" className="text-sm font-medium text-[var(--text-primary)]">
+                      Programação sem semirreboque ou a definir
                     </label>
                   </div>
                 )}
 
-                {!aguardaCarretaVazia && (
+                {!semirreboqueIndefinido && (
                   <>
                     <div>
                       <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">
-                        Carreta 1 {isMaintenance ? '(Opcional)' : '*'}
+                        Semirreboque 1 {isMaintenance ? '(Opcional)' : '*'}
                       </label>
                       <input
-                        required={!isMaintenance && !aguardaCarretaVazia}
+                        required={!isMaintenance && !semirreboqueIndefinido}
                         value={placa}
                         onChange={handlePlacaChange}
                         className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-md px-4 py-3 text-lg text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] font-mono tracking-widest transition-all uppercase"
@@ -379,7 +379,7 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                     </div>
                     
                     <div>
-                      <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Carreta 2 (Opcional)</label>
+                      <label className="block text-[10px] font-mono tracking-widest text-[var(--text-tertiary)] uppercase mb-2">Semirreboque 2 (Opcional)</label>
                       <input
                         value={placa2}
                         onChange={handlePlaca2Change}
@@ -440,19 +440,19 @@ export function RouteBuilder({ selectedPlaces, onClose, onSuccess, onClearSelect
                
                <div className="p-4 border-b border-[var(--border)] flex justify-between items-start bg-[var(--bg-surface)]">
                  <div>
-                   <span className="text-[10px] uppercase font-mono text-[var(--text-tertiary)] tracking-wider block mb-2">Implementos (Carretas)</span>
+                   <span className="text-[10px] uppercase font-mono text-[var(--text-tertiary)] tracking-wider block mb-2">Semirreboque</span>
                    <div className="space-y-1 text-sm font-mono">
-                                   {aguardaCarretaVazia ? (
-                        <p className="text-[var(--accent)] font-medium">Aguardar motorista avisar carreta</p>
+                                   {semirreboqueIndefinido ? (
+                        <p className="text-[var(--accent)] font-medium">Programação sem semirreboque ou a definir</p>
                       ) : placa ? (
                         <>
-                          <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 1:</span> {placa}</p>
-                          {placa2 && <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Carreta 2:</span> {placa2}</p>}
+                          <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Semirreboque 1:</span> {placa}</p>
+                          {placa2 && <p className="text-[var(--text-primary)]"><span className="text-[var(--text-secondary)]">Semirreboque 2:</span> {placa2}</p>}
                         </>
                       ) : isMaintenance ? (
-                        <p className="text-[var(--text-tertiary)] italic">Manutenção (Sem carreta informada)</p>
+                        <p className="text-[var(--text-tertiary)] italic">Manutenção (Sem semirreboque informado)</p>
                       ) : (
-                        <p className="text-[var(--text-tertiary)] italic">Nenhuma carreta informada</p>
+                        <p className="text-[var(--text-tertiary)] italic">Nenhum semirreboque informado</p>
                       )}
                    </div>
                  </div>
