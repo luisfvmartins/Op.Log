@@ -58,7 +58,7 @@ export function formatRouteMessage(
   observacaoGeral?: string,
   operacaoGeral?: string,
   agendamentoGeral?: string,
-  aguardaCarretaVazia?: boolean
+  semirreboqueIndefinido?: boolean
 ) {
   const hour = new Date().getHours();
   let greeting = 'Boa noite';
@@ -74,16 +74,16 @@ export function formatRouteMessage(
     plateString += ` / ${formatPlateForMessage(placa2)}`;
   }
   
-  if (aguardaCarretaVazia) {
-    plateString = 'Passar carreta vazia';
+  if (semirreboqueIndefinido) {
+    plateString = 'Programação sem semirreboque ou a definir';
   }
 
   const isMaintenance = operacaoGeral === 'Manutenção';
   const carretaLabel = placa2 ? 'Carretas' : 'Carreta';
   let message = `${greeting},\n\nSegue sua próxima programação:\n\n`;
 
-  if (aguardaCarretaVazia) {
-    message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 Carreta: Passar carreta vazia\n\n`;
+  if (semirreboqueIndefinido) {
+    message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 Semirreboque: Programação sem semirreboque ou a definir\n\n`;
   } else if (placa) {
     message = `${greeting},\n\nSegue sua próxima programação:\n\n🚚 ${carretaLabel}: ${plateString}\n\n`;
   } else {
